@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>androidVue-layout-dev-tools</title>
+    <style>
+        * {
+            padding: 0px;
+            margin: 0px;
+        }
+        
+        body {
+            height: 100vh;
+            width: 100vw;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        
+        iframe {
+            border: 1px solid red;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+        }
+        
+        section.tool {
+            position: relative;
+            background: transparent;
+            z-index: 99999999999999999999;
+        }
+        
+        section.tool .tool-box {
+            position: absolute;
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            right: -80px;
+            top: 100px;
+        }
+        
+        section.tool .tool-box.box1 {
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        section.tool .tool-box.box1>div {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgb(156, 156, 156);
+            box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            position: relative;
+            box-sizing: border-box;
+            content: '⛭';
+            font-size: 25px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        section.tool .tool-box.box1>div.active {
+            border: 100px solid rgb(66, 66, 66);
+            transition: 1s;
+            width: 40px;
+            height: 40px;
+        }
+        
+        section.tool .tool-box.box2>div {
+            position: relative;
+            height: 100%;
+            width: 100%;
+        }
+        
+        section.tool .tool-box.box2>div {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            border-radius: 50%;
+            transform: rotate(calc(var(--i) * 60deg));
+        }
+        
+        section.tool .tool-box.box2.active>div>span {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.238);
+            box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
+            top: 5px;
+            left: 50%;
+            transform: translate(-50%, 0) rotate(calc(var(--i) * -60deg));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+            transition: 1s;
+            transition-delay: 1s;
+        }
+        
+        section.tool .tool-box.box2>div>span {
+            opacity: 0;
+            z-index: 19;
+        }
+        /**控制台*/
+        
+        .console-log-box {
+            background: #ececec80;
+            width: 100%;
+            height: 80vh;
+            position: fixed;
+            z-index: 9;
+            bottom: 0px;
+        }
+    </style>
+    <script>
+        let showConsole = false;
+        const showConsoleLog = function() {
+            showConsole = !showConsole;
+            document.querySelector(".console-log-box").style.display = showConsole ? 'block' : 'none';
+        }
+    </script>
+</head>
+
+<body>
+    <section class="tool">
+        <div class="tool-box box1">
+            <div class="setting"> ⛭</div>
+        </div>
+        <div class="tool-box box2">
+            <div style="--i:1"><span>console</span> </div>
+            <div style="--i:2"><span>log</span></div>
+            <div style="--i:3"><span>log</span></div>
+            <div style="--i:4"><span>log</span></div>
+            <div style="--i:5" onclick="showConsoleLog()"><span><label style="zoom: 0.6;">console</label></span></div>
+            <div style="--i:6"><span>log</span></div>
+        </div>
+        <div class="tool-box box1">
+            <div class="setting-btn"> ⛭</div>
+        </div>
+    </section>
+    <iframe src="http://suzamdsltlab002:8095/sTAUv2/#/home"></iframe>
+
+    <!-- 动效交互 -->
+    <div class="console-log-box">
+
+    </div>
+
+</body>
+<script type="text/javascript">
+    document.querySelector(".tool-box .setting-btn").onclick = function() {
+        const el = document.querySelector(".tool-box .setting");
+        const box2 = document.querySelector(".tool-box.box2");
+        if (el.className.indexOf('active') > 0) {
+            el.className = el.className.replace('active', '');
+            box2.className = box2.className.replace('active', '');
+        } else {
+            el.className += " active";
+            box2.className += " active";
+        }
+    }
+</script>
+
+</html>

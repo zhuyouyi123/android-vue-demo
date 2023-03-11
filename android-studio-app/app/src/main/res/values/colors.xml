@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="flesh">#F1E8D9</color>
+    <color name="system_color">#000</color>
+    <color name="system_bg_color">#ffffff</color>
+    <color name="transparent">#00FFFFFF</color>
+    <color name="tea_green">#7CB342</color>
+    <color name="tea_green_black">#43A047</color>
+
+    <color name="app_bg_color">@color/system_bg_color</color>
+    <color name="app_text_color">@color/system_color</color>
+
+    <color name="topBar_color">@color/system_color</color>
+    <color name="statusBar_color">@color/system_color</color>
+
+    <color name="tab_bg_color">@color/tea_green</color>
+    <color name="tab_bg_onclick_color">@color/tea_green_black</color>
+    <color name="tab_text_color">@color/system_color</color>
+    <color name="light_blue_600">#FF039BE5</color>
+    <color name="light_blue_900">#FF01579B</color>
+    <color name="light_blue_A200">#FF40C4FF</color>
+    <color name="light_blue_A400">#FF00B0FF</color>
+    <color name="black_overlay">#66000000</color>
+
+</resources>
