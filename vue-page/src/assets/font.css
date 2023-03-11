@@ -1,0 +1,46 @@
+@font-face {
+  font-family: Raleway-ExtraBold;
+  src: url('/apis/font/Raleway-ExtraBold.ttf');
+}
+
+@font-face {
+  font-family: YouSheBiaoTiHei;
+  src: url('/apis/font/YouSheBiaoTiHei-2.ttf');
+}
+
+@font-face {
+  font-family: FredokaOne-Regular;
+  src: url('/apis/font/FredokaOne-Regular.ttf');
+}
+
+@font-face {
+  font-family: HarmonyOSSansSC-Regular; /**名称和原稿提供的字体名称一致*/
+  src: url('/apis/font/HarmonyOS_Sans_Regular.ttf');
+}
+
+
+@font-face {
+  font-family: HarmonyOSSansSC-Black; /**名称和原稿提供的字体名称一致*/
+  src: url('/apis/font/HarmonyOS_Sans_Black.ttf');
+}
+
+@font-face {
+  font-family: HarmonyOSSansSC-Thin; /**名称和原稿提供的字体名称一致*/
+  src: url('/apis/font/HarmonyOS_Sans_Thin.ttf');
+}
+
+@font-face {
+  font-family: HarmonyOSSansSC-Bold; /**名称和原稿提供的字体名称一致*/
+  src: url('/apis/font/HarmonyOS_Sans_Bold.ttf');
+}
+
+@font-face {
+  font-family: HarmonyOSSansSC-Light; /**名称和原稿提供的字体名称一致*/
+  src: url('/apis/font/HarmonyOS_Sans_Light.ttf');
+}
+
+@font-face {
+  font-family: HarmonyOSSansSC-Medium; /**名称和原稿提供的字体名称一致*/
+  src: url('/apis/font/HarmonyOS_Sans_Medium.ttf');
+}
+
