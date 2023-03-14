@@ -113,7 +113,7 @@ public class CoreEventHander {
             String path = appController.path();
             Method[] methods = clzss.getMethods();
             for (Method _methods : methods) {
-                AppRequestMapper appRequestMapper = (AppRequestMapper) _methods.getAnnotation(AppRequestMapper.class);
+                AppRequestMapper appRequestMapper = _methods.getAnnotation(AppRequestMapper.class);
                 if (appRequestMapper == null) {
                     continue;
                 }
@@ -137,6 +137,7 @@ public class CoreEventHander {
      * @return
      * @throws Exception
      */
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public static Object[] getParam(Method method, String json) throws Exception {
         if (json == null || (json + "").equals("")) {
             return null;

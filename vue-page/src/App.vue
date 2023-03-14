@@ -75,25 +75,12 @@ export default {
     },
   },
   mounted() {
-    clearInterval(this.intervalId);
-    this.intervalId = setInterval(() => {
-      this.checkNetWork();
-    }, 4000);
+  
   },
   created() {
-    const task = [
-      // { interval: 3 * 60 * 1000, method: this.changeStatusSLTAndFT, immediate: false },
-      { interval: 1 * 1000 * 60, method: () => this.time = getNowDateTime(0), immediate: false, },
-    ];
-    // this.$emit("loopTask",task )
-
-    this.$store.commit("task/loopTaskList", task);
-    this.$store.commit("task/executeLoopTaskList", true);
   },
   destroyed() {
-    this.$store.commit("task/executeLoopTaskList", false);
-    this.$store.commit("task/clearTaskList", false);
-    clearInterval(this.intervalId);
+
   },
 
 }

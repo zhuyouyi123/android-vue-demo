@@ -33,6 +33,9 @@ router.afterEach((to, from, next) => {
 import androidVue from '@/android-vue.js';
 Vue.use(androidVue);
 
+import androidApi from './api/android-api.js'
+Vue.prototype.$androidApi = androidApi
+
 let utterMsg = null;
 try {
   utterMsg = new SpeechSynthesisUtterance(' ');

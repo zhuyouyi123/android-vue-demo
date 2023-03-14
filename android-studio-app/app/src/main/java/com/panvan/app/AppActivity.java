@@ -144,7 +144,7 @@ public class AppActivity extends AppInitTools {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onLoadResource(WebView view, String url) {
-                view.addJavascriptInterface(new JavaScriptObject(AppActivity.this, view), "androidJS");
+                view.addJavascriptInterface(new JavaScriptObject(AppActivity.this), "androidJS");
                 super.onLoadResource(view, url);
             }
 
@@ -319,7 +319,7 @@ public class AppActivity extends AppInitTools {
 //        webSettings.setBlockNetworkLoads(true); //-> 是否从网络获取资源
 
         //设置本地调用对象及其接口
-        webView.addJavascriptInterface(new JavaScriptObject(this, webView), "androidJS");
+        webView.addJavascriptInterface(new JavaScriptObject(this), "androidJS");
 
 //        //本地HTML里面有跨域的请求 原生webview需要设置之后才能实现跨域请求
 //        try {

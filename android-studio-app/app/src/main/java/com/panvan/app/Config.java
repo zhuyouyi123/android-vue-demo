@@ -62,7 +62,7 @@ public class Config {
     }
 
     public static String getAssetsPath(){
-        return "http://192.168.1.9:8888";
+        return "http://172.16.5.135:8888";
     }
 
     public static DateFormat[] df = new SimpleDateFormat[]{
