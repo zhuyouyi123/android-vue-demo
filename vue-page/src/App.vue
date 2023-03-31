@@ -1,47 +1,49 @@
 <template>
   <div id="app" class="w h over-h box-b">
-    <!-- <resize autoHeight width="375"> -->
+    <div style="height: 0.9rem"></div>
     <router-view :nowTime="time" />
-    <!-- </resize> -->
   </div>
 </template>
 
 <script>
-import resize from '@/components/Resize/Resize.vue'
-import axios from 'axios';
-import { getNowDateTime } from '@/utils/index.js';
+import axios from "axios";
+import { Toast, Notify } from "vant";
+import { getNowDateTime } from "@/utils/index.js";
 export default {
-  name: 'App',
-  components: { resize },
+  name: "App",
+  components: {},
   data() {
     return {
       intervalId: null,
-      time: getNowDateTime(0)
-    }
+      time: getNowDateTime(0),
+    };
   },
   methods: {
-
     /**
      * 检查网络请求
      */
     checkNetWork() {
-      axios.get(window.location.href, { timeout: 3000 }).then(res => {
-        this.msg = "";
-      }).catch(error => {
-        try {
-          if (error.message.indexOf('Failed') >= 0 || error.message.indexOf('timeout') >= 0) {
-            this.msg = '服务器断开连接！';
-            // alert('服务器断开连接！')
-            // this.$notify.error({ title: '错误', message: '服务器断开连接！', duration: 3500, });
-            return;
-          }
-        } catch (error) {
-        }
-        this.msg = '当前处于离线状态，请检查并连接！';
-        // alert('当前处于离线状态，请检查并连接！')
-        // this.$notify.error({ title: '错误', message: '当前处于离线状态，请检查并连接！', duration: 3500, });
-      });
-
+      axios
+        .get(window.location.href, { timeout: 3000 })
+        .then((res) => {
+          this.msg = "";
+        })
+        .catch((error) => {
+          try {
+            if (
+              error.message.indexOf("Failed") >= 0 ||
+              error.message.indexOf("timeout") >= 0
+            ) {
+              this.msg = "服务器断开连接！";
+              // alert('服务器断开连接！')
+              // this.$notify.error({ title: '错误', message: '服务器断开连接！', duration: 3500, });
+              return;
+            }
+          } catch (error) {}
+          this.msg = "当前处于离线状态，请检查并连接！";
+          // alert('当前处于离线状态，请检查并连接！')
+          // this.$notify.error({ title: '错误', message: '当前处于离线状态，请检查并连接！', duration: 3500, });
+        });
     },
     /**
      * 在进行和android基座调用时的拦截器
@@ -70,20 +72,14 @@ export default {
          */
         error: (error, option) => {
           return error;
-        }
-      }
+        },
+      };
     },
   },
-  mounted() {
-  
-  },
-  created() {
-  },
-  destroyed() {
-
-  },
-
-}
+  mounted() {},
+  created() {},
+  destroyed() {},
+};
 </script>
 
 <style lang="scss">
@@ -101,6 +97,7 @@ body,
   box-sizing: border-box;
   margin: 0px;
 
+  background-color: #eff0f4;
   --body-background-color: #f7f8fa;
   --default-bar-color: #fff;
   --default-font-color: #000;
@@ -134,6 +131,15 @@ body,
   .van-nav-bar__title {
     color: var(--default-font-color);
   }
+  .van-icon {
+    font-size: 18px;
+  }
+
+  .division-line {
+    border: 0.01rem solid #d8dceb;
+    width: 95%;
+    margin-left: 2.5%;
+  }
 }
 
 .fs-m-y {
@@ -164,7 +170,7 @@ body,
 .nav-bar {
   position: sticky;
   top: 0;
-  z-index: 10001;
+  z-index: 5;
 }
 
 .el-message {

@@ -6,7 +6,7 @@
           <template #left>
             <slot name="header-left">
               <span class="header-left">
-                <i class=" el-icon-arrow-left"></i>
+                <i class="el-icon-arrow-left"></i>
                 <span class=" " @click="goBack(isBackedReload)">返回</span>
               </span>
             </slot>
@@ -20,17 +20,23 @@
             <slot name="header-right">
               <span></span>
             </slot>
-            <van-icon class="m-l2 m-r2" name="bullhorn-o" v-if="isDevelopment"
-              @click="testPushMessage" />
+            <van-icon
+              class="m-l2 m-r2"
+              name="bullhorn-o"
+              v-if="isDevelopment"
+              @click="testPushMessage"
+            />
             <van-icon class="m-l2" name="replay" @click="reloadPage" />
             <div v-if="isDevelopment" class="w-20 h-10"></div>
           </template>
         </van-nav-bar>
       </slot>
     </div>
-    <div class="page-content" :style="{height:`calc(100% - ${showNavBar?'46px':'0px'})`}">
-      <slot name="content">
-      </slot>
+    <div
+      class="page-content"
+      :style="{ height: `calc(100% - ${showNavBar ? '46px' : '0px'})` }"
+    >
+      <slot name="content"> </slot>
       <slot></slot>
     </div>
   </div>
@@ -38,36 +44,26 @@
 
 <script>
 export default {
-  name: 'pageFrame',
-  props: {
-    showNavBar: {
-      type: Boolean,
-      default: true
-    },
-    /**
-     * 后退后是否刷新
-     */
-    isBackedReload: {
-      type: Boolean,
-      default: false
-    }
+  name: "pageFrame",
+  components: {
   },
   computed: {
     isDevelopment() {
-      return process.env.NODE_ENV !== 'production'
-    }
+      return process.env.NODE_ENV !== "production";
+    },
   },
   data() {
-    return {
-
-    }
+    return {};
   },
   methods: {
     /**
      * 测试发送消息
      */
     testPushMessage() {
-      this.$ano.requestSync('system/pushMessage', 'post', { title: '16:57:04测试内推', text: '测试消息，成功发送搞一条信息' });
+      this.$ano.requestSync("system/pushMessage", "post", {
+        title: "16:57:04测试内推",
+        text: "测试消息，成功发送搞一条信息",
+      });
     },
     reloadPage() {
       window.location.reload();
@@ -78,7 +74,7 @@ export default {
       // });
     },
   },
-}
+};
 </script>
 
 <style lang="scss" scoped>

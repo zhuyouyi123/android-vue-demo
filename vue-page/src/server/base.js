@@ -32,5 +32,5 @@ export const excludesRequestPath = [
  * 放行Router路径
  */
 export const excludesRouterPath = [
-    `/layout/index`,
+    `/home`,
 ];

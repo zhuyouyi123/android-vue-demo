@@ -1,0 +1,287 @@
+/**
+ * Eric Meyer's Reset CSS v2.0 (http://meyerweb.com/eric/tools/css/reset/)
+ * http://cssreset.com
+ */
+/* body {
+  padding-bottom: env(safe-area-inset-bottom);
+} */
+
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video,
+select,
+input {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  list-style: none;
+  list-style-type: none;
+}
+
+img {
+  pointer-events: none;
+  /* 禁止长按图片保存 */
+}
+
+/* HTML5 display-role reset for older browsers */
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+menu,
+nav,
+section {
+  display: block;
+}
+
+body {
+  line-height: 1.1;
+  font-size: 0.26rem;
+  color: #333;
+  background: #F7F7F7;
+  /* background: red; */
+}
+
+input,
+textarea {
+  font-size: 0.26rem;
+}
+
+blockquote,
+q {
+  quotes: none;
+}
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+  content: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+
+/* custom */
+
+a {
+  color: #666;
+  text-decoration: none;
+  -webkit-backface-visibility: hidden;
+}
+
+li {
+  list-style: none;
+}
+
+
+html,
+body {
+  width: 100%;
+  font-family: "PingFang SC", "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+}
+
+body {
+  -webkit-text-size-adjust: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  /* 在X5新内核Blink中，在排版页面的时候，会主动对字体进行放大，会检测页面中的主字体，当某一块字体在我们的判定规则中，认为字号较小，并且是页面中的主要字体，就会采取主动放大的操作。然而这不是我们想要的，可以采取给最大高度解决 */
+  max-height: 1000000px;
+}
+
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+select,
+button {
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  background: transparent;
+}
+
+textarea {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+}
+
+input:focus {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-user-modify: read-write-plaintext-only;
+}
+
+input::-ms-clear {
+  display: none;
+}
+
+textarea {
+  resize: none;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  /* Firefox */
+  -webkit-box-sizing: border-box;
+  -webkit-touch-callout: none;
+  /*系统默认菜单被禁用*/
+  -webkit-user-select: none;
+  /*webkit浏览器*/
+  -khtml-user-select: none;
+  /*早期浏览器*/
+  -moz-user-select: none;
+  /*火狐*/
+  -ms-user-select: none;
+  /*IE10*/
+  user-select: none;
+  /* Safari */
+}
+
+input,
+textarea {
+  -webkit-user-select: auto;
+  /*webkit浏览器*/
+  margin: 0px;
+  padding: 0px;
+  outline: none;
+}
+
+*,
+*:before,
+*:after {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.clearfix {
+  overflow: hidden;
+  _zoom: 1
+}
+
+.clearfix:before,
+.clearfix:after {
+  content: "";
+  display: table;
+}
+
+.clearfix:after {
+  clear: both;
+}
+
+.clearFloat:before,
+.clearFloat:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.clearFloat {
+  zoom: 1;
+}
+
+.fl {
+  float: left;
+}
+
+.fr {
+  float: right;
+}
+
+/* 设置显示和隐藏，通常用来与 js 配合 */
+.hide {
+  display: none;
+}
+
+.block {
+  display: block;
+}

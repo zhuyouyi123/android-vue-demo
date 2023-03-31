@@ -1,31 +1,32 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import { excludesRouterPath, tokenName } from '@/server/base.js'
+import {
+  excludesRouterPath,
+  tokenName
+} from '@/server/base.js'
 
 Vue.use(Router)
 
 
-export const constantRoutes = [
-  {
+export const constantRoutes = [{
     path: '/',
-    redirect: '/layout/index'
+    redirect: '/home'
   },
   {
-    path: '/layout',
-    name: 'layout',
+    path: '/',
+    name: '',
     component: () => import('@/views/home/index.vue'),
-    children: [
-      {
-        path: 'index',
-        name: 'index',
+    children: [{
+        path: 'home',
+        name: 'home',
         component: () => import('@/views/home/index.vue'),
-        // children: [{
-        //   path: 'main',
-        //   name: 'main',
-        //   component: () => import('@/views/home/main/index.vue'),
-        // }]
+        children: [{
+          path: 'deviceDetail',
+          name: 'deviceDetail',
+          component: () => import('@/views/home/children/deviceDetail.vue'),
+        }]
       },
-      
+
 
       // {
       //   path: 'login',
@@ -43,7 +44,9 @@ export const constantRoutes = [
 const createRouter = () => new Router({
 
   // mode: 'history', // require service support
-  scrollBehavior: () => ({ y: 0 }),
+  scrollBehavior: () => ({
+    y: 0
+  }),
   routes: constantRoutes
 })
 
@@ -51,21 +54,22 @@ const router = createRouter()
 
 router.beforeEach((to, form, next) => {
   // debugger
-  if (!excludesRouterPath.includes(to.path)) {
-    try {
-      if (!localStorage.getItem(tokenName)) {
-        next(`/layout/index`);
-        return false;
-      }
+  // if (!excludesRouterPath.includes(to.path)) {
+  // try {
+  //   // if (!localStorage.getItem(tokenName)) {
+  //     next(`/`);
+  //     return false;
+  //   // }
 
-    } catch (e) {
-      //ignore
-    }
-  } //判断跳转的是否是登录地址
-  if (excludesRouterPath.includes(to.path) && localStorage.getItem(tokenName)) {
-    next('/')
-    return;
-  }
+  // } catch (e) {
+  //   //ignore
+  // }
+  // } 
+  //判断跳转的是否是登录地址
+  // if (excludesRouterPath.includes(to.path) && localStorage.getItem(tokenName)) {
+  //   next('/')
+  //   return;
+  // }
   next();
 })
 // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465

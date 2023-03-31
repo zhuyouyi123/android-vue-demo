@@ -19,8 +19,6 @@ import '@/assets/font.css'
 
 Vue.use(Vant);
 Vue.use(ElementUI);
-// // set ElementUI lang to EN
-// Vue.use(ElementUI, { locale })
 
 import defaultImport from './defaultImportComp.js';
 Vue.use(defaultImport);
@@ -29,6 +27,9 @@ Vue.use(defaultImport);
 router.afterEach((to, from, next) => {
   window.scrollTo(0, 0);
 });
+
+import Rem from './utils/rem'
+Vue.use(Rem);
 
 import androidVue from '@/android-vue.js';
 Vue.use(androidVue);
@@ -49,7 +50,7 @@ Vue.prototype.$playVoice = function (text) {
     return;
   }
   utterMsg.text = text;
-  speechSynthesis.speak(utterMsg);//播放
+  speechSynthesis.speak(utterMsg); //播放
 }
 
 Vue.config.productionTip = false
