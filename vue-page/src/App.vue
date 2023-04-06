@@ -1,22 +1,32 @@
 <template>
   <div id="app" class="w h over-h box-b">
     <div style="height: 0.9rem"></div>
-    <router-view :nowTime="time" />
+    <router-view :nowTime="time" :key="key" />
   </div>
 </template>
 
 <script>
 import axios from "axios";
-import { Toast, Notify } from "vant";
+import { Toast, Notify, Icon, Field, Cell, CellGroup } from "vant";
 import { getNowDateTime } from "@/utils/index.js";
 export default {
   name: "App",
-  components: {},
+  components: {
+    [Icon.name]: Icon,
+    [Field.name]: Field,
+    [Cell.name]: Cell,
+    [CellGroup.name]: CellGroup,
+  },
   data() {
     return {
       intervalId: null,
       time: getNowDateTime(0),
     };
+  },
+  computed: {
+    key() {
+      return this.$route.path + Math.random();
+    },
   },
   methods: {
     /**
@@ -83,7 +93,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import url(/assets/font.css);
 html {
   font-size: 10px; //可以使用 1/10 rem= 10 px
 }
@@ -96,17 +105,28 @@ body,
   overflow: hidden;
   box-sizing: border-box;
   margin: 0px;
+  font-size: 0.3rem;
+  font-family: PingFang SC-Regular, PingFang SC;
+  font-weight: 400;
+  color: #333333;
+  .box-title {
+    font-size: 0.32rem;
+    font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+    color: #000000;
+    padding-top: 0.33rem;
+    padding-left: 0.23rem;
+  }
 
   background-color: #eff0f4;
   --body-background-color: #f7f8fa;
-  --default-bar-color: #fff;
-  --default-font-color: #000;
-  --default-bar-left-color: rgb(9, 134, 130);
+  // --default-bar-color: #fff;
+  // --default-font-color: #000;
+  // --default-bar-left-color: rgb(9, 134, 130);
 
-  --van-white: #fff;
-  --van-blue: var(--body-background-color);
-  --van-button-primary-color: var(--van-white);
-  --van-button-primary-background-color: var(--van-primary-color);
+  // --van-white: #fff;
+  // --van-blue: var(--body-background-color);
+  // --van-button-primary-color: var(--van-white);
+  // --van-button-primary-background-color: var(--van-primary-color);
 
   .page-white {
     background: var(--body-background-color);
@@ -140,11 +160,28 @@ body,
     width: 95%;
     margin-left: 2.5%;
   }
+
+  .van-cell-group {
+    .van-field {
+      height: 0.75rem;
+      &:last-child {
+        border-bottom-left-radius: 0.1rem;
+        border-bottom-right-radius: 0.1rem;
+      }
+    }
+    .van-cell {
+      &:last-child {
+        border-bottom-left-radius: 0.1rem;
+        border-bottom-right-radius: 0.1rem;
+      }
+    }
+  }
+  .van-hairline--top-bottom {
+    position: unset;
+  }
 }
 
-.fs-m-y {
-  font-family: YouSheBiaoTiHei;
-} /* 设置滚动条的样式 */
+/* 设置滚动条的样式 */
 ::-webkit-scrollbar {
   width: 1px;
   /*高宽分别对应横竖滚动条的尺寸*/
@@ -165,7 +202,7 @@ body,
 }
 
 ::-webkit-scrollbar-thumb:window-inactive {
-  background: rgba(64, 158, 255, 1);
+  background: transparent;
 }
 .nav-bar {
   position: sticky;

@@ -24,13 +24,8 @@
       </van-search>
 
       <div class="list-box">
-        <div
-          class="item"
-          v-for="item in list"
-          :key="item.mac"
-          @click="detail(item)"
-        >
-          <div class="device-info">
+        <div class="item" v-for="item in list" :key="item.mac">
+          <div class="device-info" @click="detail(item)">
             <div class="name">{{ item.name }}</div>
             <div class="info">
               <div class="info-box">
@@ -160,17 +155,13 @@ export default {
 
   methods: {
     init() {
-      this.$androidApi.init().then(() => {
-        console.log(1111111);
-      });
+      // this.$androidApi.init().then(() => {
+      //   console.log(1111111);
+      // });
     },
 
     detail(item) {
-      console.log(1111);
-      this.$router.push({
-        path: "/home/deviceDetail",
-        query: { mac: item.mac },
-      });
+      this.$router.push("/home/deviceDetail");
     },
   },
 };
