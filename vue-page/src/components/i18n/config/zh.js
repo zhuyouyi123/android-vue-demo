@@ -5,10 +5,20 @@ export default {
     configureChannel: "配置通道",
   },
 
+  notifyMessage: {
+    scan: {
+      startSuccess: "扫描开启成功",
+    },
+  },
+
   baseButton: {
     add: "添加",
     remove: "修改",
     update: "删除",
+  },
+
+  home:{
+    
   },
 
   // 设备

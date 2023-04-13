@@ -21,6 +21,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 import com.ble.blescansdk.ble.BleSdkManager;
+import com.ble.blescansdk.ble.enums.BleScanLevelEnum;
 
 import es.dmoral.toasty.Toasty;
 
@@ -44,7 +45,11 @@ public class AppInitTools extends AppCompatActivity {
 
         initPermission();
 
-        BleSdkManager.getBleOptions().setLogSwitch(true);
+        BleSdkManager.getBleOptions().setLogSwitch(true)
+                .setIntermittentScanning(true)
+                .setScanPeriod(2000)
+                .setContinuousScanning(true)
+                .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_LOW_POWER);
 
         BleSdkManager.getInstance().init(this);
 

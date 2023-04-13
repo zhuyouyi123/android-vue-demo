@@ -2,6 +2,10 @@ package com.seek.config.services.impl;
 
 import static android.os.Build.VERSION_CODES.R;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -10,11 +14,15 @@ import android.widget.Toast;
 import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.callback.request.BleScanCallback;
 import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
+import com.ble.blescansdk.ble.enums.SortTypeEnum;
 import com.seek.config.Config;
 import com.seek.config.R;
+import com.seek.config.entity.dto.ScanInitDTO;
 import com.seek.config.entity.enums.ErrorEnum;
 import com.seek.config.entity.vo.ScanDataVO;
 import com.seek.config.services.BleService;
+import com.seek.config.utils.I18nUtil;
+import com.seek.config.utils.SystemUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +41,8 @@ public class BleServiceImpl implements BleService {
 
     private static BleServiceImpl instance = null;
 
-    private static final ConcurrentMap<String, SeekStandardDevice> scanDevicesMap = new ConcurrentHashMap<>();
-
     private static List<SeekStandardDevice> scanDevicesList = new ArrayList<>();
+
 
     public static BleServiceImpl getInstance() {
         if (instance == null) {
@@ -45,15 +52,12 @@ public class BleServiceImpl implements BleService {
     }
 
     @Override
-    public void init() {
+    public void init(ScanInitDTO dto) {
         if (BleSdkManager.isScanning()) {
             BleSdkManager.getInstance().stopScan();
         }
 
-        BleSdkManager.getBleOptions()
-                .setIntermittentScanning(true)
-                .setScanPeriod(2000)
-                .setContinuousScanning(true);
+        BleSdkManager.getBleOptions().setSortType(SortTypeEnum.getByType(dto.getSortType()));
     }
 
     /**
@@ -67,14 +71,17 @@ public class BleServiceImpl implements BleService {
         }
         BleSdkManager.getInstance().startScan(new BleScanCallback<SeekStandardDevice>() {
             @Override
-            public void onStatusChange(boolean b) {
-
+            public void onStatusChange(boolean turnOn) {
             }
 
             @Override
             public void onScanFailed(int code) {
+                scanDevicesList = new ArrayList<>();
                 // 扫描失败
                 Toasty.error(Config.mainContext.getApplicationContext(), ErrorEnum.getFailMessage(code), 2, false).show();
+                if (code == ErrorEnum.LOCATION_INFO_SWITCH_NOT_OPEN.getErrorCode()) {
+                    SystemUtil.openGpsLocationSwitch();
+                }
             }
 
             @Override
@@ -84,13 +91,7 @@ public class BleServiceImpl implements BleService {
 
             @Override
             public void onLeScan(List<SeekStandardDevice> list) {
-                if (CollectionUtils.isEmpty(list)) {
-                    return;
-                }
-                for (SeekStandardDevice seekStandardDevice : list) {
-                    scanDevicesMap.put(seekStandardDevice.getAddress(), seekStandardDevice);
-                }
-                scanDevicesList = new ArrayList<>(scanDevicesMap.values());
+                scanDevicesList = list;
             }
 
             @Override

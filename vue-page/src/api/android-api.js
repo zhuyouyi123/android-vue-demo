@@ -21,6 +21,17 @@ export default {
   },
 
   /**
+   * 停止蓝牙扫描
+   * @returns 
+   */
+  stopScan(params) {
+    if (config.developmentMode) {
+      return;
+    }
+    request("post", "ble/stopScan", params);
+  },
+
+  /**
    * 设备列表
    */
   deviceList(params) {

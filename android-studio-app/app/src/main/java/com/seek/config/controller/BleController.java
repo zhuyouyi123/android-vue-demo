@@ -6,6 +6,7 @@ import com.ble.blescansdk.ble.BleSdkManager;
 import com.seek.config.annotation.AppController;
 import com.seek.config.annotation.AppRequestMapper;
 import com.seek.config.annotation.AppRequestMethod;
+import com.seek.config.entity.dto.ScanInitDTO;
 import com.seek.config.entity.response.RespVO;
 import com.seek.config.entity.vo.ScanDataVO;
 import com.seek.config.services.BleService;
@@ -19,10 +20,10 @@ public class BleController {
     private static final BleService bleService = BleServiceImpl.getInstance();
 
     @AppRequestMapper(path = "/init")
-    public RespVO<Void> init() {
+    public RespVO<Void> init(ScanInitDTO dto) {
         Log.i(TAG, "init");
 
-        bleService.init();
+        bleService.init(dto);
 
         return RespVO.success();
     }

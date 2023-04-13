@@ -53,6 +53,16 @@ public enum ErrorEnum {
     ACCESS_COARSE_LOCATION_NOT_EXIST(R.string.permission_error_access_coarse_location, 1009, "access coarse location not exist"),
 
     /**
+     * gps获取位置信息
+     */
+    LOCATION_INFO_SWITCH_NOT_OPEN(R.string.location_info_switch_not_open, 1010, "位置信息开关未打开"),
+
+    /**
+     * 未初始化uuid
+     */
+    NOT_INIT_UUID(R.string.not_init_uuid, 1011, "未初始化UUID"),
+
+    /**
      * 未知错误
      */
     UNKNOWN_ERROR(R.string.unknown_error, -1, "unknown error"),

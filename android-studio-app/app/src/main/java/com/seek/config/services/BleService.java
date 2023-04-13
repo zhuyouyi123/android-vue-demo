@@ -1,5 +1,6 @@
 package com.seek.config.services;
 
+import com.seek.config.entity.dto.ScanInitDTO;
 import com.seek.config.entity.vo.ScanDataVO;
 
 public interface BleService {
@@ -7,7 +8,7 @@ public interface BleService {
     /**
      * 扫描初始化
      */
-    void init();
+    void init(ScanInitDTO dto);
 
     /**
      * 开始扫描

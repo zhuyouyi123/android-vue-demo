@@ -47,8 +47,6 @@ public class AppActivity extends AppInitTools {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        initContentBefore();
-//        setContentView(R.layout.activity_app);
         //获得控件
 //        openWelcome();
         initRefresh();
@@ -94,13 +92,6 @@ public class AppActivity extends AppInitTools {
         return intentMap.get(hashCode);
     }
 
-    /**
-     * 拍照
-     */
-    public ValueCallback<Uri[]> uploadMessage;
-    private static boolean isCapture;
-    private Uri imageUri;
-
     @Override
     public void onBackPressed() {
         if (webView.canGoBack()) {
@@ -124,17 +115,6 @@ public class AppActivity extends AppInitTools {
 
         });
 
-        /**
-         * 打开浏览器下载
-         */
-        webView.setDownloadListener(new DownloadListener() {
-            @Override
-            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(url));
-                startActivity(intent);
-            }
-        });
         WebSettings webSettings = webView.getSettings();
 
         webSettings.setJavaScriptEnabled(true); //-> 是否开启JS支持
@@ -163,9 +143,9 @@ public class AppActivity extends AppInitTools {
 //        webSettings.setSerifFontFamily("sans-serif"); //-> 设置字体库格式
 //        webSettings.setCursiveFontFamily("cursive"); //-> 设置字体库格式
 //        webSettings.setFantasyFontFamily("fantasy"); //-> 设置字体库格式
-        webSettings.setTextZoom(100); //-> 设置文本缩放的百分比
-        webSettings.setMinimumFontSize(8); //-> 设置文本字体的最小值(1~72)
-        webSettings.setDefaultFontSize(16); //-> 设置文本字体默认的大小
+//        webSettings.setTextZoom(100); //-> 设置文本缩放的百分比
+//        webSettings.setMinimumFontSize(8); //-> 设置文本字体的最小值(1~72)
+//        webSettings.setDefaultFontSize(16); //-> 设置文本字体默认的大小
 //
 //        webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN); //-> 按规则重新布局
 //        webSettings.setLoadsImagesAutomatically(false); //-> 是否自动加载图片
@@ -182,28 +162,15 @@ public class AppActivity extends AppInitTools {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-        if (requestCode == 305 && resultCode != 0) {
-            uploadMessage.onReceiveValue(new Uri[]{imageUri});
-            uploadMessage = null;
-            return;
-        }
-        if (requestCode == 306) {
-            Uri result = intent == null || resultCode != this.RESULT_OK ? null : intent.getData();
-            uploadMessage.onReceiveValue(new Uri[]{result});
-            uploadMessage = null;
-        }
     }
 
     public void initRefresh() {
         Button button = findViewById(R.id.refresh);
         button.setVisibility(View.INVISIBLE);
-//        button.setVisibility(!Config.APK ? View.VISIBLE : View.INVISIBLE);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                System.out.println("点击按钮事件！");
-                webView.reload();
-            }
+        button.setVisibility(!Config.APK ? View.VISIBLE : View.INVISIBLE);
+        button.setOnClickListener(v -> {
+            System.out.println("点击按钮事件！");
+            webView.reload();
         });
     }
 
@@ -211,8 +178,7 @@ public class AppActivity extends AppInitTools {
         File destFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
         destFolder.mkdirs();
         String dateTimeString = new Date().getTime() + "";
-        File imageFile = File.createTempFile(dateTimeString + "-", ".png", destFolder);
-        return imageFile;
+        return File.createTempFile(dateTimeString + "-", ".png", destFolder);
     }
 
     /**

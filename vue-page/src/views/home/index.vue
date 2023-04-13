@@ -10,17 +10,26 @@
         <div class="condition">
           <!-- <div><van-icon name="descending" /> 排序</div> -->
           <div>
-            <el-dropdown trigger="click">
+            <el-dropdown trigger="click" @command="handleSort">
               <span class="el-dropdown-link">
                 <van-icon name="descending" size="23" />
                 排序
               </span>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item>Rssi降序</el-dropdown-item>
-                <el-dropdown-item>Mac降序</el-dropdown-item>
-                <el-dropdown-item>Mac升序</el-dropdown-item>
-                <el-dropdown-item>电量降序</el-dropdown-item>
-                <el-dropdown-item class="unborder">电量升序</el-dropdown-item>
+                <el-dropdown-item command="rssi_rise"
+                  >Rssi升序</el-dropdown-item
+                >
+                <el-dropdown-item command="rssi_fall"
+                  >Rssi降序</el-dropdown-item
+                >
+                <el-dropdown-item command="mac_rise">Mac降序</el-dropdown-item>
+                <el-dropdown-item command="mac_fall">Mac升序</el-dropdown-item>
+                <el-dropdown-item command="battery_rise"
+                  >电量降序</el-dropdown-item
+                >
+                <el-dropdown-item command="battery_fall" class="unborder"
+                  >电量升序</el-dropdown-item
+                >
               </el-dropdown-menu>
             </el-dropdown>
           </div>
@@ -49,7 +58,7 @@
         <div class="item" v-for="item in list" :key="item.address">
           <div class="device-info" @click="detail(item)">
             <div class="name">
-              <b>{{ item.name }}</b>
+              <b>{{ item.name ? item.name : "Unnamed" }}</b>
             </div>
             <div class="info">
               <div class="info-box">
@@ -106,9 +115,12 @@
 
       <!-- 加载 -->
       <div class="scanning">
-        <div class="point-item"></div>
-        <div class="point-item"></div>
-        <div class="point-item"></div>
+        <div class="scan" v-if="!scanState" @click="startScan">刷新</div>
+        <div v-else>
+          <div class="point-item"></div>
+          <div class="point-item"></div>
+          <div class="point-item"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -117,7 +129,7 @@
 <script>
 import navBar from "@/components/navigation/navBar.vue";
 
-import { Search, DropdownMenu, DropdownItem } from "vant";
+import { Search, DropdownMenu, DropdownItem, Notify } from "vant";
 export default {
   data() {
     return {
@@ -128,6 +140,8 @@ export default {
 
       list: [],
       interval: null,
+      // 扫描状态
+      scanState: false,
     };
   },
 
@@ -149,11 +163,32 @@ export default {
       });
     },
 
+    /**
+     * 处理排序
+     */
+    handleSort(command) {
+      this.$message("click on item " + command);
+      let params = {
+        sortType: command,
+      };
+      this.$androidApi.init(params).then(() => {
+        this.startScan();
+      });
+    },
+
     startScan() {
       this.$androidApi.startScan();
+      this.scanState = true;
       setTimeout(() => {
         this.getList();
       }, 200);
+    },
+
+    /**
+     * 停止扫描
+     */
+    stopScan() {
+      this.$androidApi.stopScan();
     },
 
     getList() {
@@ -166,6 +201,7 @@ export default {
       this.interval = setInterval(() => {
         this.$androidApi.deviceList().then((data) => {
           if (data) {
+            this.updateScanState(data.scanning);
             if (!data.scanning || false == data.scanning) {
               clearInterval(this.interval);
               return;
@@ -178,6 +214,16 @@ export default {
           }
         });
       }, 2000);
+    },
+
+    /**
+     * 更新扫描状态
+     * @param {扫描状态} state
+     */
+    updateScanState(state) {
+      if (state != this.scanState) {
+        this.scanState = state;
+      }
     },
 
     detail(item) {
@@ -268,7 +314,7 @@ export default {
       border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
       .device-info {
         padding: 0.2rem 0.27rem;
-        height: 1rem;
+        height: 1.32rem;
         .name {
           font-size: 0.32rem;
           font-family: Source Han Sans CN-Bold, Source Han Sans CN;
@@ -326,6 +372,9 @@ export default {
     justify-content: space-evenly;
     align-items: center;
     background: #2748aa;
+    .scan {
+      color: #ffffff;
+    }
     .point-item {
       width: 0.26rem;
       height: 0.26rem;

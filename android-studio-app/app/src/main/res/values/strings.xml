@@ -17,4 +17,15 @@
     <string name="the_device_address_is_invalid">设备地址无效</string>
 
     <string name="permission_error_access_coarse_location">没有获取粗略位置的权限</string>
+    <string name="location_info_switch_not_open">位置信息开关未打开</string>
+    <string name="not_init_uuid">未初始化UUID</string>
+
+    <!--System-->
+    <string name="tips">提示</string>
+    <string name="sure">确认</string>
+    <string name="cancel">取消</string>
+
+    <!--Tips-->
+    <string name="open_location_info_switch">为了更精确的扫描到Bluetooth LE设备,请打开GPS定位</string>
+
 </resources>
