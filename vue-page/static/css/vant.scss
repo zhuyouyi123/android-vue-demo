@@ -1,0 +1,81 @@
+html,
+body,
+#app {
+
+  --body-background-color: #f7f8fa;
+  --theme-color: #007FFF;
+
+
+  .page-white {
+    background: var(--body-background-color);
+
+    .van-button--primary {
+      background: #032d58;
+    }
+
+    .van-primary-button {
+      background: #032d58;
+      color: #fff;
+    }
+
+    .van-primary-title {
+      color: #032d58;
+    }
+  }
+
+  .van-nav-bar .van-icon,
+  .van-nav-bar__text {
+    color: var(--default-font-color);
+  }
+
+  .van-nav-bar__title {
+    color: var(--default-font-color);
+  }
+
+  .van-icon {
+    font-size: 18px;
+  }
+
+  .van-cell {
+    &:last-child {
+      border-bottom-left-radius: 0.1rem;
+      border-bottom-right-radius: 0.1rem;
+    }
+  }
+
+  .van-cell-group {
+    .van-field {
+      height: 0.75rem;
+
+      &:last-child {
+        border-bottom-left-radius: 0.1rem;
+        border-bottom-right-radius: 0.1rem;
+      }
+    }
+
+  }
+
+  .van-popup {
+    width: 7.02rem;
+    margin-left: 0.26rem;
+    font-size: 0.32rem;
+    font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+    font-weight: 400;
+    color: #333333;
+    line-height: 0.29rem;
+  }
+
+  .van-hairline--top-bottom {
+    box-shadow: unset;
+  }
+
+
+  .van-dropdown-menu__bar {
+    box-shadow: unset;
+  }
+
+  .van-dropdown-menu__title {
+    padding: 0 .08rem;
+    font-size: 0.32rem;
+  }
+}

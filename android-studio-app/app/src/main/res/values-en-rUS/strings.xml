@@ -1,11 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">LocSmart</string>
     <string name="welcome_title">LocSmart</string>
-
     <!--错误信息-->
     <string name="unknown_error">未知错误</string>
-    <string name="init_error_context_is_null">初始化失败，SDK无法使用</string>
+    <string name="init_error_context_is_null">初始化失败，sdk无法使用</string>
     <string name="ble_error_bluetooth_not_open">蓝牙未打开</string>
     <string name="device_not_exists">设备不存在</string>
 
@@ -17,4 +16,5 @@
     <string name="the_device_address_is_invalid">设备地址无效</string>
 
     <string name="permission_error_access_coarse_location">没有获取粗略位置的权限</string>
+
 </resources>

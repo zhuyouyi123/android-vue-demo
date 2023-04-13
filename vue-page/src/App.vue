@@ -7,7 +7,7 @@
 
 <script>
 import axios from "axios";
-import { Toast, Notify, Icon, Field, Cell, CellGroup } from "vant";
+import { Toast, Notify, Icon, Field, Cell, CellGroup, Button } from "vant";
 import { getNowDateTime } from "@/utils/index.js";
 export default {
   name: "App",
@@ -16,6 +16,7 @@ export default {
     [Field.name]: Field,
     [Cell.name]: Cell,
     [CellGroup.name]: CellGroup,
+    [Button.name]: Button,
   },
   data() {
     return {
@@ -27,6 +28,7 @@ export default {
     key() {
       return this.$route.path + Math.random();
     },
+    mounted() {},
   },
   methods: {
     /**
@@ -93,6 +95,8 @@ export default {
 </script>
 
 <style lang="scss">
+@import url(../static/css/vant.scss);
+@import url(../static/css/element.scss);
 html {
   font-size: 10px; //可以使用 1/10 rem= 10 px
 }
@@ -117,67 +121,17 @@ body,
     padding-left: 0.23rem;
   }
 
+  .content {
+    height: 93vh;
+    padding: 0.24rem 0.24rem;
+  }
+
   background-color: #eff0f4;
-  --body-background-color: #f7f8fa;
-  // --default-bar-color: #fff;
-  // --default-font-color: #000;
-  // --default-bar-left-color: rgb(9, 134, 130);
-
-  // --van-white: #fff;
-  // --van-blue: var(--body-background-color);
-  // --van-button-primary-color: var(--van-white);
-  // --van-button-primary-background-color: var(--van-primary-color);
-
-  .page-white {
-    background: var(--body-background-color);
-
-    .van-button--primary {
-      background: #032d58;
-    }
-
-    .van-primary-button {
-      background: #032d58;
-      color: #fff;
-    }
-    .van-primary-title {
-      color: #032d58;
-    }
-  }
-  .van-nav-bar .van-icon,
-  .van-nav-bar__text {
-    color: var(--default-font-color);
-  }
-
-  .van-nav-bar__title {
-    color: var(--default-font-color);
-  }
-  .van-icon {
-    font-size: 18px;
-  }
 
   .division-line {
-    border: 0.01rem solid #d8dceb;
+    border: 1px solid #d8dceb;
     width: 95%;
     margin-left: 2.5%;
-  }
-
-  .van-cell-group {
-    .van-field {
-      height: 0.75rem;
-      &:last-child {
-        border-bottom-left-radius: 0.1rem;
-        border-bottom-right-radius: 0.1rem;
-      }
-    }
-    .van-cell {
-      &:last-child {
-        border-bottom-left-radius: 0.1rem;
-        border-bottom-right-radius: 0.1rem;
-      }
-    }
-  }
-  .van-hairline--top-bottom {
-    position: unset;
   }
 }
 
@@ -221,10 +175,4 @@ body,
   z-index: 10002 !important;
   width: 85% !important;
 }
-
-// .van-field--error .van-field__control,
-// .van-field--error .van-field__control::placeholder {
-//   color: #dcdcdc !important;
-//   -webkit-text-fill-color: currentColor;
-// }
 </style>

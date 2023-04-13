@@ -9,8 +9,8 @@ import 'vant/lib/index.css';
 import 'element-ui/lib/theme-chalk/index.css'
 
 import App from './App'
-import store from './store'
-import router from './router'
+import store from './components/store'
+import router from './components/router'
 
 // import '@/permission' // permission control
 import '@/assets/base.css'
@@ -31,11 +31,18 @@ router.afterEach((to, from, next) => {
 import Rem from './utils/rem'
 Vue.use(Rem);
 
-import androidVue from '@/android-vue.js';
-Vue.use(androidVue);
+import i18n from './components/i18n';
+
 
 import androidApi from './api/android-api.js'
 Vue.prototype.$androidApi = androidApi
+
+import developmentStorage from './components/development/storage'
+Vue.prototype.$developmentStorage = developmentStorage
+
+// 引入config
+import config from '@/fetch/config'
+Vue.prototype.$config = config
 
 let utterMsg = null;
 try {
@@ -54,21 +61,21 @@ Vue.prototype.$playVoice = function (text) {
 }
 
 Vue.config.productionTip = false
-Vue.prototype.goBack = function (isBackReload) {
-  try {
-    window.history.go(-1);
+// Vue.prototype.goBack = function (isBackReload) {
+//   try {
+//     window.history.go(-1);
 
-    if (isBackReload) {
-      let reloadId = setTimeout(() => {
-        clearTimeout(reloadId);
-        window.location.reload();
-      }, 200);
-    }
+//     if (isBackReload) {
+//       let reloadId = setTimeout(() => {
+//         clearTimeout(reloadId);
+//         window.location.reload();
+//       }, 200);
+//     }
 
-  } catch (e) {
-    this.$message.alter("已经到最顶层了，不能在后退了！");
-  }
-}
+//   } catch (e) {
+//     this.$message.alter("已经到最顶层了，不能在后退了！");
+//   }
+// }
 
 
 window.addEventListener('popstate', function (e) {
@@ -79,5 +86,6 @@ new Vue({
   el: '#app',
   router,
   store,
+  i18n,
   render: h => h(App)
 })

@@ -1,0 +1,21 @@
+.el-dropdown-menu {
+  width: 7rem;
+  left: .26rem !important;
+
+  .el-dropdown-menu__item {
+    border-bottom: 1px solid #D8DCEB;
+
+    font-size: 0.32rem;
+    font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+    font-weight: 400;
+    color: #333333;
+    margin: 0 .27rem;
+    padding: 0 0;
+  }
+
+  .unborder {
+    border: none;
+  }
+
+  
+}

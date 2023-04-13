@@ -7,7 +7,7 @@
             <slot name="header-left">
               <span class="header-left">
                 <i class="el-icon-arrow-left"></i>
-                <span class=" " @click="goBack(isBackedReload)">返回</span>
+                <span class=" " @click="goBack()">返回</span>
               </span>
             </slot>
           </template>
@@ -45,8 +45,7 @@
 <script>
 export default {
   name: "pageFrame",
-  components: {
-  },
+  components: {},
   computed: {
     isDevelopment() {
       return process.env.NODE_ENV !== "production";

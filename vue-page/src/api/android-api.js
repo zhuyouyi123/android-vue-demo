@@ -1,4 +1,7 @@
-import androidVue from "../android-vue";
+import androidVue from "./android-vue";
+
+import config from '../fetch/config'
+import storage from '../components/development/storage'
 
 export default {
 
@@ -8,7 +11,24 @@ export default {
    */
   init(params) {
     return request("get", "ble/init", params);
-  }
+  },
+
+  startScan(params) {
+    if (config.developmentMode) {
+      return newPromise();
+    }
+    return request("post", "ble/startScan", params);
+  },
+
+  /**
+   * 设备列表
+   */
+  deviceList(params) {
+    if (config.developmentMode) {
+      return newPromise(storage.getHomeList());
+    }
+    return request("get", "ble/list", params);
+  },
 
 
 }
@@ -39,5 +59,11 @@ function request(type, path, params) {
     } else {
       reject(res.errorMsg[0])
     }
+  })
+}
+
+function newPromise(data) {
+  return new Promise((resolve, reject) => {
+    resolve(data);
   })
 }

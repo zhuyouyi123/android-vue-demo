@@ -8,10 +8,32 @@
     <div class="content">
       <div class="condition-box">
         <div class="condition">
-          <div><van-icon name="descending" /> 排序</div>
-          <div><van-icon name="filter-o" />过滤</div>
-          <div><van-icon name="todo-list-o" />语言</div>
-          <div><van-icon name="bars" />批量</div>
+          <!-- <div><van-icon name="descending" /> 排序</div> -->
+          <div>
+            <el-dropdown trigger="click">
+              <span class="el-dropdown-link">
+                <van-icon name="descending" size="23" />
+                排序
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item>Rssi降序</el-dropdown-item>
+                <el-dropdown-item>Mac降序</el-dropdown-item>
+                <el-dropdown-item>Mac升序</el-dropdown-item>
+                <el-dropdown-item>电量降序</el-dropdown-item>
+                <el-dropdown-item class="unborder">电量升序</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </div>
+
+          <!-- <div>
+            <van-icon name="descending" />
+            <van-dropdown-menu active-color="#007FFF" :overlay="false">
+              <van-dropdown-item v-model="sortCode" :options="sortOptions" />
+            </van-dropdown-menu>
+          </div> -->
+          <div><van-icon name="filter-o" size="19" />过滤</div>
+          <div><van-icon name="todo-list-o" size="20" />语言</div>
+          <div><van-icon name="bars" size="20" />批量</div>
         </div>
         <div class="division-line"></div>
         <div class="count">扫描到设备数量：{{ count }}个</div>
@@ -24,17 +46,21 @@
       </van-search>
 
       <div class="list-box">
-        <div class="item" v-for="item in list" :key="item.mac">
+        <div class="item" v-for="item in list" :key="item.address">
           <div class="device-info" @click="detail(item)">
-            <div class="name">{{ item.name }}</div>
+            <div class="name">
+              <b>{{ item.name }}</b>
+            </div>
             <div class="info">
               <div class="info-box">
-                <div>Mac: {{ item.mac }}</div>
-                <div>电量: {{ item.battery }}%</div>
+                <div>Mac: {{ item.address }}</div>
+                <div>电量: 100%</div>
+                <!-- <div>电量: {{ item.battery }}%</div> -->
               </div>
               <div class="info-box">
                 <div>Rssi: {{ item.rssi }}</div>
-                <div>广播间隔: {{ item.broadcastInterval }}ms</div>
+                <div>广播间隔:330ms</div>
+                <!-- <div>广播间隔: {{ item.broadcastInterval }}ms</div> -->
               </div>
             </div>
           </div>
@@ -44,19 +70,34 @@
             <div class="info-box">
               <div class="uuid">UUID:1918FC80B1113441A9ACB1001C2FE510</div>
               <div class="beacon-info">
-                <div class="major">Major:{{ item.beacon.major }}</div>
+                <div class="major">Major:111</div>
+                <div class="minor">Minor:222</div>
+                <div class="distance">校准距离:22dBm</div>
+                <!-- <div class="major">Major:{{ item.beacon.major }}</div>
                 <div class="minor">Minor:{{ item.beacon.minor }}</div>
                 <div class="distance">
                   校准距离:{{ item.beacon.calibrationDistance }}dBm
-                </div>
+                </div> -->
               </div>
             </div>
             <div class="name">ACC</div>
             <div class="info-box">
               <div class="beacon-info">
-                <div class="major">X-Axis:{{ item.acc.xAxis }}gee</div>
+                <div class="major">X-Axis:1.1gee</div>
+                <div class="minor">Y-Axis:1.2gee</div>
+                <div class="distance">Z-Axis:1.3gee</div>
+                <!-- <div class="major">X-Axis:{{ item.acc.xAxis }}gee</div>
                 <div class="minor">Y-Axis:{{ item.acc.yAxis }}gee</div>
-                <div class="distance">Z-Axis:{{ item.acc.yAxis }}gee</div>
+                <div class="distance">Z-Axis:{{ item.acc.yAxis }}gee</div> -->
+              </div>
+            </div>
+
+            <div class="name">ACC</div>
+            <div class="info-box">
+              <div class="beacon-info">
+                <div class="major">X-Axis:1.1gee</div>
+                <div class="minor">Y-Axis:1.2gee</div>
+                <div class="distance">Z-Axis:1.3gee</div>
               </div>
             </div>
           </div>
@@ -76,75 +117,23 @@
 <script>
 import navBar from "@/components/navigation/navBar.vue";
 
-import { Icon, Search } from "vant";
+import { Search, DropdownMenu, DropdownItem } from "vant";
 export default {
   data() {
     return {
       // 搜索条件
       searchValue: "",
       // 扫描数量
-      count: 3,
-      list: [
-        {
-          name: "iBeacon",
-          mac: "19:18:FC:15:10:46",
-          battery: 100,
-          rssi: -60,
-          broadcastInterval: 330,
-          beacon: {
-            uuid: "1918FC80B1113441A9ACB1001C2FE510",
-            major: 20001,
-            minor: 22222,
-            calibrationDistance: -79,
-          },
-          acc: {
-            xAxis: "1.00",
-            yAxis: "1.00",
-            yAxis: "1.00",
-          },
-        },
-        {
-          name: "Unnamed",
-          mac: "19:18:FC:15:10:47",
-          battery: 100,
-          rssi: -73,
-          broadcastInterval: 330,
-          beacon: {
-            uuid: "1918FC80B1113441A9ACB1001C2FE510",
-            major: 20001,
-            minor: 22224,
-            calibrationDistance: -78,
-          },
-          acc: {
-            xAxis: "1.30",
-            yAxis: "1.30",
-            yAxis: "1.30",
-          },
-        },
-        {
-          name: "Unnamed",
-          mac: "19:18:FC:15:10:48",
-          battery: 100,
-          rssi: -75,
-          broadcastInterval: 330,
-          beacon: {
-            uuid: "1918FC80B1113441A9ACB1001C2FE510",
-            major: 20001,
-            minor: 32547,
-            calibrationDistance: -78,
-          },
-          acc: {
-            xAxis: "1.20",
-            yAxis: "1.20",
-            yAxis: "1.20",
-          },
-        },
-      ],
+      count: 0,
+
+      list: [],
+      interval: null,
     };
   },
 
   components: {
-    [Icon.name]: Icon,
+    [DropdownMenu.name]: DropdownMenu,
+    [DropdownItem.name]: DropdownItem,
     [Search.name]: Search,
     navBar: navBar,
   },
@@ -155,9 +144,40 @@ export default {
 
   methods: {
     init() {
-      // this.$androidApi.init().then(() => {
-      //   console.log(1111111);
-      // });
+      this.$androidApi.init().then(() => {
+        this.startScan();
+      });
+    },
+
+    startScan() {
+      this.$androidApi.startScan();
+      setTimeout(() => {
+        this.getList();
+      }, 200);
+    },
+
+    getList() {
+      if (this.interval) {
+        clearInterval(this.interval);
+        this.interval = null;
+      }
+      // 开启扫描
+
+      this.interval = setInterval(() => {
+        this.$androidApi.deviceList().then((data) => {
+          if (data) {
+            if (!data.scanning || false == data.scanning) {
+              clearInterval(this.interval);
+              return;
+            }
+
+            if (data.list) {
+              this.list = data.list;
+              this.count = this.list.length;
+            }
+          }
+        });
+      }, 2000);
     },
 
     detail(item) {
@@ -168,14 +188,12 @@ export default {
 </script>
 <style lang='scss' scoped>
 .content {
-  margin-left: 0.24rem;
   .condition-box {
     width: 7.02rem;
     height: 1.8rem;
     background: #ffffff;
     box-shadow: 0rem 0.04rem 0.06rem 0.01rem rgba(0, 0, 0, 0.1);
     border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
-    margin-top: 0.24rem;
     .condition {
       font-size: 0.3rem;
       font-family: Source Han Sans CN-Regular, Source Han Sans CN;
@@ -190,11 +208,23 @@ export default {
       div {
         display: flex;
         align-items: center;
+        height: 0.3rem;
+      }
+      .el-dropdown {
+        display: flex;
+        align-items: center;
+      }
+      .el-dropdown-link {
+        font-size: 0.3rem;
+        font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+        color: #333333;
+        display: flex;
+        align-items: center;
       }
     }
     .count {
-      width: 3.41rem;
-      height: 0.9rem;
+      width: 3.81rem;
+      height: 0.8rem;
       font-size: 0.32rem;
       font-family: Source Han Sans CN-Regular, Source Han Sans CN;
       font-weight: 400;
@@ -204,6 +234,7 @@ export default {
       padding-left: 0.26rem;
     }
   }
+
   // 搜索
 
   .van-search {
@@ -231,13 +262,13 @@ export default {
         margin-top: 0.16rem;
       }
       width: 6.98rem;
-      height: 4.36rem;
+      // height: 4.36rem;
       background: #ffffff;
       box-shadow: 0rem 0.04rem 0.06rem 0.01rem rgba(0, 0, 0, 0.1);
       border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
       .device-info {
         padding: 0.2rem 0.27rem;
-        height: 1.3rem;
+        height: 1rem;
         .name {
           font-size: 0.32rem;
           font-family: Source Han Sans CN-Bold, Source Han Sans CN;
@@ -267,6 +298,12 @@ export default {
         font-family: Source Han Sans CN-Regular, Source Han Sans CN;
         .name {
           font-size: 0.32rem;
+          font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+          font-weight: 400;
+          color: #000000;
+          &:nth-child(n + 2) {
+            margin-top: 0.08rem;
+          }
         }
         .info-box {
           font-size: 0.28rem;
