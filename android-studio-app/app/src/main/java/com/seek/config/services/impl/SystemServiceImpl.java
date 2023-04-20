@@ -24,16 +24,11 @@ public class SystemServiceImpl implements SystemService {
     @Override
     public void scanQrCode() {
         // 清除存储的key value
-        SharePreferenceUtil.getInstance().shareSet(ActiveForResultConstants.SCAN_QR_CODE_REQUEST_KEY, "");
+        SharePreferenceUtil.getInstance().shareSet(ActiveForResultConstants.SCAN_QR_REQUEST_KEY, "");
 
+        SharePreferenceUtil.getInstance().shareSet(ActiveForResultConstants.SCAN_QR_STATUS_REQUEST_KEY, "true");
 
         Activity activity = (Activity) Config.mainContext;
-//        HmsScanAnalyzerOptions hmsScanAnalyzerOptions = new HmsScanAnalyzerOptions.Creator()
-//                .setHmsScanTypes(HmsScan.QRCODE_SCAN_TYPE)
-//                .setPhotoMode(true)
-//                .setViewType(1)
-//                .create();
-//        ScanUtil.startScan(activity, ActiveForResultConstant.SCAN_QR_CODE_REQUEST_CODE, hmsScanAnalyzerOptions);
 
         Intent intent = new Intent(activity, ScanQrActivity.class);
         activity.startActivityForResult(intent, ActiveForResultConstants.SCAN_QR_CODE_REQUEST_CODE);

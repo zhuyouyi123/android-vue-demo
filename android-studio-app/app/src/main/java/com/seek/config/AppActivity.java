@@ -161,7 +161,7 @@ public class AppActivity extends AppInitTools {
         if (requestCode == ActiveForResultConstants.SCAN_QR_CODE_REQUEST_CODE) {
             HmsScan obj = data.getParcelableExtra(ScanUtil.RESULT);
             if (obj != null && StringUtils.isNotBlank(obj.originalValue)) {
-                SharePreferenceUtil.getInstance().shareSet(ActiveForResultConstants.SCAN_QR_CODE_REQUEST_KEY, obj.originalValue);
+                SharePreferenceUtil.getInstance().shareSet(ActiveForResultConstants.SCAN_QR_REQUEST_KEY, obj.originalValue);
                 Toasty.info(this, obj.originalValue, 100).show();
             }
         }

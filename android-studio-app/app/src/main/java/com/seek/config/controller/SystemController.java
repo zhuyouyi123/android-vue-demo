@@ -12,7 +12,7 @@ import com.seek.config.services.impl.SystemServiceImpl;
 @AppController(path = "system")
 public class SystemController {
 
-    private SystemService systemService= SystemServiceImpl.getInstance();
+    private final SystemService systemService= SystemServiceImpl.getInstance();
 
     /**
      * 获取设备唯一编号

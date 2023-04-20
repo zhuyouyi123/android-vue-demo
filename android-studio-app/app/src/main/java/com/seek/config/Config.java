@@ -75,7 +75,7 @@ public class Config {
     }
 
     public static String getAssetsPath(){
-        return "http://172.16.5.55:8888";
+        return "http://172.16.100.38:8888";
     }
 
     @SuppressLint("SimpleDateFormat")

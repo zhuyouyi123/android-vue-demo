@@ -3,11 +3,18 @@ package com.ble.blescansdk.ble.entity.storage;
 import android.bluetooth.BluetoothDevice;
 
 import com.ble.blescansdk.ble.BleOptions;
+import com.ble.blescansdk.ble.entity.constants.SeekStandardDeviceConstants;
+import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
 import com.ble.blescansdk.ble.utils.StringUtils;
 
 import java.util.Objects;
 
 public abstract class AbstractStorage {
+
+    private static final int BROADCAST_MIN = 85;
+    private static final int BROADCAST_DIFF_RANGE_1 = 5;
+    private static final int BROADCAST_DIFF_RANGE_2 = -5;
+
 
     public abstract void expire();
 
@@ -44,6 +51,35 @@ public abstract class AbstractStorage {
         }
 
         return true;
+    }
+
+    /**
+     * 计算 设置广播间隔
+     * @param currDevice 当前扫描到的设备
+     * @param lastDevice 上一包的设备
+     * @return 赋值之后信息
+     */
+    public SeekStandardDevice calcBroadcastInterval(SeekStandardDevice currDevice, SeekStandardDevice lastDevice) {
+        if (Objects.isNull(lastDevice)) {
+            return currDevice;
+        }
+        long broadcastIntervalDiff = currDevice.getScanTime() - lastDevice.getScanTime();
+        // 如果是默认的广播间隔 直接赋值
+        long broadcastInterval = lastDevice.getBroadcastInterval();
+
+        if (broadcastInterval == SeekStandardDeviceConstants.DEFAULT_BROADCAST_INTERVAL) {
+            currDevice.setBroadcastInterval(broadcastIntervalDiff);
+        } else if (broadcastInterval >= broadcastIntervalDiff && broadcastIntervalDiff > BROADCAST_MIN) {
+            currDevice.setBroadcastInterval(broadcastIntervalDiff);
+        } else {
+            long diff = broadcastIntervalDiff - broadcastInterval;
+            if (diff <= BROADCAST_DIFF_RANGE_1 && diff >= BROADCAST_DIFF_RANGE_2) {
+                currDevice.setBroadcastInterval(broadcastIntervalDiff);
+            } else {
+                currDevice.setBroadcastInterval(broadcastInterval);
+            }
+        }
+        return currDevice;
     }
 
 }

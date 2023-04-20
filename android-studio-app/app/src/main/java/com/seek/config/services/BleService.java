@@ -31,5 +31,4 @@ public interface BleService {
     Integer getConnectionStatus(String address);
 
     void write(String address);
-    void startNotify(String address);
 }

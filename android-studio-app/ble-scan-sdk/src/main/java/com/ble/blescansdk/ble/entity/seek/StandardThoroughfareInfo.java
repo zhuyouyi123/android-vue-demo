@@ -14,6 +14,12 @@ public class StandardThoroughfareInfo {
 
     private int measurePower;
 
+    private String namespaceId;
+
+    private String instanceId;
+
+    private String link;
+
     public StandardThoroughfareInfo(String type) {
         this.type = type;
     }
@@ -55,6 +61,33 @@ public class StandardThoroughfareInfo {
 
     public StandardThoroughfareInfo setMeasurePower(int measurePower) {
         this.measurePower = measurePower;
+        return this;
+    }
+
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    public StandardThoroughfareInfo setNamespaceId(String namespaceId) {
+        this.namespaceId = namespaceId;
+        return this;
+    }
+
+    public String getInstanceId() {
+        return instanceId;
+    }
+
+    public StandardThoroughfareInfo setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
+        return this;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public StandardThoroughfareInfo setLink(String link) {
+        this.link = link;
         return this;
     }
 

@@ -17,6 +17,11 @@ var home = {
       battery: 100,
       rssi: -60,
       broadcastInterval: 330,
+      thoroughfares: [{
+        type: "UID",
+        instanceId: "0000",
+        namespaceId: "07BD01FC07C501FC0700"
+      }],
       beacon: {
         uuid: "1918FC80B1113441A9ACB1001C2FE510",
         major: 20001,

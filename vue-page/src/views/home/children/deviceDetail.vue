@@ -239,7 +239,9 @@ export default {
             } else if (2 == res) {
               connectStatus = true;
               // 连接成功
-              this.setLoading(false);
+              // this.setLoading(false);
+              // 向后台确认是否需要秘钥进行连接
+              
             } else {
               // 连接失败
               clearInterval(this.clearInterval);

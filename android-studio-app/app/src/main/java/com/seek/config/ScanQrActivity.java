@@ -14,12 +14,14 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.huawei.hms.hmsscankit.OnLightVisibleCallBack;
 import com.huawei.hms.hmsscankit.OnResultCallback;
 import com.huawei.hms.hmsscankit.RemoteView;
 import com.huawei.hms.hmsscankit.ScanUtil;
 import com.huawei.hms.ml.scan.HmsScan;
 import com.huawei.hms.ml.scan.HmsScanAnalyzerOptions;
+import com.seek.config.entity.constants.ActiveForResultConstants;
 
 import java.io.IOException;
 
@@ -85,6 +87,9 @@ public class ScanQrActivity extends Activity {
                     Intent intent = new Intent();
                     intent.putExtra(ScanUtil.RESULT, result[0]);
                     setResult(RESULT_OK, intent);
+
+                    SharePreferenceUtil.getInstance().shareSet(ActiveForResultConstants.SCAN_QR_STATUS_REQUEST_KEY, "false");
+
                     ScanQrActivity.this.finish();
                 }
             }
@@ -115,12 +120,7 @@ public class ScanQrActivity extends Activity {
 
     private void setBackOperation() {
         backBtn = findViewById(R.id.back_img);
-        backBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ScanQrActivity.this.finish();
-            }
-        });
+        backBtn.setOnClickListener(v -> ScanQrActivity.this.finish());
     }
 
     /**
@@ -130,6 +130,7 @@ public class ScanQrActivity extends Activity {
     protected void onStart() {
         super.onStart();
         remoteView.onStart();
+        SharePreferenceUtil.getInstance().shareSet(ActiveForResultConstants.SCAN_QR_STATUS_REQUEST_KEY, "true");
     }
 
     @Override
@@ -154,6 +155,7 @@ public class ScanQrActivity extends Activity {
     protected void onStop() {
         super.onStop();
         remoteView.onStop();
+        SharePreferenceUtil.getInstance().shareSet(ActiveForResultConstants.SCAN_QR_STATUS_REQUEST_KEY, "false");
     }
 
     /**
@@ -162,7 +164,7 @@ public class ScanQrActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK ) {
+        if (resultCode == RESULT_OK) {
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), data.getData());
                 HmsScan[] hmsScans = ScanUtil.decodeWithBitmap(ScanQrActivity.this, bitmap, new HmsScanAnalyzerOptions.Creator().setPhotoMode(true).create());

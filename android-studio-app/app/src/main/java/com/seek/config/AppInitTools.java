@@ -47,10 +47,10 @@ public class AppInitTools extends AppCompatActivity {
 
         BleSdkManager.getBleOptions().setLogSwitch(true)
                 .setIntermittentScanning(true)
-                .setScanPeriod(4000)
-                .setContinuousScanning(false)
+                .setScanPeriod(500)
+                .setContinuousScanning(true)
                 .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_LOW_POWER)
-                .setFilterInfo(new BleOptions.FilterInfo().setAddress("1918FC"));
+                .setFilterInfo(new BleOptions.FilterInfo().setAddress("BC8B"));
 
         BleSdkManager.getInstance().init(this);
 

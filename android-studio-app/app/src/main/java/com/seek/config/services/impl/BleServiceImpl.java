@@ -3,6 +3,7 @@ package com.seek.config.services.impl;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothGattCharacteristic;
 
+import com.ble.blescansdk.ble.BleOptions;
 import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.callback.request.BleConnectCallback;
 import com.ble.blescansdk.ble.callback.request.BleNotifyCallback;
@@ -51,7 +52,8 @@ public class BleServiceImpl implements BleService {
             BleSdkManager.getInstance().stopScan();
         }
 
-        BleSdkManager.getBleOptions().setSortType(SortTypeEnum.getByType(dto.getSortType()));
+        BleSdkManager.getBleOptions().setSortType(SortTypeEnum.getByType(dto.getSortType()))
+                .setFilterInfo(new BleOptions.FilterInfo().setAddress(dto.getAddress()));
     }
 
     /**
@@ -146,50 +148,6 @@ public class BleServiceImpl implements BleService {
 
     @Override
     public void write(String address) {
-        ConnectRequest<SeekStandardDevice> request = Rproxy.getRequest(ConnectRequest.class);
-        SeekStandardDevice bleDevice = request.getBleDevice(address);
-        BleSdkManager.getInstance().write(bleDevice, "@_1_3_0_!", new BleWriteCallback<SeekStandardDevice>() {
-            @Override
-            public void onWriteSuccess(SeekStandardDevice bleDevice, BluetoothGattCharacteristic bluetoothGattCharacteristic) {
-                BleLogUtil.i("Write Success");
-            }
-
-            @Override
-            public void onWriteFailed(SeekStandardDevice bleDevice, int i) {
-                BleLogUtil.i("Write Failed");
-            }
-        });
-    }
-
-    @Override
-    public void startNotify(String address) {
-        ConnectRequest<SeekStandardDevice> request = Rproxy.getRequest(ConnectRequest.class);
-        SeekStandardDevice bleDevice = request.getBleDevice(address);
-        // 如果已连接
-        if (bleDevice.getConnectState() == BleConnectStatusEnum.CONNECTED.getStatus()) {
-            BleSdkManager.getInstance().startNotify(bleDevice, new BleNotifyCallback<SeekStandardDevice>() {
-                @Override
-                public void onChanged(SeekStandardDevice o, BluetoothGattCharacteristic bluetoothGattCharacteristic) {
-                    BleLogUtil.i("Start Notify Success");
-                    BleLogUtil.i(ProtocolUtil.byteArrToHexStr(bluetoothGattCharacteristic.getValue()));
-                }
-
-                @Override
-                public void onNotifySuccess(SeekStandardDevice device) {
-                    BleLogUtil.i("Start Notify Success");
-                }
-
-                @Override
-                public void onNotifyFailed(SeekStandardDevice device, int failedCode) {
-                    BleLogUtil.i("Start Notify Failed");
-                }
-
-                @Override
-                public void onNotifyCanceled(SeekStandardDevice device) {
-                    BleLogUtil.i("Start Notify Cancelled");
-                }
-            });
-        }
 
     }
 

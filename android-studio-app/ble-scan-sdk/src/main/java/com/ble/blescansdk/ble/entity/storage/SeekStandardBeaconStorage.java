@@ -9,9 +9,11 @@ import com.ble.blescansdk.ble.BleOptions;
 import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.analysis.AnalysisSeekStandardBeaconHandle;
 import com.ble.blescansdk.ble.callback.request.BleScanCallback;
+import com.ble.blescansdk.ble.entity.constants.SeekStandardDeviceConstants;
 import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
 import com.ble.blescansdk.ble.entity.seek.StandardThoroughfareInfo;
 import com.ble.blescansdk.ble.enums.SortTypeEnum;
+import com.ble.blescansdk.ble.utils.BleLogUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,7 +45,8 @@ public class SeekStandardBeaconStorage extends AbstractStorage {
 
     private static ScheduledExecutorService scheduledExecutorServicePool;
     // 过滤信息
-    private static final BleOptions.FilterInfo filterInfo = BleSdkManager.getBleOptions().getFilterInfo();
+    private static BleOptions.FilterInfo filterInfo = BleSdkManager.getBleOptions().getFilterInfo();
+
 
     public static SeekStandardBeaconStorage getInstance() {
         if (INSTANCE == null) {
@@ -67,6 +70,9 @@ public class SeekStandardBeaconStorage extends AbstractStorage {
                 scheduledExecutorServicePool.shutdown();
             }
         }
+
+        filterInfo = BleSdkManager.getBleOptions().getFilterInfo();
+
         if (isIntermittentScanning) {
             startCallBack();
         }
@@ -81,15 +87,14 @@ public class SeekStandardBeaconStorage extends AbstractStorage {
 
         SeekStandardDevice seekStandardDevice = deviceMap.get(address);
 
-        if (null == seekStandardDevice) {
-            deviceMap.put(address, device);
-        } else if (seekStandardDevice.getRssi() < device.getRssi()) {
+        if (null != seekStandardDevice) {
             List<StandardThoroughfareInfo> thoroughfares = seekStandardDevice.getThoroughfares();
             if (null != thoroughfares && thoroughfares.size() > 0) {
                 device.setThoroughfares(thoroughfares);
             }
-            deviceMap.put(address, device);
+            device = calcBroadcastInterval(device, seekStandardDevice);
         }
+        deviceMap.put(address, device);
 
     }
 

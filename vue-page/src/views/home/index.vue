@@ -2,7 +2,7 @@
 <template>
   <div>
     <nav-bar>
-      <van-icon name="arrow-left" slot="left" class="navIcon" />
+      <!-- <van-icon name="arrow-left" slot="left" class="navIcon" /> -->
     </nav-bar>
 
     <div class="content">
@@ -16,22 +16,22 @@
               </span>
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item command="rssi_rise">
-                  {{ i18nInfo.rssiRise }}
+                  {{ i18nInfo.sort.rssiRise }}
                 </el-dropdown-item>
                 <el-dropdown-item command="rssi_fall">
-                  {{ i18nInfo.rssiFall }}
+                  {{ i18nInfo.sort.rssiFall }}
                 </el-dropdown-item>
                 <el-dropdown-item command="mac_rise">
-                  {{ i18nInfo.macRise }}</el-dropdown-item
+                  {{ i18nInfo.sort.macRise }}</el-dropdown-item
                 >
                 <el-dropdown-item command="mac_fall">{{
-                  i18nInfo.macFall
+                  i18nInfo.sort.macFall
                 }}</el-dropdown-item>
                 <el-dropdown-item command="battery_rise">
-                  {{ i18nInfo.batteryRise }}
+                  {{ i18nInfo.sort.batteryRise }}
                 </el-dropdown-item>
                 <el-dropdown-item command="battery_fall" class="unborder">
-                  {{ i18nInfo.batteryFall }}
+                  {{ i18nInfo.sort.batteryFall }}
                 </el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
@@ -54,8 +54,11 @@
         </div>
       </div>
 
+      <!-- 搜索框 -->
       <van-search
         v-model="searchValue"
+        @focus="searchFocus"
+        @blur="searchBlur"
         :placeholder="$t('notifyMessage.searchPlaceholder')"
       >
         <template #right-icon>
@@ -89,18 +92,20 @@
             </div>
 
             <div class="thoroughfares-info">
-              <div v-for="thoroughfare in item.thoroughfares">
-                <div v-show="thoroughfare.type == 'I_BEACON'">
+              <div
+                class="thoroughfare"
+                v-for="thoroughfare in item.thoroughfares"
+              >
+                <div v-show="thoroughfare.type == 'iBeacon'">
                   <div class="name">iBeacon</div>
                   <div class="info-box">
-                    <div class="uuid">
-                      UUID:1918FC80B1113441A9ACB1001C2FE510
-                    </div>
-                    <div class="beacon-info">
-                      <div class="major">Major:{{ thoroughfare.major }}</div>
-                      <div class="minor">Minor:{{ thoroughfare.minor }}</div>
+                    <div class="uuid">UUID：{{ thoroughfare.uuid }}</div>
+                    <div class="detail-info">
+                      <div class="major">Major：{{ thoroughfare.major }}</div>
+                      <div class="minor">Minor：{{ thoroughfare.minor }}</div>
                       <div class="distance">
-                        校准距离:{{ thoroughfare.calibrationDistance }}dBm
+                        {{ i18nInfo.calibrationDistance }}：
+                        {{ thoroughfare.measurePower }}dBm
                       </div>
                     </div>
                   </div>
@@ -109,24 +114,40 @@
                 <div v-show="thoroughfare.type == 'CORE_IOT_AOA'"></div>
 
                 <div v-show="thoroughfare.type == 'QUUPPA_AOA'"></div>
-                <div v-show="thoroughfare.type == 'EDDYSTONE_UID'"></div>
-                <div v-show="thoroughfare.type == 'EDDYSTONE_URL'"></div>
+                <!-- UID -->
+                <div v-show="thoroughfare.type == 'UID'">
+                  <div class="name">{{ thoroughfare.type }}</div>
+                  <div class="info-box">
+                    <div class="uuid">
+                      NameSpace ID：{{ thoroughfare.namespaceId }}
+                    </div>
+                    <div class="detail-info">
+                      <div>Instance ID：{{ thoroughfare.instanceId }}</div>
+                      <div class="distance">
+                        {{ i18nInfo.calibrationDistance }}：
+                        {{ thoroughfare.measurePower }}dBm
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- URL -->
+                <div v-show="thoroughfare.type == 'URL'">
+                  <div class="name">{{ thoroughfare.type }}</div>
+                  <div class="info-box">
+                    <div class="uuid">URL：{{ thoroughfare.link }}</div>
+                    <div class="detail-info">
+                      {{ i18nInfo.calibrationDistance }}
+                      {{ thoroughfare.measurePower }}dBm
+                    </div>
+                  </div>
+                </div>
+                <!-- TLM -->
                 <div v-show="thoroughfare.type == 'EDDYSTONE_TLM'"></div>
                 <div v-show="thoroughfare.type == 'LINE'"></div>
                 <div v-show="thoroughfare.type == 'ACC'"></div>
                 <div v-show="thoroughfare.type == 'INFO'"></div>
               </div>
             </div>
-
-            <!-- 
-            <div class="name">ACC</div>
-            <div class="info-box">
-              <div class="beacon-info">
-                <div class="major">X-Axis:{{ item.acc.xAxis }}gee</div>
-                <div class="minor">Y-Axis:{{ item.acc.yAxis }}gee</div>
-                <div class="distance">Z-Axis:{{ item.acc.yAxis }}gee</div>
-              </div>
-            </div> -->
           </div>
         </div>
       </div>
@@ -150,11 +171,14 @@
 import navBar from "@/components/navigation/navBar.vue";
 
 import { Search, DropdownMenu, DropdownItem, Notify } from "vant";
+import config from "@/fetch/config";
 export default {
   data() {
     return {
       // 搜索条件
       searchValue: "",
+      // 获取到焦点时候的值
+      searchFocusValue: "",
       // 扫描数量
       count: 0,
 
@@ -164,6 +188,10 @@ export default {
       scanState: true,
       // 国际化参数
       i18nInfo: this.$i18n.t("home"),
+      initParams: {
+        sortType: "",
+        address: "",
+      },
     };
   },
 
@@ -186,12 +214,29 @@ export default {
   },
 
   methods: {
+    // 搜索框获取到焦点
+    searchFocus() {
+      if (this.searchValue) {
+        this.searchFocusValue = this.searchValue;
+      }
+    },
+    // 搜索框丢失焦点
+    searchBlur() {
+      if (this.searchFocusValue != this.searchValue) {
+        // 重新调用开始扫描
+        this.initParams.address = this.searchValue;
+        console.log("焦点丢失 重新扫描");
+        this.init();
+      }
+      this.searchFocusValue = "";
+    },
+
     scanQrCode() {
       this.$androidApi.scanQrCode();
     },
 
     init() {
-      this.$androidApi.init().then(() => {
+      this.$androidApi.init(this.initParams).then(() => {
         this.startScan();
       });
     },
@@ -200,12 +245,11 @@ export default {
      * 处理排序
      */
     handleSort(command) {
-      let params = {
-        sortType: command,
-      };
-      this.$androidApi.init(params).then(() => {
-        this.startScan();
-      });
+      this.initParams.sortType = command;
+      this.init();
+      // this.$androidApi.init(params).then(() => {
+      //   this.startScan();
+      // });
     },
 
     startScan() {
@@ -391,20 +435,31 @@ export default {
           align-items: center;
           justify-content: center;
         }
-        .name {
-          font-size: 0.32rem;
-          font-family: Source Han Sans CN-Regular, Source Han Sans CN;
-          font-weight: 400;
-          color: #000000;
-          &:nth-child(n + 2) {
-            margin-top: 0.08rem;
+        .thoroughfares-info {
+          .thoroughfare {
+            &:nth-child(n + 2) {
+              border: 1px solid;
+              margin-top: 01rem;
+            }
           }
-        }
-        .info-box {
-          font-size: 0.28rem;
-          .beacon-info {
-            display: flex;
-            justify-content: space-between;
+          .name {
+            font-size: 0.32rem;
+            font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+            font-weight: 600;
+            color: #0b1a64;
+            &:nth-child(n + 2) {
+              margin-top: 0.08rem;
+            }
+          }
+          .info-box {
+            font-size: 0.27rem;
+            .uuid {
+              font-size: 0.26rem;
+            }
+            .detail-info {
+              display: flex;
+              justify-content: space-between;
+            }
           }
         }
       }

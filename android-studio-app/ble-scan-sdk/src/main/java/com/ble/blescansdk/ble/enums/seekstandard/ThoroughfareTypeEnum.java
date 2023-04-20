@@ -5,6 +5,8 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.entity.seek.StandardThoroughfareInfo;
+import com.ble.blescansdk.ble.utils.AsciiUtil;
+import com.ble.blescansdk.ble.utils.EddystoneBeaconUrlUtil;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.ble.blescansdk.ble.utils.StringUtils;
 
@@ -13,7 +15,7 @@ import java.util.Optional;
 
 public enum ThoroughfareTypeEnum {
 
-    I_BEACON("4C00", null, "I_BEACON") {
+    I_BEACON("4C00", null, "iBeacon") {
         @Override
         public StandardThoroughfareInfo analysis(byte[] scanBytes) {
             int startByte = 9;
@@ -45,21 +47,41 @@ public enum ThoroughfareTypeEnum {
         }
     },
 
-    EDDYSTONE_UID("0AFE", "00", "EDDYSTONE_UID") {
+    EDDYSTONE_UID("AAFE", "00", "UID") {
         @Override
         public StandardThoroughfareInfo analysis(byte[] scanBytes) {
-            return null;
+            int startByte = 12;
+            int measurePower = 256 - (scanBytes[startByte] & 0x00ff);
+            startByte = startByte + 1;
+            String namespaceId = ProtocolUtil.analysisByStartByte(scanBytes, startByte, 10);
+            startByte = startByte + 10;
+            String instanceId = ProtocolUtil.analysisByStartByte(scanBytes, startByte, 6);
+            return new StandardThoroughfareInfo(EDDYSTONE_UID.getValue())
+                    .setNamespaceId(namespaceId)
+                    .setInstanceId(instanceId)
+                    .setMeasurePower(measurePower);
         }
     },
 
-    EDDYSTONE_URL("0AFE", "10", "EDDYSTONE_URL") {
+    EDDYSTONE_URL("AAFE", "10", "URL") {
         @Override
         public StandardThoroughfareInfo analysis(byte[] scanBytes) {
-            return null;
+            int startByte = 12;
+            int measurePower = 256 - (scanBytes[startByte] & 0x00ff);
+            startByte++;
+            String url = "";
+            url += EddystoneBeaconUrlUtil.getPrefix(ProtocolUtil.byteToHexStr(scanBytes[startByte]));
+            startByte++;
+            url += AsciiUtil.convertHexToString(ProtocolUtil.analysisByStartByte(scanBytes, startByte, 5));
+            startByte = startByte + 5;
+            url += EddystoneBeaconUrlUtil.getSuffix(ProtocolUtil.byteToHexStr(scanBytes[startByte]));
+            return new StandardThoroughfareInfo(EDDYSTONE_URL.getValue())
+                    .setMeasurePower(measurePower)
+                    .setLink(url);
         }
     },
 
-    EDDYSTONE_TLM("0AFE", "20", "EDDYSTONE_TLM") {
+    EDDYSTONE_TLM("AAFE", "20", "TLM") {
         @Override
         public StandardThoroughfareInfo analysis(byte[] scanBytes) {
             return null;

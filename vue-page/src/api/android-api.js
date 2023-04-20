@@ -68,6 +68,13 @@ export default {
     return request("get", "ble/connect/status", params);
   },
 
+  /**
+   * 获取是否需要秘钥
+   */
+  getNeedSecretKey(){
+    
+  },
+
 
   write(params) {
     return request("post", "ble/write", params);

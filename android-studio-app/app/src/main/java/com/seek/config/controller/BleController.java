@@ -2,6 +2,7 @@ package com.seek.config.controller;
 
 import android.util.Log;
 
+import com.ble.blescansdk.ble.helper.SeekStandardCommunicationHelper;
 import com.seek.config.annotation.AppController;
 import com.seek.config.annotation.AppRequestMapper;
 import com.seek.config.annotation.AppRequestMethod;
@@ -81,7 +82,8 @@ public class BleController {
             return RespVO.failure(I18nUtil.getMessage(I18nUtil.DEVICE_ADDRESS_FORMAT_ERROR));
         }
 
-        bleService.startNotify(dto.getAddress());
+        SeekStandardCommunicationHelper.getInstance().startNotify(dto.getAddress());
+
         return RespVO.success();
     }
 

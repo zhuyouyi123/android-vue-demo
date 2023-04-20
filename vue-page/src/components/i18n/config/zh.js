@@ -35,15 +35,24 @@ export default {
       language: "语言",
       batch: "批量",
     },
-    rssiRise: "Rssi升序",
-    rssiFall: "Rssi降序",
-    macRise: "Mac降序",
-    macFall: "Mac升序",
-    batteryRise: "电量降序",
-    batteryFall: "电量升序",
-    sorted: "排序",
+    broadcastInterval: "广播间隔",
+    calibrationDistance: "校准距离",
+    battery: "电量",
+
+    sort: {
+      rssiRise: "Rssi升序",
+      rssiFall: "Rssi降序",
+      macRise: "Mac降序",
+      macFall: "Mac升序",
+      batteryRise: "电量降序",
+      batteryFall: "电量升序",
+      sorted: "排序",
+    },
+
     scannedCount: "扫描到设备数量：",
     individua: "个",
+
+
   },
 
   // 设备

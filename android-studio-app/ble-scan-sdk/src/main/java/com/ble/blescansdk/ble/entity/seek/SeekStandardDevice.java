@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.ble.blescansdk.ble.entity.BleDevice;
 import com.ble.blescansdk.ble.entity.constants.SeekStandardDeviceConstants;
+import com.ble.blescansdk.ble.utils.BleLogUtil;
 
 import java.util.List;
 
@@ -15,6 +16,10 @@ public class SeekStandardDevice extends BleDevice {
      * 电量
      */
     private int battery = SeekStandardDeviceConstants.DEFAULT_BATTERY;
+
+
+    private long broadcastInterval = SeekStandardDeviceConstants.DEFAULT_BROADCAST_INTERVAL;
+
 
     private List<StandardThoroughfareInfo> thoroughfares;
 
@@ -44,6 +49,14 @@ public class SeekStandardDevice extends BleDevice {
 
     public void setBattery(int battery) {
         this.battery = battery;
+    }
+
+    public long getBroadcastInterval() {
+        return broadcastInterval;
+    }
+
+    public void setBroadcastInterval(long broadcastInterval) {
+        this.broadcastInterval = broadcastInterval;
     }
 
     @NonNull

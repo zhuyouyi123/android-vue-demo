@@ -11,4 +11,9 @@ public class SeekStandardDeviceConstants {
      * 默认电量
      */
     public static final int DEFAULT_BATTERY= -1;
+
+    /**
+     * 默认广播间隔
+     */
+    public static final int DEFAULT_BROADCAST_INTERVAL= -1;
 }

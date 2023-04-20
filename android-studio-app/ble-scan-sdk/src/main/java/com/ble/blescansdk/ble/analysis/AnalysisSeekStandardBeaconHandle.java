@@ -9,6 +9,7 @@ import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
 import com.ble.blescansdk.ble.entity.seek.StandardThoroughfareInfo;
 import com.ble.blescansdk.ble.enums.seekstandard.ThoroughfareTypeEnum;
 import com.ble.blescansdk.ble.utils.BleLogUtil;
+import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.Md5Util;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.ble.blescansdk.ble.utils.StringUtils;
@@ -16,6 +17,7 @@ import com.ble.blescansdk.ble.utils.StringUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -49,17 +51,26 @@ public class AnalysisSeekStandardBeaconHandle extends AbstractDeviceAnalysis<See
             stringStringMap = new HashMap<>();
         }
 
-        String md5 = Md5Util.md5(ProtocolUtil.byteArrToHexStr(scanBytes));
+        String byteArrToHexStr = ProtocolUtil.byteArrToHexStr(scanBytes);
+
+        BleLogUtil.i(byteArrToHexStr);
+
+        String md5 = Md5Util.md5(byteArrToHexStr);
         if (!stringStringMap.containsKey(md5)) {
             ThoroughfareTypeEnum thoroughfareTypeEnum = getThoroughfareType(scanBytes);
             if (null != thoroughfareTypeEnum) {
-                stringStringMap.put(md5, thoroughfareTypeEnum.analysis(scanBytes));
+                StandardThoroughfareInfo analysis = thoroughfareTypeEnum.analysis(scanBytes);
+                if (Objects.nonNull(analysis)) {
+                    stringStringMap.put(md5, analysis);
+                }
             }
         }
 
         thoroughfareMap.put(address, stringStringMap);
 
-        seekStandardDevice.setThoroughfares(new ArrayList<>(stringStringMap.values()));
+        if (!stringStringMap.isEmpty()){
+            seekStandardDevice.setThoroughfares(new ArrayList<>(stringStringMap.values()));
+        }
 
         return seekStandardDevice;
     }
@@ -76,7 +87,7 @@ public class AnalysisSeekStandardBeaconHandle extends AbstractDeviceAnalysis<See
         // 通道类型
         String type = ProtocolUtil.analysisByStartByte(scanBytes, startByte, 2);
 
-        String childIde = ProtocolUtil.byteToHexStr(scanBytes[13]);
+        String childIde = ProtocolUtil.byteToHexStr(scanBytes[11]);
 
         return ThoroughfareTypeEnum.getByType(type, childIde);
 
