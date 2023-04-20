@@ -2,33 +2,24 @@ package com.seek.config;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.StrictMode;
-import android.provider.MediaStore;
 import android.view.View;
-import android.webkit.DownloadListener;
-import android.webkit.JsResult;
-import android.webkit.ValueCallback;
-import android.webkit.WebChromeClient;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 
-import androidx.annotation.RequiresApi;
+import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
+import com.ble.blescansdk.ble.utils.StringUtils;
+import com.huawei.hms.hmsscankit.ScanUtil;
+import com.huawei.hms.ml.scan.HmsScan;
+import com.seek.config.entity.constants.ActiveForResultConstants;
+import com.seek.config.vue.JavaScriptObject;
 
-import com.ble.blescansdk.ble.BleSdkManager;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
+
+import es.dmoral.toasty.Toasty;
 
 
 public class AppActivity extends AppInitTools {
@@ -155,18 +146,30 @@ public class AppActivity extends AppInitTools {
 //        webSettings.setBlockNetworkLoads(true); //-> 是否从网络获取资源
 
         //设置本地调用对象及其接口
-        webView.addJavascriptInterface(new JavaScriptObject(this), "androidJS");
+        webView.addJavascriptInterface(new JavaScriptObject(), "androidJS");
 
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode != RESULT_OK || data == null) {
+            return;
+        }
+
+        if (requestCode == ActiveForResultConstants.SCAN_QR_CODE_REQUEST_CODE) {
+            HmsScan obj = data.getParcelableExtra(ScanUtil.RESULT);
+            if (obj != null && StringUtils.isNotBlank(obj.originalValue)) {
+                SharePreferenceUtil.getInstance().shareSet(ActiveForResultConstants.SCAN_QR_CODE_REQUEST_KEY, obj.originalValue);
+                Toasty.info(this, obj.originalValue, 100).show();
+            }
+        }
+
     }
 
     public void initRefresh() {
         Button button = findViewById(R.id.refresh);
-        button.setVisibility(View.INVISIBLE);
         button.setVisibility(!Config.APK ? View.VISIBLE : View.INVISIBLE);
         button.setOnClickListener(v -> {
             System.out.println("点击按钮事件！");
@@ -174,12 +177,6 @@ public class AppActivity extends AppInitTools {
         });
     }
 
-    static File createTempImageFile() throws IOException {
-        File destFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-        destFolder.mkdirs();
-        String dateTimeString = new Date().getTime() + "";
-        return File.createTempFile(dateTimeString + "-", ".png", destFolder);
-    }
 
     /**
      * 打开欢迎界面

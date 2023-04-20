@@ -5,6 +5,11 @@ import storage from '../components/development/storage'
 
 export default {
 
+  // 扫描二维码
+  scanQrCode() {
+    request('post', "system/scan-qr-code");
+  },
+
   /**
    * 页面初始化
    * @param {参数} params 
@@ -41,6 +46,36 @@ export default {
     return request("get", "ble/list", params);
   },
 
+  /**
+   * 连接设备
+   */
+  connectDevice(params) {
+    if (config.developmentMode) {
+      return newPromise(true);
+    }
+    return request("post", "ble/connect", params);
+  },
+
+  /**
+   * 获取连接状态
+   * @param {address} params 
+   * @returns 状态
+   */
+  getConnectingStatus(params) {
+    if (config.developmentMode) {
+      return newPromise(2);
+    }
+    return request("get", "ble/connect/status", params);
+  },
+
+
+  write(params) {
+    return request("post", "ble/write", params);
+  },
+
+  startNotify(params) {
+    return request("post", "ble/startNotify", params);
+  },
 
 }
 

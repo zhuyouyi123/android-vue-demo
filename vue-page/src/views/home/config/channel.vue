@@ -41,7 +41,7 @@
           <div class="division-line" v-show="item.sh"></div>
           <div class="channel-detail" v-show="item.sh">
             <div class="content-title">
-              {{ i18nInfo.configChannel.broadcastContent }}
+              {{ i18nInfo.common.broadcastContent }}
             </div>
 
             <div class="info">
@@ -55,24 +55,24 @@
             <div class="division-line"></div>
 
             <div class="content-title">
-              {{ i18nInfo.configChannel.basicParams }}
+              {{ i18nInfo.common.basicParams }}
             </div>
 
             <div class="info">
               <div class="basic-info">
-                <div>{{ i18nInfo.configChannel.broadcastInterval }}:500ms</div>
-                <div>
-                  {{ i18nInfo.configChannel.calibrationDistance }}:-79dBm
-                </div>
+                <div>{{ i18nInfo.common.broadcastInterval }}:500ms</div>
+                <div>{{ i18nInfo.common.calibrationDistance }}:-79dBm</div>
               </div>
-              <div>{{ i18nInfo.configChannel.broadcastPower }}:0dBm</div>
+              <div>{{ i18nInfo.common.broadcastPower }}:0dBm</div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- 按钮 -->
-      <van-button class="add">{{ $t("baseButton.add") }}</van-button>
+      <van-button class="add" @click="add">{{
+        $t("baseButton.add")
+      }}</van-button>
     </div>
   </div>
 </template>
@@ -112,12 +112,6 @@ export default {
           broadcastType: "触发广播",
           sh: false,
         },
-        {
-          index: 4,
-          frameType: "ACC",
-          broadcastType: "触发广播",
-          sh: false,
-        },
       ],
     };
   },
@@ -125,22 +119,30 @@ export default {
   mounted() {
     if (window.history && window.history.pushState) {
       history.pushState(null, null, document.URL);
-      window.addEventListener("popstate", this.goBack, false); //false阻止默认事件
+      //false阻止默认事件
+      window.addEventListener("popstate", this.goBack, false);
     }
   },
 
   destroyed() {
-    window.removeEventListener("popstate", this.goBack, false); //false阻止默认事件
+    //false阻止默认事件
+    window.removeEventListener("popstate", this.goBack, false);
   },
 
   methods: {
     goBack() {
-      console.log(1111);
       this.$router.replace("/home/deviceDetail");
     },
 
     showDetail(item) {
       item.sh = !item.sh;
+    },
+
+    /**
+     * 添加通道
+     */
+    add() {
+      this.$router.push("/home/deviceDetail/configureChannel/add");
     },
   },
 };

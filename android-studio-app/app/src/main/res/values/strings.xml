@@ -27,5 +27,6 @@
 
     <!--Tips-->
     <string name="open_location_info_switch">为了更精确的扫描到Bluetooth LE设备,请打开GPS定位</string>
+    <string name="device_address_format_error">设备地址格式错误</string>
 
 </resources>

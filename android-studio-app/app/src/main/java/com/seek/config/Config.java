@@ -25,7 +25,7 @@ public class Config {
 //    public static Boolean APK = false;
     public static Boolean APK = false;
 
-    /**
+    /**ble_scan_sdk_V0.0.1.jar
      * 基本项目目录
      */
     public static String basePackages = "com.seek.config";
@@ -44,6 +44,17 @@ public class Config {
      * 系统后退按钮，是否显示退出提示框
      */
     public static boolean isShowExitDialogByBackButton = false;
+
+    public static boolean isNewApi = true;
+
+    @SuppressLint("StaticFieldLeak")
+    public static Context mainContext;
+
+    @SuppressLint("StaticFieldLeak")
+    public static WebView webView;
+
+    @SuppressLint("StaticFieldLeak")
+    public static Context scanContext;
 
     /**
      * 获取当前webView请求页面
@@ -96,15 +107,8 @@ public class Config {
         }
     }
 
-    @SuppressLint("StaticFieldLeak")
-    public static Context mainContext;
-    @SuppressLint("StaticFieldLeak")
-    public static WebView webView;
 
-    public static int Dp2Px(float dpi) {
-        final float scale = mainContext.getResources().getDisplayMetrics().density;
-        float add = -0.5f;
-        return (int) (scale > 0 ? (dpi / scale + add) : (dpi * scale + add));
-    }
+
+
 
 }

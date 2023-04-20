@@ -13,36 +13,36 @@
         <van-cell-group inset>
           <van-field
             input-align="right"
-            label-width="4rem"
-            v-model="value"
+            label-width="3.8rem"
+            v-model="address"
             label="Mac"
             placeholder="Mac"
           />
 
           <van-field
             input-align="right"
-            label-width="4rem"
+            label-width="3.8rem"
             v-model="value"
             :label="$t('device.detail.lable.model')"
             :placeholder="$t('device.detail.lable.model')"
           />
           <van-field
             input-align="right"
-            label-width="4rem"
+            label-width="3.8rem"
             v-model="value"
             :label="$t('device.detail.lable.softwareVersion')"
             :placeholder="$t('device.detail.lable.softwareVersion')"
           />
           <van-field
             input-align="right"
-            label-width="4rem"
+            label-width="3.8rem"
             v-model="value"
             :label="$t('device.detail.lable.hardwareVersion')"
             :placeholder="$t('device.detail.lable.hardwareVersion')"
           />
           <van-field
             input-align="right"
-            label-width="4rem"
+            label-width="3.8rem"
             v-model="value"
             :label="$t('device.detail.lable.firmwareVersion')"
             :placeholder="$t('device.detail.lable.firmwareVersion')"
@@ -57,21 +57,21 @@
         <van-cell-group inset>
           <van-field
             input-align="right"
-            label-width="4rem"
+            label-width="3.8rem"
             v-model="value"
             :label="$t('device.detail.lable.numberOfChannels')"
             :placeholder="$t('device.detail.lable.numberOfChannels')"
           />
           <van-field
             input-align="right"
-            label-width="4rem"
+            label-width="3.8rem"
             v-model="value"
             :label="$t('device.detail.lable.supportPower')"
             :placeholder="$t('device.detail.lable.supportPower')"
           />
           <van-field
             input-align="right"
-            label-width="4rem"
+            label-width="3.8rem"
             v-model="value"
             :label="$t('device.detail.lable.supportData')"
             :placeholder="$t('device.detail.lable.supportData')"
@@ -83,6 +83,7 @@
         <div class="function">
           <div class="logo">
             <van-image
+              @click="write"
               :src="require('../../../assets/device/detail/can-connect.svg')"
               alt=""
             />
@@ -92,6 +93,7 @@
         <div class="function">
           <div class="logo">
             <van-image
+              @click="read"
               :src="require('../../../assets/device/detail/reset.svg')"
               alt=""
             />
@@ -166,7 +168,13 @@ export default {
   },
   data() {
     return {
+      // 连接状态
+      connectStatus: false,
       value: 1,
+      loading: false,
+      address: this.$route.query.address,
+      // 连接定时器
+      connectInterval: null,
     };
   },
 
@@ -175,10 +183,22 @@ export default {
       history.pushState(null, null, document.URL);
       window.addEventListener("popstate", this.goBack, false); //false阻止默认事件
     }
+    // 设置加载
+    this.setLoading(true);
+    // 连接设备
+    if (!this.connectStatus) {
+      this.connect();
+    }
   },
 
   destroyed() {
     window.removeEventListener("popstate", this.goBack, false); //false阻止默认事件
+    if (this.connectInterval) {
+      clearInterval(this.connectInterval);
+      this.connectInterval = null;
+    }
+    // 关闭遮罩层
+    this.setLoading(false);
   },
 
   methods: {
@@ -188,33 +208,122 @@ export default {
     jumpToPage(page) {
       this.$router.push("/home/deviceDetail/" + page);
     },
+
+    // 连接设备
+    connect() {
+      let params = {
+        address: this.address,
+      };
+      this.$androidApi
+        .connectDevice(params)
+        .then(() => {
+          this.getConnectingStatus(params);
+        })
+        .catch((errorMsg) => {
+          Notify({ type: "warning", message: errorMsg });
+          this.$router.replace("/home");
+        });
+    },
+
+    /**
+     * 获取连接状态
+     */
+    getConnectingStatus(params) {
+      this.connectInterval = setInterval(() => {
+        this.$androidApi
+          .getConnectingStatus(params)
+          .then((res) => {
+            let connectStatus = false;
+            if (1 == res) {
+              // 连接中
+            } else if (2 == res) {
+              connectStatus = true;
+              // 连接成功
+              this.setLoading(false);
+            } else {
+              // 连接失败
+              clearInterval(this.clearInterval);
+              this.setLoading();
+              // 退出页面
+              this.$router.replace("/home");
+            }
+            // 如果当前连接状态与传递过来的不一致 重新赋值
+            if (connectStatus != this.connectStatus) {
+              this.connectStatus = connectStatus;
+              if (this.connectStatus && this.connectStatus == true) {
+                this.startNotify(params);
+              }
+            }
+          })
+          .catch((errorMsg) => {
+            Notify({ type: "warning", message: errorMsg });
+          });
+      }, 3000);
+    },
+
+    // 写入数据
+    write() {
+      let params = {
+        address: this.address,
+      };
+      this.$androidApi.write(params);
+    },
+
+    read() {
+      let params = {
+        address: this.address,
+      };
+      this.$androidApi.read(params);
+    },
+
+    startNotify(params) {
+      setTimeout(() => {
+        this.$androidApi.startNotify(params);
+      }, 200);
+    },
+
+    // 加载
+    setLoading(loading) {
+      if (loading) {
+        this.loading = this.$loading({
+          lock: true,
+          text: "连接中...",
+          spinner: "el-icon-loading",
+          background: "rgba(0, 0, 0, 0.7)",
+        });
+      } else {
+        this.loading.close();
+      }
+    },
   },
 };
 </script>
 <style lang='scss' scoped>
 .content {
+  overflow: auto;
   // 基础信息
   .base-info-box {
-    height: 4.65rem;
+    // height: 4.65rem;
     background: #ffffff;
     box-shadow: 0rem 0.04rem 0.06rem 0.01rem rgba(0, 0, 0, 0.1);
     border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
   }
 
   .special-info-box {
-    height: 3.05rem;
+    // height: 3.6rem;
     background: #ffffff;
     box-shadow: 0rem 0.04rem 0.06rem 0.01rem rgba(0, 0, 0, 0.1);
-    border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
+    // border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
+    border-radius: 0.1rem;
     margin-top: 0.16rem;
   }
 
   .function-button {
     margin-top: 0.29rem;
+    margin-bottom: 0.29rem;
     display: flex;
     flex-wrap: wrap;
     .function {
-      height: 1.6rem;
       width: 33.33%;
       display: flex;
       align-items: center;

@@ -1,8 +1,30 @@
 export default {
   // 页面标题
   pageTitle: {
-    deviceDetail: "设备详情",
-    configureChannel: "配置通道",
+    deviceDetail: "Detail",
+    configureChannel: "Configure Channel",
+    addChannel: "Add Channel",
+  },
+
+  notifyMessage: {
+    base: {
+      dataEmpty: "No Data",
+    },
+    connect: {
+      connectSuccess: "connection succeeded",
+      connectError: "connection failed"
+    },
+    scan: {
+      startSuccess: "scanning started successfully",
+    },
+  },
+
+  baseButton: {
+    add: "add",
+    remove: "update",
+    update: "remove",
+    save: "save",
+    cancel: "cancel",
   },
 
   // 设备

@@ -8,49 +8,58 @@
     <div class="content">
       <div class="condition-box">
         <div class="condition">
-          <!-- <div><van-icon name="descending" /> 排序</div> -->
           <div>
             <el-dropdown trigger="click" @command="handleSort">
               <span class="el-dropdown-link">
                 <van-icon name="descending" size="23" />
-                排序
+                {{ i18nInfo.button.sorted }}
               </span>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item command="rssi_rise"
-                  >Rssi升序</el-dropdown-item
+                <el-dropdown-item command="rssi_rise">
+                  {{ i18nInfo.rssiRise }}
+                </el-dropdown-item>
+                <el-dropdown-item command="rssi_fall">
+                  {{ i18nInfo.rssiFall }}
+                </el-dropdown-item>
+                <el-dropdown-item command="mac_rise">
+                  {{ i18nInfo.macRise }}</el-dropdown-item
                 >
-                <el-dropdown-item command="rssi_fall"
-                  >Rssi降序</el-dropdown-item
-                >
-                <el-dropdown-item command="mac_rise">Mac降序</el-dropdown-item>
-                <el-dropdown-item command="mac_fall">Mac升序</el-dropdown-item>
-                <el-dropdown-item command="battery_rise"
-                  >电量降序</el-dropdown-item
-                >
-                <el-dropdown-item command="battery_fall" class="unborder"
-                  >电量升序</el-dropdown-item
-                >
+                <el-dropdown-item command="mac_fall">{{
+                  i18nInfo.macFall
+                }}</el-dropdown-item>
+                <el-dropdown-item command="battery_rise">
+                  {{ i18nInfo.batteryRise }}
+                </el-dropdown-item>
+                <el-dropdown-item command="battery_fall" class="unborder">
+                  {{ i18nInfo.batteryFall }}
+                </el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
           </div>
 
-          <!-- <div>
-            <van-icon name="descending" />
-            <van-dropdown-menu active-color="#007FFF" :overlay="false">
-              <van-dropdown-item v-model="sortCode" :options="sortOptions" />
-            </van-dropdown-menu>
-          </div> -->
-          <div><van-icon name="filter-o" size="19" />过滤</div>
-          <div><van-icon name="todo-list-o" size="20" />语言</div>
-          <div><van-icon name="bars" size="20" />批量</div>
+          <div>
+            <van-icon name="filter-o" size="19" /> {{ i18nInfo.button.filter }}
+          </div>
+          <div>
+            <van-icon name="todo-list-o" size="20" />
+            {{ i18nInfo.button.language }}
+          </div>
+          <div>
+            <van-icon name="bars" size="20" /> {{ i18nInfo.button.batch }}
+          </div>
         </div>
         <div class="division-line"></div>
-        <div class="count">扫描到设备数量：{{ count }}个</div>
+        <div class="count">
+          {{ i18nInfo.scannedCount }}{{ count }}{{ i18nInfo.individua }}
+        </div>
       </div>
 
-      <van-search v-model="searchValue" placeholder="请输入搜索关键词">
+      <van-search
+        v-model="searchValue"
+        :placeholder="$t('notifyMessage.searchPlaceholder')"
+      >
         <template #right-icon>
-          <van-icon name="scan" size="23" color="black" />
+          <van-icon name="scan" size="23" color="black" @click="scanQrCode" />
         </template>
       </van-search>
 
@@ -59,67 +68,78 @@
           <div class="device-info" @click="detail(item)">
             <div class="name">
               <b>{{ item.name ? item.name : "Unnamed" }}</b>
-            </div>
-            <div class="info">
-              <div class="info-box">
-                <div>Mac: {{ item.address }}</div>
-                <div>电量: 100%</div>
-                <!-- <div>电量: {{ item.battery }}%</div> -->
-              </div>
-              <div class="info-box">
-                <div>Rssi: {{ item.rssi }}</div>
-                <div>广播间隔:330ms</div>
-                <!-- <div>广播间隔: {{ item.broadcastInterval }}ms</div> -->
+              <div class="info">
+                <div class="info-box">
+                  <div>Mac: {{ item.address }}</div>
+                  <!-- <div>电量: 100%</div> -->
+                  <div>电量: {{ item.battery }}%</div>
+                </div>
+                <div class="info-box">
+                  <div>Rssi: {{ item.rssi }}</div>
+                  <!-- <div>广播间隔:330ms</div> -->
+                  <div>广播间隔: {{ item.broadcastInterval }}ms</div>
+                </div>
               </div>
             </div>
           </div>
           <div class="division-line"></div>
           <div class="other-info">
-            <div class="name">iBeacon</div>
-            <div class="info-box">
-              <div class="uuid">UUID:1918FC80B1113441A9ACB1001C2FE510</div>
-              <div class="beacon-info">
-                <div class="major">Major:111</div>
-                <div class="minor">Minor:222</div>
-                <div class="distance">校准距离:22dBm</div>
-                <!-- <div class="major">Major:{{ item.beacon.major }}</div>
-                <div class="minor">Minor:{{ item.beacon.minor }}</div>
-                <div class="distance">
-                  校准距离:{{ item.beacon.calibrationDistance }}dBm
-                </div> -->
-              </div>
+            <div class="thoroughfares-null" v-show="!item.thoroughfares">
+              {{ $t("notifyMessage.base.dataEmpty") }}
             </div>
-            <div class="name">ACC</div>
-            <div class="info-box">
-              <div class="beacon-info">
-                <div class="major">X-Axis:1.1gee</div>
-                <div class="minor">Y-Axis:1.2gee</div>
-                <div class="distance">Z-Axis:1.3gee</div>
-                <!-- <div class="major">X-Axis:{{ item.acc.xAxis }}gee</div>
-                <div class="minor">Y-Axis:{{ item.acc.yAxis }}gee</div>
-                <div class="distance">Z-Axis:{{ item.acc.yAxis }}gee</div> -->
+
+            <div class="thoroughfares-info">
+              <div v-for="thoroughfare in item.thoroughfares">
+                <div v-show="thoroughfare.type == 'I_BEACON'">
+                  <div class="name">iBeacon</div>
+                  <div class="info-box">
+                    <div class="uuid">
+                      UUID:1918FC80B1113441A9ACB1001C2FE510
+                    </div>
+                    <div class="beacon-info">
+                      <div class="major">Major:{{ thoroughfare.major }}</div>
+                      <div class="minor">Minor:{{ thoroughfare.minor }}</div>
+                      <div class="distance">
+                        校准距离:{{ thoroughfare.calibrationDistance }}dBm
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-show="thoroughfare.type == 'CORE_IOT_AOA'"></div>
+
+                <div v-show="thoroughfare.type == 'QUUPPA_AOA'"></div>
+                <div v-show="thoroughfare.type == 'EDDYSTONE_UID'"></div>
+                <div v-show="thoroughfare.type == 'EDDYSTONE_URL'"></div>
+                <div v-show="thoroughfare.type == 'EDDYSTONE_TLM'"></div>
+                <div v-show="thoroughfare.type == 'LINE'"></div>
+                <div v-show="thoroughfare.type == 'ACC'"></div>
+                <div v-show="thoroughfare.type == 'INFO'"></div>
               </div>
             </div>
 
+            <!-- 
             <div class="name">ACC</div>
             <div class="info-box">
               <div class="beacon-info">
-                <div class="major">X-Axis:1.1gee</div>
-                <div class="minor">Y-Axis:1.2gee</div>
-                <div class="distance">Z-Axis:1.3gee</div>
+                <div class="major">X-Axis:{{ item.acc.xAxis }}gee</div>
+                <div class="minor">Y-Axis:{{ item.acc.yAxis }}gee</div>
+                <div class="distance">Z-Axis:{{ item.acc.yAxis }}gee</div>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
 
       <!-- 加载 -->
-      <div class="scanning">
-        <div class="scan" v-if="!scanState" @click="startScan">刷新</div>
-        <div v-else>
-          <div class="point-item"></div>
-          <div class="point-item"></div>
-          <div class="point-item"></div>
+      <div class="scanning" v-if="!scanState" @click="startScan">
+        <div class="scan">刷新</div>
+      </div>
+      <div class="scanning scanning-animation" v-else>
+        <div class="loading">
+          <div class="dot dot-1"></div>
+          <div class="dot dot-2"></div>
+          <div class="dot dot-3"></div>
         </div>
       </div>
     </div>
@@ -141,7 +161,9 @@ export default {
       list: [],
       interval: null,
       // 扫描状态
-      scanState: false,
+      scanState: true,
+      // 国际化参数
+      i18nInfo: this.$i18n.t("home"),
     };
   },
 
@@ -156,7 +178,18 @@ export default {
     this.init();
   },
 
+  destroyed() {
+    this.stopScan();
+    if (this.interval) {
+      clearInterval(this.interval);
+    }
+  },
+
   methods: {
+    scanQrCode() {
+      this.$androidApi.scanQrCode();
+    },
+
     init() {
       this.$androidApi.init().then(() => {
         this.startScan();
@@ -167,7 +200,6 @@ export default {
      * 处理排序
      */
     handleSort(command) {
-      this.$message("click on item " + command);
       let params = {
         sortType: command,
       };
@@ -200,16 +232,18 @@ export default {
 
       this.interval = setInterval(() => {
         this.$androidApi.deviceList().then((data) => {
-          if (data) {
-            this.updateScanState(data.scanning);
-            if (!data.scanning || false == data.scanning) {
-              clearInterval(this.interval);
-              return;
-            }
-
+          if (this.$config.developmentMode) {
+            this.list = data;
+            this.count = this.list.length;
+          } else if (data) {
             if (data.list) {
               this.list = data.list;
               this.count = this.list.length;
+            }
+            this.updateScanState(data.scanning);
+            if (!this.scanState || false == this.scanState) {
+              clearInterval(this.interval);
+              return;
             }
           }
         });
@@ -227,7 +261,12 @@ export default {
     },
 
     detail(item) {
-      this.$router.push("/home/deviceDetail");
+      this.$router.push({
+        path: "/home/deviceDetail",
+        query: {
+          address: item.address,
+        },
+      });
     },
   },
 };
@@ -289,11 +328,14 @@ export default {
     box-shadow: 0rem 0.04rem 0.06rem 0.01rem rgba(0, 0, 0, 0.1);
     border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
     margin-top: 0.2rem;
-    .van-cell {
-      background: #ffffff;
-    }
     .van-search__content {
       padding-left: 0;
+    }
+  }
+
+  .van-search {
+    .van-field {
+      background: #ffffff;
     }
   }
 
@@ -320,18 +362,18 @@ export default {
           font-family: Source Han Sans CN-Bold, Source Han Sans CN;
           font-weight: bold;
           color: #000000;
-        }
-        .info {
-          font-size: 0.28rem;
-          font-family: Source Han Sans CN-Regular, Source Han Sans CN;
-          font-weight: 400;
-          color: #000000;
-          line-height: 0.29rem;
-          .info-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 0.16rem;
+          .info {
+            font-size: 0.28rem;
+            font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+            font-weight: 400;
+            color: #000000;
+            line-height: 0.29rem;
+            .info-box {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-top: 0.16rem;
+            }
           }
         }
       }
@@ -342,6 +384,13 @@ export default {
         color: #000000;
         line-height: 0.45rem;
         font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+        .thoroughfares-null {
+          height: 1rem;
+          color: #666666;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
         .name {
           font-size: 0.32rem;
           font-family: Source Han Sans CN-Regular, Source Han Sans CN;
@@ -361,51 +410,150 @@ export default {
       }
     }
   }
+
+  .scanning-animation {
+    animation: rotate-move 2s ease-in-out infinite;
+    .loading {
+      position: absolute;
+      bottom: 0.58rem;
+      right: 0.65rem;
+    }
+
+    .dot {
+      width: 0.2rem;
+      height: 0.2rem;
+      border-radius: 50%;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: auto;
+    }
+    .dot-3 {
+      background-color: #f74d75;
+      animation: dot-3-move 2s ease infinite;
+    }
+
+    .dot-2 {
+      background-color: #10beae;
+      animation: dot-2-move 2s ease infinite;
+    }
+
+    .dot-1 {
+      background-color: blue;
+      animation: dot-1-move 2s ease infinite;
+    }
+
+    @keyframes dot-3-move {
+      20% {
+        transform: scale(1);
+      }
+
+      25% {
+        filter: blur(2px);
+      }
+
+      45% {
+        filter: none;
+        transform: translateY(-0.1rem) scale(0.65);
+      }
+
+      60% {
+        transform: translateY(-0.25rem) scale(0.65);
+      }
+
+      80% {
+        transform: translateY(-0.25rem) scale(0.65);
+      }
+
+      100% {
+        transform: translateY(0px) scale(1);
+      }
+    }
+
+    @keyframes dot-2-move {
+      20% {
+        transform: scale(1);
+      }
+
+      25% {
+        filter: blur(2px);
+      }
+      45% {
+        filter: none;
+        transform: translate(-0.1rem, 0.1rem) scale(0.65);
+      }
+
+      60% {
+        transform: translate(-0.25rem, 0.25rem) scale(0.65);
+      }
+
+      80% {
+        transform: translate(-0.25rem, 0.25rem) scale(0.65);
+      }
+
+      100% {
+        transform: translateY(0px) scale(1);
+      }
+    }
+
+    @keyframes dot-1-move {
+      20% {
+        transform: scale(1);
+      }
+      25% {
+        filter: blur(2px);
+      }
+
+      45% {
+        filter: none;
+        transform: translate(0.1rem, 0.1rem) scale(0.65);
+      }
+
+      60% {
+        transform: translate(0.25rem, 0.25rem) scale(0.65);
+      }
+
+      80% {
+        transform: translate(0.25rem, 0.25rem) scale(0.65);
+      }
+
+      100% {
+        transform: translateY(0px) scale(1);
+      }
+    }
+    @keyframes rotate-move {
+      55% {
+        transform: rotate(0deg);
+      }
+
+      80% {
+        transform: rotate(360deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  }
   .scanning {
     position: fixed;
-    bottom: 0.8rem;
-    right: 0.5rem;
+    border-radius: 50%;
+    background: var(--theme-color);
+
+    opacity: 0.9;
     width: 1.1rem;
     height: 1.1rem;
-    border-radius: 50%;
+    bottom: 0.8rem;
+    right: 0.5rem;
     display: flex;
-    justify-content: space-evenly;
     align-items: center;
-    background: #2748aa;
+    justify-content: center;
+
     .scan {
       color: #ffffff;
     }
-    .point-item {
-      width: 0.26rem;
-      height: 0.26rem;
-      border-radius: 0.1rem;
-      &:nth-child(1) {
-        background: #e8f07b;
-        animation: twinkle 2s -1s linear infinite;
-      }
-      &:nth-child(2) {
-        background: #26c126;
-        animation: twinkle 2s -0.5s linear infinite;
-      }
-      &:nth-child(3) {
-        background: #4ee1e1;
-        animation: twinkle 2s linear infinite;
-      }
-    }
-  }
-}
-
-@keyframes twinkle {
-  0%,
-  70%,
-  100% {
-    transform: scale(0);
-    opacity: 0.2;
-  }
-
-  40% {
-    transform: scale(1);
-    opacity: 1;
   }
 }
 </style>

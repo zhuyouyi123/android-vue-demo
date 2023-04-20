@@ -13,13 +13,13 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.Window;
 import android.view.WindowManager;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
+import com.ble.blescansdk.ble.BleOptions;
 import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.enums.BleScanLevelEnum;
 
@@ -47,17 +47,18 @@ public class AppInitTools extends AppCompatActivity {
 
         BleSdkManager.getBleOptions().setLogSwitch(true)
                 .setIntermittentScanning(true)
-                .setScanPeriod(2000)
-                .setContinuousScanning(true)
-                .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_LOW_POWER);
+                .setScanPeriod(4000)
+                .setContinuousScanning(false)
+                .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_LOW_POWER)
+                .setFilterInfo(new BleOptions.FilterInfo().setAddress("1918FC"));
 
         BleSdkManager.getInstance().init(this);
 
         initToast();
 
+        Config.isNewApi = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+
     }
-
-
 
 
     /**
@@ -103,11 +104,9 @@ public class AppInitTools extends AppCompatActivity {
         try {
             COUNT_ID++;
             builder
-//              .setSound(uri)
                     .setSmallIcon(iconId)
                     .setContentTitle(title)
                     .setContentText(text) //收到通知时的效果，这里是默认声音
-//                .setContentIntent(PendingIntent.getActivity(context, COUNT_ID, intent, PendingIntent.FLAG_CANCEL_CURRENT))
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                     .setDefaults(Notification.DEFAULT_SOUND)
                     .setAutoCancel(true)
@@ -168,12 +167,16 @@ public class AppInitTools extends AppCompatActivity {
                     android.Manifest.permission.BLUETOOTH_SCAN,
                     android.Manifest.permission.BLUETOOTH_CONNECT,
                     android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.CAMERA
             };
         } else {
             requestPermissions = new String[]{
                     android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_FINE_LOCATION
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.CAMERA
             };
 
         }

@@ -5,6 +5,11 @@ body,
   --body-background-color: #f7f8fa;
   --theme-color: #007FFF;
 
+  .nav-bar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
 
   .page-white {
     background: var(--body-background-color);
@@ -37,13 +42,22 @@ body,
   }
 
   .van-cell {
-    &:last-child {
-      border-bottom-left-radius: 0.1rem;
-      border-bottom-right-radius: 0.1rem;
-    }
+    background: #ffffff;
+    border-radius: 0.1rem;
+
+  }
+
+  .van-field {
+    background: #ffffff;
+  }
+
+  .van-cell--borderless {
+    background: #FFFFFF;
   }
 
   .van-cell-group {
+    border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
+
     .van-field {
       height: 0.75rem;
 
@@ -53,6 +67,13 @@ body,
       }
     }
 
+  }
+
+  .van-field__label {
+    color: #333333;
+    font-size: 0.3rem;
+    font-family: PingFang SC-Regular, PingFang SC;
+    font-weight: 400;
   }
 
   .van-popup {
@@ -69,7 +90,6 @@ body,
     box-shadow: unset;
   }
 
-
   .van-dropdown-menu__bar {
     box-shadow: unset;
   }
@@ -78,4 +98,44 @@ body,
     padding: 0 .08rem;
     font-size: 0.32rem;
   }
+
+  .van-slider {
+    width: 3.32rem;
+    height: 0.2rem;
+    background: #d8dceb;
+    border-radius: 0.12rem 0.12rem 0.12rem 0.12rem;
+
+    .van-slider__button {
+      width: 0.44rem;
+      height: 0.44rem;
+      background: #FFFFFF;
+      box-shadow: 0rem 0rem 0.12rem 0.01rem rgba(0, 127, 255, 0.5);
+      border: 0.04rem solid #007FFF
+    }
+  }
+
+
+}
+
+
+
+.van-button {
+  width: 3.2rem;
+  height: 0.88rem;
+  border-radius: 0.44rem 0.44rem 0.44rem 0.44rem;
+  font-size: 0.36rem;
+  font-family: PingFang SC-Regular, PingFang SC;
+  font-weight: 400;
+  text-shadow: 0px 0px 0px rgba(0, 0, 0, 0.1);
+}
+
+.canecl-max {
+  background: #FFFFFF;
+  border: 0.01rem solid #107FFF;
+  color: #007FFF;
+}
+
+.sure-max {
+  background: #007FFF;
+  color: #FFFFFF;
 }

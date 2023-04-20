@@ -4,15 +4,42 @@ pluginManagement {
         google()
         mavenCentral()
         maven { url "https://jitpack.io" }
+        maven { url "https://maven.google.com" }
+        maven {url 'https://developer.huawei.com/repo/'}
     }
 }
+
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
         maven { url "https://jitpack.io" }
+        maven { url "https://maven.google.com" }
+        maven {url 'https://developer.huawei.com/repo/'}
+
     }
+
 }
 rootProject.name = "Android-vue"
 include ':app'
+include ':ble-scan-sdk'
+
+
+//buildscript {
+//    ext.kotlin_version = '1.6.10' //kotlin版本号
+//    repositories {
+//        jcenter()
+//        google()
+//        // 配置HMS Core SDK的Maven仓地址。
+//        maven {url 'https://developer.huawei.com/repo/'}
+//    }
+//    dependencies {
+//        classpath 'com.android.tools.build:gradle:4.2.1'
+//        // kotlin编译插件
+//        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+//        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+//
+//    }
+//}

@@ -1,6 +1,7 @@
 <template>
-  <div id="app" class="w h over-h box-b">
+  <div id="app" class="w h over-h box-b" ref="app">
     <div style="height: 0.9rem"></div>
+
     <router-view :nowTime="time" :key="key" />
   </div>
 </template>
@@ -97,9 +98,7 @@ export default {
 <style lang="scss">
 @import url(../static/css/vant.scss);
 @import url(../static/css/element.scss);
-html {
-  font-size: 10px; //可以使用 1/10 rem= 10 px
-}
+
 html,
 body,
 #app {
@@ -113,6 +112,8 @@ body,
   font-family: PingFang SC-Regular, PingFang SC;
   font-weight: 400;
   color: #333333;
+  // 距离上方一点点
+  --little-margin-top: 0.16rem;
   .box-title {
     font-size: 0.32rem;
     font-family: Source Han Sans CN-Regular, Source Han Sans CN;
@@ -133,46 +134,5 @@ body,
     width: 95%;
     margin-left: 2.5%;
   }
-}
-
-/* 设置滚动条的样式 */
-::-webkit-scrollbar {
-  width: 1px;
-  /*高宽分别对应横竖滚动条的尺寸*/
-  height: 1px;
-}
-
-/* 滚动槽 */
-::-webkit-scrollbar-track {
-  -webkit-box-shadow: inset 2px rgba(0, 0, 0, 0.3);
-  border-radius: 2px;
-}
-
-/* 滚动条滑块 */
-::-webkit-scrollbar-thumb {
-  border-radius: 2px;
-  background: rgba(0, 0, 0, 0.1);
-  -webkit-box-shadow: inset 2px rgba(0, 0, 0, 0.5);
-}
-
-::-webkit-scrollbar-thumb:window-inactive {
-  background: transparent;
-}
-.nav-bar {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-}
-
-.el-message {
-  top: 30px !important;
-  width: 100% !important;
-  z-index: 10002 !important;
-}
-.el-message-box {
-  top: 35% !important;
-  max-width: 100% !important;
-  z-index: 10002 !important;
-  width: 85% !important;
 }
 </style>

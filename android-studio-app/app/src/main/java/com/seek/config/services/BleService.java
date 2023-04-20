@@ -25,4 +25,11 @@ public interface BleService {
      * @return 设备列表
      */
     ScanDataVO scanDevices();
+
+    void connect(String address);
+
+    Integer getConnectionStatus(String address);
+
+    void write(String address);
+    void startNotify(String address);
 }

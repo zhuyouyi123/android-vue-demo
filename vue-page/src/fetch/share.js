@@ -1,24 +1,43 @@
-
+import androidVue from "@/api/android-vue";
 
 export default {
   get(key) {
-    let value = window.android.callAndroidShare("get", key, null);
-    if (value !== 'undefined') {
-      return value;
-    } else {
-      return null;
-    }
+    return new Promise((resolve, reject) => {
+      let params = {
+        key: key,
+      }
+      let res = androidVue.getRequest("share/get", params);
+
+      if (!res) {
+        resolve();
+        return;
+      }
+
+      if (res.errorCode == 0) {
+        if (res.data !== 'undefined') {
+          return resolve(res.data);
+        } else {
+          return resolve();
+        }
+      } else {
+        reject(res.errorMsg[0])
+      }
+    })
+
   },
 
   set(key, value) {
-    if (value != 'undefined') {
-      return window.android.callAndroidShare("set", key, value);
-    } else {
-      return null;
+    let params = {
+      key: key,
+      value: value,
     }
+    androidVue.postRequest("share/set", params);
   },
 
   remove(key) {
-    return window.android.callAndroidShare("remove", key, null);
+    let params = {
+      key: key,
+    }
+    androidVue.postRequest("share/remove", params);
   },
 }

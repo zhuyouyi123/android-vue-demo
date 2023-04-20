@@ -14,7 +14,7 @@ public class SystemUtil {
     public static void openGpsLocationSwitch() {
         new AlertDialog.Builder(BleSdkManager.getContext())
                 .setTitle(I18nUtil.getMessage(I18nUtil.tips))
-                .setMessage(I18nUtil.getMessage(I18nUtil.openLocationInfoSwitch))
+                .setMessage(I18nUtil.getMessage(I18nUtil.OPEN_LOCATION_INFO_SWITCH))
                 .setPositiveButton(I18nUtil.getMessage(I18nUtil.sure), (dialog, which) -> {
                     Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                     Activity activity = (Activity) BleSdkManager.getContext();

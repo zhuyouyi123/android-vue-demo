@@ -16,8 +16,12 @@ public class I18nUtil {
     /**
      * 打开位置信息开关
      */
-    public static final int openLocationInfoSwitch = R.string.open_location_info_switch;
+    public static final int OPEN_LOCATION_INFO_SWITCH = R.string.open_location_info_switch;
 
+    /**
+     * 设备地址格式错误
+     */
+    public static final int DEVICE_ADDRESS_FORMAT_ERROR = R.string.device_address_format_error;
 
 
     public static String getMessage(int code) {

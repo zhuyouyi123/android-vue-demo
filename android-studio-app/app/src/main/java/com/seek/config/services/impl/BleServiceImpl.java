@@ -1,40 +1,34 @@
 package com.seek.config.services.impl;
 
-import static android.os.Build.VERSION_CODES.R;
-
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Intent;
-import android.provider.Settings;
-import android.view.Gravity;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.Toast;
+import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothGattCharacteristic;
 
 import com.ble.blescansdk.ble.BleSdkManager;
+import com.ble.blescansdk.ble.callback.request.BleConnectCallback;
+import com.ble.blescansdk.ble.callback.request.BleNotifyCallback;
+import com.ble.blescansdk.ble.callback.request.BleReadCallback;
 import com.ble.blescansdk.ble.callback.request.BleScanCallback;
+import com.ble.blescansdk.ble.callback.request.BleWriteCallback;
+import com.ble.blescansdk.ble.entity.BleDevice;
 import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
+import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
 import com.ble.blescansdk.ble.enums.SortTypeEnum;
+import com.ble.blescansdk.ble.proxy.Rproxy;
+import com.ble.blescansdk.ble.proxy.request.ConnectRequest;
+import com.ble.blescansdk.ble.utils.BleLogUtil;
+import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.seek.config.Config;
-import com.seek.config.R;
 import com.seek.config.entity.dto.ScanInitDTO;
 import com.seek.config.entity.enums.ErrorEnum;
 import com.seek.config.entity.vo.ScanDataVO;
 import com.seek.config.services.BleService;
-import com.seek.config.utils.I18nUtil;
 import com.seek.config.utils.SystemUtil;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Objects;
 
-import dev.utils.app.AccessibilityUtils;
-import dev.utils.app.AppUtils;
-import dev.utils.app.NotificationUtils;
-import dev.utils.app.toast.ToastUtils;
-import dev.utils.common.ArrayUtils;
-import dev.utils.common.CollectionUtils;
 import es.dmoral.toasty.Toasty;
 
 public class BleServiceImpl implements BleService {
@@ -124,5 +118,95 @@ public class BleServiceImpl implements BleService {
         return vo;
     }
 
+    @Override
+    public void connect(String address) {
+        ConnectRequest<SeekStandardDevice> request = Rproxy.getRequest(ConnectRequest.class);
+        SeekStandardDevice bleDevice = request.getConnectedDevice(address);
+
+        // 设备已连接
+        if (Objects.nonNull(bleDevice) && bleDevice.getConnectState() == BleConnectStatusEnum.CONNECTED.getStatus()) {
+            return;
+        }
+        BleSdkManager.getInstance().releaseGatts();
+        SeekStandardDevice device = new SeekStandardDevice();
+        device.setAddress(address);
+        BleSdkManager.getInstance().connect(device, connectCallback);
+    }
+
+
+    @Override
+    public Integer getConnectionStatus(String address) {
+        ConnectRequest<SeekStandardDevice> request = Rproxy.getRequest(ConnectRequest.class);
+        SeekStandardDevice bleDevice = request.getConnectedDevice(address);
+        if (Objects.isNull(bleDevice)) {
+            return BleConnectStatusEnum.DISCONNECT.getStatus();
+        }
+        return bleDevice.getConnectState();
+    }
+
+    @Override
+    public void write(String address) {
+        ConnectRequest<SeekStandardDevice> request = Rproxy.getRequest(ConnectRequest.class);
+        SeekStandardDevice bleDevice = request.getBleDevice(address);
+        BleSdkManager.getInstance().write(bleDevice, "@_1_3_0_!", new BleWriteCallback<SeekStandardDevice>() {
+            @Override
+            public void onWriteSuccess(SeekStandardDevice bleDevice, BluetoothGattCharacteristic bluetoothGattCharacteristic) {
+                BleLogUtil.i("Write Success");
+            }
+
+            @Override
+            public void onWriteFailed(SeekStandardDevice bleDevice, int i) {
+                BleLogUtil.i("Write Failed");
+            }
+        });
+    }
+
+    @Override
+    public void startNotify(String address) {
+        ConnectRequest<SeekStandardDevice> request = Rproxy.getRequest(ConnectRequest.class);
+        SeekStandardDevice bleDevice = request.getBleDevice(address);
+        // 如果已连接
+        if (bleDevice.getConnectState() == BleConnectStatusEnum.CONNECTED.getStatus()) {
+            BleSdkManager.getInstance().startNotify(bleDevice, new BleNotifyCallback<SeekStandardDevice>() {
+                @Override
+                public void onChanged(SeekStandardDevice o, BluetoothGattCharacteristic bluetoothGattCharacteristic) {
+                    BleLogUtil.i("Start Notify Success");
+                    BleLogUtil.i(ProtocolUtil.byteArrToHexStr(bluetoothGattCharacteristic.getValue()));
+                }
+
+                @Override
+                public void onNotifySuccess(SeekStandardDevice device) {
+                    BleLogUtil.i("Start Notify Success");
+                }
+
+                @Override
+                public void onNotifyFailed(SeekStandardDevice device, int failedCode) {
+                    BleLogUtil.i("Start Notify Failed");
+                }
+
+                @Override
+                public void onNotifyCanceled(SeekStandardDevice device) {
+                    BleLogUtil.i("Start Notify Cancelled");
+                }
+            });
+        }
+
+    }
+
+
+    private final BleConnectCallback<SeekStandardDevice> connectCallback = new BleConnectCallback<SeekStandardDevice>() {
+        @Override
+        public void onConnectChange(SeekStandardDevice bleDevice, int i) {
+            BleLogUtil.i("连接状态改变" + bleDevice);
+        }
+
+        @SuppressLint("CheckResult")
+        @Override
+        public void onConnectFailed(SeekStandardDevice bleDevice, int errorCode) {
+            BleLogUtil.i("连接错误" + bleDevice);
+            Toasty.info(Config.mainContext, ErrorEnum.getFailMessage(errorCode));
+            BleLogUtil.e("连接错误" + ErrorEnum.getFailMessage(errorCode));
+        }
+    };
 
 }

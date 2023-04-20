@@ -1,3 +1,16 @@
+.el-message {
+  top: 30px !important;
+  width: 100% !important;
+  z-index: 10002 !important;
+}
+
+.el-message-box {
+  top: 35% !important;
+  max-width: 100% !important;
+  z-index: 10002 !important;
+  width: 85% !important;
+}
+
 .el-dropdown-menu {
   width: 7rem;
   left: .26rem !important;
@@ -17,5 +30,5 @@
     border: none;
   }
 
-  
+
 }
