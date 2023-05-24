@@ -11,24 +11,61 @@
   width: 85% !important;
 }
 
-.el-dropdown-menu {
-  width: 7rem;
-  left: .26rem !important;
+.condition {
+  .el-dropdown-menu {
+    width: 7rem;
+    left: 0.26rem !important;
 
-  .el-dropdown-menu__item {
-    border-bottom: 1px solid #D8DCEB;
+    .el-dropdown-menu__item {
+      border-bottom: 1px solid #d8dceb;
 
-    font-size: 0.32rem;
-    font-family: Source Han Sans CN-Regular, Source Han Sans CN;
-    font-weight: 400;
-    color: #333333;
-    margin: 0 .27rem;
-    padding: 0 0;
+      font-size: 0.32rem;
+      font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+      font-weight: 400;
+      color: #333333;
+      margin: 0 0.27rem;
+      padding: 0 0;
+    }
+
+    .unborder {
+      border: none;
+    }
   }
+}
 
-  .unborder {
-    border: none;
+.el-checkbox {
+  height: 0.7rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.32rem;
+  font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+  font-weight: 400;
+  color: #007fff;
+  line-height: 0.29rem;
+  .el-checkbox__input,
+  .el-checkbox__inner {
+    width: 0.32rem;
+    height: 0.32rem;
+    border-radius: 0.05rem 0.05rem 0.05rem 0.05rem;
+    border: 0.01rem solid #007fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+}
 
+.el-radio-group {
+  display: flex;
+  flex-direction: column;
 
+  .el-radio-button__inner {
+    width: 4.5rem;
+    margin-left: 0.63rem;
+    border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
+    border: 0.02rem solid #d8dceb;
+
+    &:nth-child(n + 2) {
+      margin-top: 0.2rem;
+    }
+  }
 }

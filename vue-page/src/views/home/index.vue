@@ -2,7 +2,12 @@
 <template>
   <div>
     <nav-bar>
-      <!-- <van-icon name="arrow-left" slot="left" class="navIcon" /> -->
+      <van-icon
+        name="setting-o"
+        slot="left"
+        class="navIcon"
+        @click="sdkConfig"
+      />
     </nav-bar>
 
     <div class="content">
@@ -37,26 +42,39 @@
             </el-dropdown>
           </div>
 
-          <div>
-            <van-icon name="filter-o" size="19" /> {{ i18nInfo.button.filter }}
+          <div @click="openDeviceFilterDialog">
+            <van-icon name="filter-o" size="19" />
+            {{ i18nInfo.button.filter }}
           </div>
-          <div>
+          <div @click="openLanguageSettingDialog">
             <van-icon name="todo-list-o" size="20" />
             {{ i18nInfo.button.language }}
           </div>
-          <div>
-            <van-icon name="bars" size="20" /> {{ i18nInfo.button.batch }}
+          <div :class="{ 'blue-icon': batchModel }" @click.stop="setBatchModel">
+            <!-- 批量模式 -->
+            <van-icon name="bars" size="20" />
+            {{ i18nInfo.button.batch }}
           </div>
         </div>
         <div class="division-line"></div>
         <div class="count">
-          {{ i18nInfo.scannedCount }}{{ count }}{{ i18nInfo.individua }}
+          <div>
+            {{ i18nInfo.scannedCount }}{{ count }}{{ i18nInfo.individua }}
+          </div>
+          <div v-show="batchModel">
+            <el-checkbox
+              v-model="batchSelectAllCheck"
+              @change="batchSelectAllCheckChange"
+              >全选</el-checkbox
+            >
+          </div>
         </div>
       </div>
 
       <!-- 搜索框 -->
       <van-search
-        v-model="searchValue"
+        v-model.trim="searchValue"
+        :disabled="batchModel"
         @focus="searchFocus"
         @blur="searchBlur"
         :placeholder="$t('notifyMessage.searchPlaceholder')"
@@ -67,102 +85,370 @@
       </van-search>
 
       <div class="list-box">
-        <div class="item" v-for="item in list" :key="item.address">
+        <div class="item" v-for="(item, index) in list" :key="item.address">
           <div class="device-info" @click="detail(item)">
-            <div class="name">
-              <b>{{ item.name ? item.name : "Unnamed" }}</b>
+            <div class="base-info-box">
+              <div class="name">
+                <div>
+                  <b>
+                    {{
+                      item.standardThoroughfareInfo &&
+                      item.standardThoroughfareInfo.deviceName
+                        ? item.standardThoroughfareInfo.deviceName
+                        : "Unnamed"
+                    }}
+                  </b>
+                </div>
+                <!-- <el-checkbox :key="item.selected" /> -->
+                <van-image
+                  v-if="item.selected && batchModel"
+                  @click.stop="batchSelectBeacon(index)"
+                  :src="
+                    require('@/assets/image/home/multiple-choice-selected.svg')
+                  "
+                />
+
+                <van-image
+                  v-else-if="!item.selected && batchModel"
+                  @click.stop="batchSelectBeacon(index)"
+                  :src="
+                    require('@/assets/image/home/multiple-choice-unselect.svg')
+                  "
+                />
+              </div>
+
               <div class="info">
                 <div class="info-box">
                   <div>Mac: {{ item.address }}</div>
                   <!-- <div>电量: 100%</div> -->
-                  <div>电量: {{ item.battery }}%</div>
+                  <div
+                    v-show="
+                      item.standardThoroughfareInfo &&
+                      item.standardThoroughfareInfo.battery > 0
+                    "
+                  >
+                    电量:
+                    {{
+                      item.standardThoroughfareInfo &&
+                      item.standardThoroughfareInfo.battery
+                    }}%
+                  </div>
                 </div>
                 <div class="info-box">
                   <div>Rssi: {{ item.rssi }}</div>
-                  <!-- <div>广播间隔:330ms</div> -->
-                  <div>广播间隔: {{ item.broadcastInterval }}ms</div>
+                  <div v-show="item.broadcastInterval > 0">
+                    {{ i18nInfo.broadcastInterval }}:
+                    {{ item.broadcastInterval }}ms
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           <div class="division-line"></div>
           <div class="other-info">
-            <div class="thoroughfares-null" v-show="!item.thoroughfares">
+            <div
+              class="thoroughfares-null"
+              v-show="!item.standardThoroughfareInfo"
+            >
               {{ $t("notifyMessage.base.dataEmpty") }}
             </div>
 
-            <div class="thoroughfares-info">
-              <div
-                class="thoroughfare"
-                v-for="thoroughfare in item.thoroughfares"
-              >
-                <div v-show="thoroughfare.type == 'iBeacon'">
-                  <div class="name">iBeacon</div>
-                  <div class="info-box">
-                    <div class="uuid">UUID：{{ thoroughfare.uuid }}</div>
-                    <div class="detail-info">
-                      <div class="major">Major：{{ thoroughfare.major }}</div>
-                      <div class="minor">Minor：{{ thoroughfare.minor }}</div>
-                      <div class="distance">
-                        {{ i18nInfo.calibrationDistance }}：
-                        {{ thoroughfare.measurePower }}dBm
+            <div
+              class="thoroughfares-info"
+              v-show="item.standardThoroughfareInfo"
+            >
+              <div class="thoroughfare">
+                <div v-for="beacon in item.standardThoroughfareInfo.beacons">
+                  <div class="beacon" v-show="beacon">
+                    <div class="name">
+                      {{ beacon.type }}
+                    </div>
+                    <div class="info-box">
+                      <div class="uuid">UUID：{{ beacon.uuid }}</div>
+                      <div class="detail-info">
+                        <div class="major">Major：{{ beacon.major }}</div>
+                        <div class="minor">Minor：{{ beacon.minor }}</div>
+                        <div class="distance">
+                          Rssi @ 1m：
+                          {{ beacon.measurePower }}dBm
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div v-show="thoroughfare.type == 'CORE_IOT_AOA'"></div>
-
-                <div v-show="thoroughfare.type == 'QUUPPA_AOA'"></div>
                 <!-- UID -->
-                <div v-show="thoroughfare.type == 'UID'">
-                  <div class="name">{{ thoroughfare.type }}</div>
+                <div v-for="uid in item.standardThoroughfareInfo.uids">
+                  <div class="name">
+                    {{ uid.type }}
+                  </div>
                   <div class="info-box">
-                    <div class="uuid">
-                      NameSpace ID：{{ thoroughfare.namespaceId }}
-                    </div>
+                    <div class="uuid">NameSpace ID：{{ uid.namespaceId }}</div>
                     <div class="detail-info">
-                      <div>Instance ID：{{ thoroughfare.instanceId }}</div>
+                      <div>Instance ID：{{ uid.instanceId }}</div>
                       <div class="distance">
-                        {{ i18nInfo.calibrationDistance }}：
-                        {{ thoroughfare.measurePower }}dBm
+                        Rssi @ 1m：
+                        {{ uid.measurePower }}dBm
                       </div>
                     </div>
                   </div>
                 </div>
                 <!-- URL -->
-                <div v-show="thoroughfare.type == 'URL'">
-                  <div class="name">{{ thoroughfare.type }}</div>
+                <div v-for="url in item.standardThoroughfareInfo.urls">
+                  <div class="name">{{ url.type }}</div>
                   <div class="info-box">
-                    <div class="uuid">URL：{{ thoroughfare.link }}</div>
+                    <div>
+                      link：
+                      <span style="color: blue" @click="toLink(url.link)">{{
+                        url.link
+                      }}</span>
+                    </div>
                     <div class="detail-info">
-                      {{ i18nInfo.calibrationDistance }}
-                      {{ thoroughfare.measurePower }}dBm
+                      Rssi @ 1m：
+                      {{ url.measurePower }}dBm
                     </div>
                   </div>
                 </div>
                 <!-- TLM -->
-                <div v-show="thoroughfare.type == 'EDDYSTONE_TLM'"></div>
-                <div v-show="thoroughfare.type == 'LINE'"></div>
-                <div v-show="thoroughfare.type == 'ACC'"></div>
-                <div v-show="thoroughfare.type == 'INFO'"></div>
+                <div v-if="item.standardThoroughfareInfo.tlm">
+                  <div class="name">
+                    {{ item.standardThoroughfareInfo.tlm.type }}
+                  </div>
+                  <div class="info-box">
+                    <div>
+                      time working：{{
+                        item.standardThoroughfareInfo.tlm.workTime
+                      }}
+                    </div>
+
+                    <div class="detail-info">
+                      <div>
+                        PDU count：
+                        {{ item.standardThoroughfareInfo.tlm.pduCount }}
+                      </div>
+                      <div>
+                        voltage：{{ item.standardThoroughfareInfo.tlm.voltage }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- LINE -->
+                <div v-if="item.standardThoroughfareInfo.line">
+                  <div class="name">
+                    {{ item.standardThoroughfareInfo.line.type }}
+                  </div>
+                  <div class="info-box">
+                    <div class="detail-info">
+                      <div>
+                        hwid：{{ item.standardThoroughfareInfo.line.hwid }}
+                      </div>
+                      <div>
+                        TimeStamp：{{
+                          item.standardThoroughfareInfo.line.timesTamp
+                        }}
+                      </div>
+                    </div>
+                    <div class="detail-info">
+                      <div>
+                        SecureMessage：{{
+                          item.standardThoroughfareInfo.line.secureMessage
+                        }}
+                      </div>
+                      <div>
+                        Rssi @ 1m ：{{
+                          item.standardThoroughfareInfo.line.measurePower
+                        }}dBm
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!--  -->
+                <div v-if="item.standardThoroughfareInfo.acc">
+                  <div class="name">
+                    {{ item.standardThoroughfareInfo.acc.type }}
+                  </div>
+                  <div class="info-box">
+                    <div class="detail-info">
+                      <div>
+                        xAxis：{{ item.standardThoroughfareInfo.acc.xAxis }}
+                      </div>
+                      <div>
+                        yAxis：{{ item.standardThoroughfareInfo.acc.yAxis }}
+                      </div>
+                      <div>
+                        zAxis：{{ item.standardThoroughfareInfo.acc.zAxis }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- DeviceInfo -->
+                <div v-if="item.standardThoroughfareInfo.info">
+                  <div class="name">
+                    {{ item.standardThoroughfareInfo.info.type }}
+                  </div>
+                  <div class="info-box">
+                    <div class="detail-info">
+                      <div>
+                        {{ i18nInfo.triggerConditions }}
+                        {{ item.standardThoroughfareInfo.info.mac }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- <div v-show="thoroughfare.type == 'Coreaiot'"></div>-->
+                <div v-if="item.standardThoroughfareInfo.quuppa">
+                  <div class="name">
+                    {{ item.standardThoroughfareInfo.quuppa.type }}
+                  </div>
+                  <div class="info-box">
+                    <div class="detail-info">
+                      <div>
+                        Quuppa Tag ID：
+                        {{ item.standardThoroughfareInfo.quuppa.tagId }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 加载 -->
-      <div class="scanning" v-if="!scanState" @click="startScan">
-        <div class="scan">刷新</div>
+      <!-- 批量配置 -->
+      <div class="batch-config" v-show="batchModel">
+        <van-button
+          class="channel"
+          @click="enterBatchConfigPage('channel-home')"
+          :disabled="batchCount == 0"
+        >
+          {{ i18nInfo.button.batchConfigChannel }}
+        </van-button>
+        <van-button
+          class="secret-key"
+          @click="enterBatchConfigPage('secret-key')"
+          :disabled="batchCount == 0"
+        >
+          {{ i18nInfo.button.batchConfigSecretKey }}
+        </van-button>
       </div>
-      <div class="scanning scanning-animation" v-else>
+
+      <!-- 加载 -->
+      <div
+        class="scanning"
+        v-show="!scanState && !batchModel"
+        @click="startScan"
+      >
+        <div class="scan">{{ i18nInfo.button.refresh }}</div>
+      </div>
+
+      <div
+        class="scanning scanning-animation"
+        v-show="scanState && !batchModel"
+      >
         <div class="loading">
           <div class="dot dot-1"></div>
           <div class="dot dot-2"></div>
           <div class="dot dot-3"></div>
         </div>
       </div>
+
+      <!-- 设备过滤弹窗  -->
+      <van-dialog
+        v-model="deviceFilterDialog"
+        :title="i18nInfo.lable.deviceFilter"
+        show-cancel-button
+        :close-on-click-overlay="false"
+        @confirm="deviceFilterConfirm"
+        @cancel="deviceFilterCancel"
+        :cancel-button-text="$t('baseButton.cancel')"
+        :confirm-button-text="$t('baseButton.sure')"
+      >
+        <div class="dialog-box">
+          <el-radio-group v-model="initParams.deviceType">
+            <el-radio-button
+              :label="i18nInfo.button.allDevice"
+            ></el-radio-button>
+            <el-radio-button
+              :label="i18nInfo.button.thisBrandDevice"
+            ></el-radio-button>
+          </el-radio-group>
+
+          <div class="slider">
+            <div class="title">RSSI</div>
+            <van-slider
+              step="1"
+              max="110"
+              min="40"
+              v-model="initParams.rssiValue"
+            />
+            <div class="value">
+              {{ -initParams.rssiValue }}
+            </div>
+          </div>
+        </div>
+      </van-dialog>
+
+      <!-- 语言选择弹窗  -->
+      <van-dialog
+        v-model="languageSettingDialog"
+        :title="i18nInfo.lable.selectLanguage"
+        show-cancel-button
+        :close-on-click-overlay="false"
+        @confirm="languageConfirm"
+        @cancel="languageCancel"
+        :cancel-button-text="$t('baseButton.cancel')"
+        :confirm-button-text="$t('baseButton.sure')"
+      >
+        <div class="dialog-box">
+          <el-radio-group v-model="language">
+            <el-radio-button label="简体中文"></el-radio-button>
+            <el-radio-button label="English"></el-radio-button>
+          </el-radio-group>
+        </div>
+      </van-dialog>
+
+      <!-- 批量配置秘钥弹窗 -->
+      <van-dialog
+        v-model="batchConfigSecretKeyDialog"
+        :title="i18nInfo.title.batchConfigSecretKey"
+        show-cancel-button
+        :close-on-click-overlay="false"
+        :before-close="secretKeyDialogBeforeClose"
+        :cancel-button-text="$t('baseButton.cancel')"
+        :confirm-button-text="$t('baseButton.sure')"
+      >
+        <div class="dialog-box">
+          <van-field
+            maxlength="6"
+            v-model.trim="secretKey.oldSecretKey"
+            :placeholder="i18nInfo.tips.oldSecretDialogPlaceholder"
+          />
+          <van-field
+            maxlength="6"
+            v-model.trim="secretKey.newSecretKey"
+            :placeholder="i18nInfo.tips.newSecretDialogPlaceholder"
+          />
+        </div>
+      </van-dialog>
+
+      <!-- 批量配置遮罩 -->
+
+      <van-overlay :show="configOverlay">
+        <div class="wrapper" @click.stop>
+          <div class="block">
+            <van-loading vertical type="spinner" color="#ffffff">
+              {{ $t("device.batchConfigChannel.message.configuration") }}
+              {{ alreadConfigNum }}
+              /
+              {{ allConfigNum }}
+              ...
+            </van-loading>
+          </div>
+        </div>
+      </van-overlay>
     </div>
   </div>
 </template>
@@ -170,28 +456,67 @@
 <script>
 import navBar from "@/components/navigation/navBar.vue";
 
-import { Search, DropdownMenu, DropdownItem, Notify } from "vant";
-import config from "@/fetch/config";
+import {
+  Search,
+  DropdownMenu,
+  DropdownItem,
+  Notify,
+  Checkbox,
+  CheckboxGroup,
+} from "vant";
+
 export default {
   data() {
     return {
+      contentReload: true,
+      i18nInfo: this.$i18n.t("home"),
       // 搜索条件
       searchValue: "",
       // 获取到焦点时候的值
       searchFocusValue: "",
       // 扫描数量
       count: 0,
-
+      // 批量模式
+      batchModel: false,
+      // 批量全选复选框
+      batchSelectAllCheck: false,
       list: [],
       interval: null,
       // 扫描状态
       scanState: true,
       // 国际化参数
-      i18nInfo: this.$i18n.t("home"),
       initParams: {
         sortType: "",
         address: "",
+        rssiValue: 58,
+        deviceType: "全部设备",
       },
+
+      filterInfoParamsCache: {},
+
+      deviceFilterDialog: false,
+      languageSettingDialog: false,
+      // 批量配置秘钥弹窗
+      batchConfigSecretKeyDialog: false,
+
+      secretKey: {
+        newSecretKey: "",
+        oldSecretKey: "",
+      },
+
+      // 配置秘钥遮罩
+      configOverlay: false,
+      // 已配置数量
+      alreadConfigNum: 0,
+      // 待配置数量
+      allConfigNum: 0,
+
+      language: "简体中文",
+
+      // 批量模式列表
+      batchList: [],
+      // 批量模式数量
+      batchCount: 0,
     };
   },
 
@@ -199,14 +524,29 @@ export default {
     [DropdownMenu.name]: DropdownMenu,
     [DropdownItem.name]: DropdownItem,
     [Search.name]: Search,
+    [Checkbox.name]: Checkbox,
+    [CheckboxGroup.name]: CheckboxGroup,
     navBar: navBar,
   },
 
   mounted() {
-    this.init();
+    this.queryFilterInfo().then((res) => {
+      this.init(res);
+    });
+    if (window.history && window.history.pushState) {
+      history.pushState(null, null, document.URL);
+      //false阻止默认事件
+      window.addEventListener("popstate", this.goBack, false);
+    }
+    window.addEventListener("commonAndroidEvent", this.callJs);
+
+    this.loadingConfigurationInfo();
   },
 
   destroyed() {
+    //false阻止默认事件
+    window.removeEventListener("popstate", this.goBack, false);
+    window.removeEventListener("commonAndroidEvent", this.callJs);
     this.stopScan();
     if (this.interval) {
       clearInterval(this.interval);
@@ -214,6 +554,137 @@ export default {
   },
 
   methods: {
+    // 退出APP
+    goBack() {},
+    sdkConfig() {
+      this.$router.replace("/config");
+    },
+
+    callJs(e) {
+      console.log(JSON.stringify(e));
+      switch (e.data.eventName) {
+        case "SCAN_RESULT":
+          this.searchValue = e.data.data;
+          // 重新调用开始扫描
+          this.initParams.address = e.data.data;
+          this.init();
+          break;
+        default:
+          break;
+      }
+    },
+
+    loadingConfigurationInfo() {
+      return new Promise((resolve, reject) => {
+        this.$androidApi.queryconfigurationInfo().then((res) => {
+          this.$storage.language = res.language;
+          this.language = res.language;
+          if (this.language == "简体中文") {
+            this.$i18n.locale = "zh";
+          } else {
+            this.$i18n.locale = "en";
+          }
+          localStorage.setItem("lang", this.$i18n.locale);
+          resolve();
+        });
+      });
+    },
+
+    /**
+     * 设置批量模式
+     */
+    setBatchModel() {
+      this.batchModel = !this.batchModel;
+      if (this.batchModel) {
+        // 停止扫描
+        this.stopScan();
+        if (this.interval) {
+          clearInterval(this.interval);
+          this.interval = null;
+          this.scanState = false;
+        }
+        // 并且设置列表选中状态
+        if (this.list && this.list.length > 0) {
+          // 设置列表选中状态为false
+          this.list.forEach((e) => (e.selected = false));
+        }
+        // 重置批量数据
+        this.batchList = [];
+      }
+    },
+
+    batchSelectAllCheckChange() {
+      this.batchCount = 0;
+      if (this.batchSelectAllCheck) {
+        this.list.forEach((e) => {
+          e.selected = true;
+          this.batchCount++;
+        });
+      } else {
+        this.list.forEach((e) => (e.selected = false));
+      }
+    },
+
+    /**
+     * 选中设备
+     */
+
+    batchSelectBeacon(index) {
+      if (!this.list || this.list.length < index) {
+        return;
+      }
+      let item = this.list[index];
+      item.selected = !item.selected;
+      this.$set(this.list, index, item);
+      if (item.selected) {
+        this.batchCount++;
+        let unselectList = this.list.filter((e) => !e.selected);
+        if (unselectList.length == 0) {
+          this.batchSelectAllCheck = true;
+        }
+      } else {
+        this.batchCount--;
+        if (this.batchSelectAllCheck) {
+          this.batchSelectAllCheck = false;
+        }
+      }
+    },
+
+    /**
+     * 校验是否批量模式
+     */
+    checkBatchModel(notNeedTips) {
+      if (this.batchModel) {
+        if (!notNeedTips) {
+          Notify({
+            type: "warning",
+            message: this.i18nInfo.batchModelNotAllowedClick,
+          });
+        }
+        return false;
+      }
+      return true;
+    },
+
+    /**
+     * 进入批量配置页面
+     * @param {页面} e
+     */
+    enterBatchConfigPage(e) {
+      if (e == "channel-home") {
+        this.$storage.toBeConfiguredChannelList = [];
+        let list = [];
+        this.list.forEach((e) => {
+          if (e.selected == true) {
+            list.push(e.address);
+          }
+        });
+        this.$storage.toBeConfiguredList = [...list];
+        this.$router.replace("/home/batch-config/" + e);
+      } else if (e == "secret-key") {
+      }
+    },
+
     // 搜索框获取到焦点
     searchFocus() {
       if (this.searchValue) {
@@ -225,20 +696,84 @@ export default {
       if (this.searchFocusValue != this.searchValue) {
         // 重新调用开始扫描
         this.initParams.address = this.searchValue;
-        console.log("焦点丢失 重新扫描");
         this.init();
       }
       this.searchFocusValue = "";
     },
 
     scanQrCode() {
+      if (!this.checkBatchModel()) {
+        return;
+      }
       this.$androidApi.scanQrCode();
     },
 
-    init() {
-      this.$androidApi.init(this.initParams).then(() => {
+    queryFilterInfo() {
+      return new Promise((resolve, reject) => {
+        this.$androidApi.queryFilterInfo().then((data) => {
+          resolve(data);
+        });
+      });
+    },
+
+    init(data) {
+      if (data) {
+        this.searchValue = data.filterAddress;
+        this.initParams.address = data.filterAddress;
+        this.initParams.rssiValue = -data.rssi;
+        if (data.normDevice) {
+          this.initParams.deviceType = this.i18nInfo.button.thisBrandDevice;
+        } else {
+          this.initParams.deviceType = this.i18nInfo.button.allDevice;
+        }
+      }
+
+      let params = {
+        sortType: this.initParams.sortType,
+        address: this.initParams.address,
+        rssiValue: -this.initParams.rssiValue,
+        allDevice: this.initParams.deviceType == this.i18nInfo.button.allDevice,
+      };
+
+      this.$androidApi.init(params).then(() => {
         this.startScan();
       });
+    },
+
+    openDeviceFilterDialog() {
+      this.deviceFilterDialog = true;
+      this.filterInfoParamsCache = JSON.parse(JSON.stringify(this.initParams));
+    },
+
+    openLanguageSettingDialog() {
+      this.languageSettingDialog = true;
+      this.language = this.$storage.language;
+    },
+
+    /**
+     * 打开批量配置弹窗
+     */
+    openBatchConfigSecretKeyDialog() {
+      this.batchConfigSecretKeyDialog = true;
+      this.secretKey = {
+        oldSecretKey: "",
+        newSecretKey: "",
+      };
+    },
+
+    secretKeyDialogBeforeClose(action, done) {
+      if (action == "confirm") {
+        if (!this.secretKey.oldSecretKey || !!this.secretKey.newSecretKey) {
+          Notify({
+            type: "warning",
+            message: this.$i18n.t("notifyMessage.base.paramsError"),
+          });
+          done(false);
+          return;
+        }
+        this.configOverlay = true;
+      }
+      done();
     },
 
     /**
@@ -247,12 +782,12 @@ export default {
     handleSort(command) {
       this.initParams.sortType = command;
       this.init();
-      // this.$androidApi.init(params).then(() => {
-      //   this.startScan();
-      // });
     },
 
     startScan() {
+      if (!this.checkBatchModel()) {
+        return;
+      }
       this.$androidApi.startScan();
       this.scanState = true;
       setTimeout(() => {
@@ -291,7 +826,7 @@ export default {
             }
           }
         });
-      }, 2000);
+      }, 1000);
     },
 
     /**
@@ -305,12 +840,67 @@ export default {
     },
 
     detail(item) {
+      if (!this.checkBatchModel()) {
+        return;
+      }
+      if (!item.connectable) {
+        Notify({
+          type: "danger",
+          message: this.i18nInfo.tips.deviceCanNotConnect,
+        });
+        return;
+      }
       this.$router.push({
         path: "/home/deviceDetail",
         query: {
           address: item.address,
+          connectable: item.connectable,
         },
       });
+    },
+
+    toLink(url) {
+      this.$androidApi.openLink({
+        link: url,
+      });
+    },
+
+    // 设备筛选弹框 确认
+    deviceFilterConfirm() {
+      this.init();
+    },
+
+    deviceFilterCancel() {
+      this.initParams = JSON.parse(JSON.stringify(this.filterInfoParamsCache));
+    },
+
+    languageConfirm() {
+      if (this.language == this.$storage.language) {
+        return;
+      }
+      let params = {
+        language: this.language,
+      };
+      this.$androidApi
+        .updateconfigurationInfo(params)
+        .then(() => {
+          this.$storage.language = this.language;
+          if (this.language == "简体中文") {
+            this.$i18n.locale = "zh";
+          } else {
+            this.$i18n.locale = "en";
+          }
+          localStorage.setItem("lang", this.$i18n.locale);
+
+          Notify({ type: "success", message: "Success" });
+        })
+        .catch((errorMsg) => {
+          Notify({ type: "warning", message: errorMsg });
+        });
+    },
+
+    languageCancel(e) {
+      console.log(e);
     },
   },
 };
@@ -352,7 +942,7 @@ export default {
       }
     }
     .count {
-      width: 3.81rem;
+      // width: 3.81rem;
       height: 0.8rem;
       font-size: 0.32rem;
       font-family: Source Han Sans CN-Regular, Source Han Sans CN;
@@ -360,7 +950,8 @@ export default {
       color: #000000;
       display: flex;
       align-items: center;
-      padding-left: 0.26rem;
+      justify-content: space-between;
+      padding: 0 0.26rem;
     }
   }
 
@@ -383,6 +974,11 @@ export default {
     }
   }
 
+  // 批量
+  .blue-icon {
+    color: #007fff;
+  }
+
   // 列表
   .list-box {
     height: 74vh;
@@ -400,12 +996,21 @@ export default {
       border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
       .device-info {
         padding: 0.2rem 0.27rem;
-        height: 1.32rem;
-        .name {
+        height: 1.48rem;
+        .base-info-box {
           font-size: 0.32rem;
           font-family: Source Han Sans CN-Bold, Source Han Sans CN;
           font-weight: bold;
           color: #000000;
+          .name {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            .van-image {
+              width: 0.4rem;
+              height: 0.4rem;
+            }
+          }
           .info {
             font-size: 0.28rem;
             font-family: Source Han Sans CN-Regular, Source Han Sans CN;
@@ -438,21 +1043,20 @@ export default {
         .thoroughfares-info {
           .thoroughfare {
             &:nth-child(n + 2) {
-              border: 1px solid;
-              margin-top: 01rem;
+              margin-top: 0.1rem;
             }
           }
           .name {
             font-size: 0.32rem;
             font-family: Source Han Sans CN-Regular, Source Han Sans CN;
-            font-weight: 600;
+            font-weight: 500;
             color: #0b1a64;
             &:nth-child(n + 2) {
               margin-top: 0.08rem;
             }
           }
           .info-box {
-            font-size: 0.27rem;
+            font-size: 0.25rem;
             .uuid {
               font-size: 0.26rem;
             }
@@ -590,6 +1194,34 @@ export default {
       100% {
         transform: rotate(360deg);
       }
+    }
+  }
+
+  .batch-config {
+    position: fixed;
+    bottom: 0.32rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 7rem;
+
+    .van-button {
+      width: 3.2rem;
+      height: 0.88rem;
+      border-radius: 0.44rem 0.44rem 0.44rem 0.44rem;
+      font-size: 0.36rem;
+      font-family: PingFang SC-Regular, PingFang SC;
+      font-weight: 400;
+      line-height: 0.29rem;
+    }
+    .channel {
+      background: #ffffff;
+      border: 0.01rem solid #107fff;
+      color: #007fff;
+    }
+    .secret-key {
+      background: #007fff;
+      color: #ffffff;
     }
   }
   .scanning {

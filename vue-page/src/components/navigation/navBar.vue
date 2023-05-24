@@ -4,7 +4,7 @@
     <van-nav-bar fixed z-index="5">
       <slot slot="left" name="left"></slot>
       <slot slot="title" name="title">
-        <van-image :src="require('../../assets/system/logo.png')" alt="" />
+        <van-image :src="require('@/assets/system/logo.png')" alt="" />
       </slot>
       <slot slot="right" name="right"></slot>
     </van-nav-bar>

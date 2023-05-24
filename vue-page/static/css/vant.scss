@@ -1,14 +1,25 @@
 html,
 body,
 #app {
-
   --body-background-color: #f7f8fa;
-  --theme-color: #007FFF;
+  --theme-color: #007fff;
 
   .nav-bar {
     position: sticky;
     top: 0;
     z-index: 5;
+  }
+
+  .button-box-max {
+    .van-button {
+      width: 3.2rem;
+      height: 0.88rem;
+      border-radius: 0.44rem 0.44rem 0.44rem 0.44rem;
+      font-size: 0.36rem;
+      font-family: PingFang SC-Regular, PingFang SC;
+      font-weight: 400;
+      text-shadow: 0px 0px 0px rgba(0, 0, 0, 0.1);
+    }
   }
 
   .page-white {
@@ -44,7 +55,6 @@ body,
   .van-cell {
     background: #ffffff;
     border-radius: 0.1rem;
-
   }
 
   .van-field {
@@ -52,21 +62,28 @@ body,
   }
 
   .van-cell--borderless {
-    background: #FFFFFF;
+    background: #ffffff;
   }
 
   .van-cell-group {
     border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
 
     .van-field {
-      height: 0.75rem;
-
+      // height: .85rem;
       &:last-child {
         border-bottom-left-radius: 0.1rem;
         border-bottom-right-radius: 0.1rem;
       }
     }
+    .van-field__body {
+      textarea {
+        font-size: 12px;
+      }
+    }
+  }
 
+  .field-textarea {
+    height: auto !important;
   }
 
   .van-field__label {
@@ -74,16 +91,6 @@ body,
     font-size: 0.3rem;
     font-family: PingFang SC-Regular, PingFang SC;
     font-weight: 400;
-  }
-
-  .van-popup {
-    width: 7.02rem;
-    margin-left: 0.26rem;
-    font-size: 0.32rem;
-    font-family: Source Han Sans CN-Regular, Source Han Sans CN;
-    font-weight: 400;
-    color: #333333;
-    line-height: 0.29rem;
   }
 
   .van-hairline--top-bottom {
@@ -95,7 +102,7 @@ body,
   }
 
   .van-dropdown-menu__title {
-    padding: 0 .08rem;
+    padding: 0 0.08rem;
     font-size: 0.32rem;
   }
 
@@ -108,34 +115,199 @@ body,
     .van-slider__button {
       width: 0.44rem;
       height: 0.44rem;
-      background: #FFFFFF;
+      background: #ffffff;
       box-shadow: 0rem 0rem 0.12rem 0.01rem rgba(0, 127, 255, 0.5);
-      border: 0.04rem solid #007FFF
+      border: 0.04rem solid #007fff;
     }
   }
 
+  .van-dialog {
+    width: 5.76rem;
+    content: unset;
 
+    .slider {
+      width: 4.5rem;
+      margin-left: 0.63rem;
+
+      .title {
+        width: 1rem;
+        font-size: 0.3rem;
+        font-weight: 400;
+      }
+
+      .van-slider {
+        width: 2.7rem;
+      }
+
+      .value {
+        width: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.27rem;
+        margin-bottom: 0.06rem;
+      }
+
+      display: flex;
+      align-items: center;
+      height: 0.5rem;
+      justify-content: space-between;
+      margin-top: 0.4rem;
+    }
+
+    .van-goods-action-button--warning {
+      background: #ffffff;
+    }
+
+    .van-dialog__header {
+      margin-bottom: 0.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.36rem;
+      font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+      font-weight: 400;
+      color: #000000;
+      line-height: 0.1rem;
+    }
+
+    .van-dialog__message {
+      font-size: 0.32rem;
+      font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+      font-weight: 400;
+      color: #000000;
+      line-height: 0.48rem;
+    }
+
+    .van-dialog__footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0.4rem;
+      padding-top: 0.4rem;
+    }
+
+    .van-dialog__cancel {
+      border: 0.01rem solid #107fff;
+      color: #107fff;
+      margin-right: 0.1rem;
+    }
+
+    .van-dialog__confirm {
+      background: #007fff;
+      color: #ffffff;
+      margin-left: 0.1rem;
+    }
+
+    .van-dialog__content {
+      .van-cell {
+        position: unset;
+      }
+    }
+
+    .van-button {
+      height: 0.88rem;
+      border-radius: 0.44rem 0.44rem 0.44rem 0.44rem;
+    }
+
+    .van-button__content {
+      // width: 2.4rem;
+      border-radius: 0.44rem 0.44rem 0.44rem 0.44rem;
+    }
+
+    .van-button::before {
+      content: unset;
+    }
+
+    .van-hairline--left,
+    .van-hairline--right,
+    .van-hairline--top,
+    .van-hairline--top-bottom {
+      position: unset;
+    }
+
+    .van-field {
+      background: #ffffff;
+      margin: auto;
+      margin-top: 0.25rem;
+
+      .van-field__body {
+        padding-left: 0.2rem;
+        border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
+        border: 0.02rem solid #d8dceb;
+        margin: auto;
+        height: 0.8rem;
+        font-size: 0.3rem;
+        font-family: PingFang SC-Regular, PingFang SC;
+        font-weight: 400;
+      }
+
+      .van-field__label {
+        width: 1.9rem;
+        padding-left: 0.1rem;
+        display: flex;
+        align-items: center;
+        font-size: 0.32rem;
+      }
+    }
+
+    .explain {
+      width: 4.92rem;
+      margin: auto;
+      margin-bottom: 0.2rem;
+    }
+  }
+
+  .van-swipe-cell__right {
+    .van-button {
+      height: 100%;
+      border: transparent;
+      &:last-child {
+        border-top-right-radius: 0.12rem;
+        border-bottom-right-radius: 0.12rem;
+      }
+    }
+
+    .van-button--primary {
+      background: #007fff;
+    }
+  }
 }
 
+.van-overlay {
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-
-.van-button {
-  width: 3.2rem;
-  height: 0.88rem;
-  border-radius: 0.44rem 0.44rem 0.44rem 0.44rem;
-  font-size: 0.36rem;
-  font-family: PingFang SC-Regular, PingFang SC;
-  font-weight: 400;
-  text-shadow: 0px 0px 0px rgba(0, 0, 0, 0.1);
+  .wrapper {
+    padding: 0.2rem 0.2rem;
+    background: #ffffff;
+    height: 2.7rem;
+    width: 2.7rem;
+    border-radius: 0.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    .van-circle__text {
+      font-size: 11px;
+      width: 1.6rem;
+      margin-left: 0.55rem;
+    }
+  }
 }
 
 .canecl-max {
-  background: #FFFFFF;
-  border: 0.01rem solid #107FFF;
-  color: #007FFF;
+  background: #ffffff;
+  border: 0.01rem solid #107fff;
+  color: #007fff;
 }
 
 .sure-max {
-  background: #007FFF;
-  color: #FFFFFF;
+  background: #007fff;
+  color: #ffffff;
+}
+
+.van-overlay {
+  z-index: 6;
 }

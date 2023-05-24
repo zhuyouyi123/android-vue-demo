@@ -4,106 +4,145 @@
     <nav-bar>
       <van-icon name="arrow-left" slot="left" class="navIcon" @click="goBack" />
       <div slot="title">{{ $t("pageTitle.deviceDetail") }}</div>
+      <van-icon
+        :name="
+          bluetoothConnectStatus == 1
+            ? require('@/assets/image/ble/connecting.svg')
+            : bluetoothConnectStatus == 2
+            ? require('@/assets/image/ble/connected.svg')
+            : require('@/assets/image/ble/disconnected.svg')
+        "
+        slot="right"
+        class="navIcon"
+      />
     </nav-bar>
     <div class="content">
-      <div class="base-info-box">
-        <div class="box-title">
-          {{ $t("device.detail.title.basicInformation") }}
-        </div>
-        <van-cell-group inset>
-          <van-field
-            input-align="right"
-            label-width="3.8rem"
-            v-model="address"
-            label="Mac"
-            placeholder="Mac"
-          />
+      <div class="info-box">
+        <div class="base-info-box">
+          <div class="box-title">
+            {{ $t("device.detail.title.basicInformation") }}
+          </div>
+          <van-cell-group inset>
+            <van-field
+              input-align="right"
+              label-width="3.5rem"
+              v-model="address"
+              disabled
+              label="Mac"
+              placeholder="Mac"
+            />
 
-          <van-field
-            input-align="right"
-            label-width="3.8rem"
-            v-model="value"
-            :label="$t('device.detail.lable.model')"
-            :placeholder="$t('device.detail.lable.model')"
-          />
-          <van-field
-            input-align="right"
-            label-width="3.8rem"
-            v-model="value"
-            :label="$t('device.detail.lable.softwareVersion')"
-            :placeholder="$t('device.detail.lable.softwareVersion')"
-          />
-          <van-field
-            input-align="right"
-            label-width="3.8rem"
-            v-model="value"
-            :label="$t('device.detail.lable.hardwareVersion')"
-            :placeholder="$t('device.detail.lable.hardwareVersion')"
-          />
-          <van-field
-            input-align="right"
-            label-width="3.8rem"
-            v-model="value"
-            :label="$t('device.detail.lable.firmwareVersion')"
-            :placeholder="$t('device.detail.lable.firmwareVersion')"
-          />
-        </van-cell-group>
+            <van-field
+              input-align="right"
+              label-width="3.5rem"
+              v-model="deviceInfo.factoryVersionInfo.model"
+              disabled
+              :label="$t('device.detail.lable.model')"
+              :placeholder="$t('device.detail.lable.model')"
+            />
+            <van-field
+              input-align="right"
+              label-width="3.8rem"
+              disabled
+              v-model="deviceInfo.factoryVersionInfo.softwareVersion"
+              :label="$t('device.detail.lable.softwareVersion')"
+              :placeholder="$t('device.detail.lable.softwareVersion')"
+            />
+            <van-field
+              input-align="right"
+              label-width="3.8rem"
+              disabled
+              v-model="deviceInfo.factoryVersionInfo.hardwareVersion"
+              :label="$t('device.detail.lable.hardwareVersion')"
+              :placeholder="$t('device.detail.lable.hardwareVersion')"
+            />
+            <van-field
+              input-align="right"
+              label-width="3.8rem"
+              disabled
+              v-model="deviceInfo.factoryVersionInfo.firmwareVersion"
+              :label="$t('device.detail.lable.firmwareVersion')"
+              :placeholder="$t('device.detail.lable.firmwareVersion')"
+            />
+          </van-cell-group>
+        </div>
+
+        <div class="special-info-box">
+          <div class="box-title">
+            {{ $t("device.detail.title.specialInformation") }}
+          </div>
+          <van-cell-group inset>
+            <van-field
+              input-align="right"
+              label-width="3.8rem"
+              v-model="deviceInfo.featureInfo.channelNum"
+              disabled
+              :label="$t('device.detail.lable.numberOfChannels')"
+              :placeholder="$t('device.detail.lable.numberOfChannels')"
+            />
+            <van-field
+              class="field-textarea"
+              label-width="2.5rem"
+              v-model="deviceInfo.featureInfo.supportPower"
+              type="textarea"
+              rows="4"
+              disabled
+              :label="$t('device.detail.lable.supportPower')"
+              :placeholder="$t('device.detail.lable.supportPower')"
+            />
+            <van-field
+              class="field-textarea"
+              label-width="2.5rem"
+              v-model="deviceInfo.featureInfo.supportAgreement"
+              type="textarea"
+              rows="3"
+              disabled
+              :label="$t('device.detail.lable.supportData')"
+              :placeholder="$t('device.detail.lable.supportData')"
+            />
+          </van-cell-group>
+        </div>
       </div>
 
-      <div class="special-info-box">
-        <div class="box-title">
-          {{ $t("device.detail.title.specialInformation") }}
-        </div>
-        <van-cell-group inset>
-          <van-field
-            input-align="right"
-            label-width="3.8rem"
-            v-model="value"
-            :label="$t('device.detail.lable.numberOfChannels')"
-            :placeholder="$t('device.detail.lable.numberOfChannels')"
-          />
-          <van-field
-            input-align="right"
-            label-width="3.8rem"
-            v-model="value"
-            :label="$t('device.detail.lable.supportPower')"
-            :placeholder="$t('device.detail.lable.supportPower')"
-          />
-          <van-field
-            input-align="right"
-            label-width="3.8rem"
-            v-model="value"
-            :label="$t('device.detail.lable.supportData')"
-            :placeholder="$t('device.detail.lable.supportData')"
-          />
-        </van-cell-group>
-      </div>
-
+      <!-- 按钮组 -->
       <div class="function-button">
         <div class="function">
           <div class="logo">
             <van-image
-              @click="write"
-              :src="require('../../../assets/device/detail/can-connect.svg')"
+              :src="require('@/assets/image/device/detail/can-connect.png')"
+              @click="canConncetConfig"
               alt=""
             />
           </div>
-          <div class="name">{{ $t("device.detail.button.canConncet") }}</div>
+          <div class="name">
+            {{ $t("device.detail.button.canConncet") }}
+            <div class="cann-connect-open" v-show="canConncetSwitch">
+              {{ $t("device.detail.button.open") }}
+            </div>
+            <div class="cann-connect-close" v-show="!canConncetSwitch">
+              {{ $t("device.detail.button.close") }}
+            </div>
+          </div>
         </div>
         <div class="function">
           <div class="logo">
             <van-image
-              @click="read"
-              :src="require('../../../assets/device/detail/reset.svg')"
+              :src="
+                require('@/assets/image/device/detail/restore-factory-settings.png')
+              "
+              @click="restoreFactorySettings"
               alt=""
             />
           </div>
-          <div class="name">{{ $t("device.detail.button.reset") }}</div>
+          <div class="name">
+            {{ $t("device.detail.button.restoreFactorySettings") }}
+          </div>
         </div>
         <div class="function">
           <div class="logo">
             <van-image
-              :src="require('../../../assets/device/detail/shutdown.svg')"
+              @click="shoudown"
+              :src="require('@/assets/image/device/detail/shutdown.png')"
               alt=""
             />
           </div>
@@ -113,7 +152,7 @@
           <div class="logo">
             <van-image
               :src="
-                require('../../../assets/device/detail/configure-channel.svg')
+                require('@/assets/image/device/detail/configure-channel.png')
               "
               alt=""
             />
@@ -122,10 +161,13 @@
             {{ $t("device.detail.button.configureChannel") }}
           </div>
         </div>
-        <div class="function">
+        <div class="function" v-show="needSecretKey">
           <div class="logo">
             <van-image
-              :src="require('../../../assets/device/detail/can-connect.svg')"
+              :src="
+                require('@/assets/image/device/detail/remove-secret-key.png')
+              "
+              @click="removeSecretKey"
               alt=""
             />
           </div>
@@ -133,10 +175,13 @@
             {{ $t("device.detail.button.removeSecretKey") }}
           </div>
         </div>
-        <div class="function">
+        <div class="function" v-show="needSecretKey">
           <div class="logo">
             <van-image
-              :src="require('../../../assets/device/detail/can-connect.svg')"
+              :src="
+                require('@/assets/image/device/detail/update-secret-key.png')
+              "
+              @click="openSecretKeyDialog"
               alt=""
             />
           </div>
@@ -144,178 +189,142 @@
             {{ $t("device.detail.button.updateSecretKey") }}
           </div>
         </div>
-        <div class="function">
+        <!-- 添加秘钥 -->
+        <div class="function" v-if="!needSecretKey">
           <div class="logo">
             <van-image
-              :src="require('../../../assets/device/detail/can-connect.svg')"
+              :src="require('@/assets/image/device/detail/add-secret-key.png')"
+              @click="openSecretKeyDialog"
               alt=""
             />
           </div>
           <div class="name">
-            {{ $t("device.detail.button.modifyDeviceName") }}
+            {{ $t("device.detail.button.addSecretKey") }}
+          </div>
+        </div>
+        <!-- 触发响应时间 -->
+        <div class="function">
+          <div class="logo">
+            <van-image
+              :src="
+                require('@/assets/image/device/detail/trigger-response-time.png')
+              "
+              @click="keyTiggeredResponseDialog = true"
+              alt=""
+            />
+          </div>
+          <div class="name">
+            {{ $t("device.detail.button.triggerResponseTime") }}
           </div>
         </div>
       </div>
+
+      <!-- 遮罩层 -->
+      <van-overlay :show="loading">
+        <div class="wrapper" @click.stop>
+          <van-circle
+            v-model="currentRate"
+            :speed="30"
+            size="2.7rem"
+            :rate="rate"
+            :text="text"
+            layer-color="#ebedf0"
+          />
+          <div class="rate">
+            {{ rate + "%" }}
+          </div>
+        </div>
+      </van-overlay>
+
+      <van-overlay :show="functionLoading">
+        <van-loading color="#0094ff" size="24px">loading...</van-loading>
+      </van-overlay>
+
+      <!-- 弹窗 -->
+      <van-dialog
+        v-model="secretKeyDialog"
+        :title="i18nInfo.function.inputSecretKey"
+        show-cancel-button
+        :cancel-button-text="$t('baseButton.cancel')"
+        :confirm-button-text="$t('baseButton.sure')"
+        :before-close="secretKeyDialogBeforeClose"
+        theme="round-button"
+      >
+        <van-field
+          maxlength="6"
+          v-model.trim="secretKey"
+          :placeholder="i18nInfo.function.secretDialogPlaceholder"
+        />
+      </van-dialog>
+
+      <van-dialog
+        v-model="keyTiggeredResponseDialog"
+        :title="i18nInfo.function.keyTiggeredResponseTime"
+        show-cancel-button
+        :cancel-button-text="$t('baseButton.cancel')"
+        :confirm-button-text="$t('baseButton.sure')"
+        :before-close="tiggeredResponseDialogBeforeClose"
+        theme="round-button"
+      >
+        <van-field
+          label="响应时间(S)"
+          type="digit"
+          v-model="keyTiggeredResponseTime"
+          :placeholder="i18nInfo.function.keyTiggeredResponseTime"
+        />
+        <div class="explain">在以上时间内完成操作，触发器生效</div>
+      </van-dialog>
+
+      <!-- 校验秘钥 -->
+      <van-dialog
+        v-model="secretKeyDialog"
+        :title="i18nInfo.function.inputSecretKey"
+        show-cancel-button
+        :cancel-button-text="$t('baseButton.cancel')"
+        :confirm-button-text="$t('baseButton.sure')"
+        :before-close="secretKeyDialogBeforeClose"
+        theme="round-button"
+      >
+        <van-field
+          maxlength="6"
+          v-model.trim="secretKey"
+          :placeholder="i18nInfo.function.secretDialogPlaceholder"
+        />
+      </van-dialog>
     </div>
   </div>
 </template>
 
 <script>
-export default {
-  name: "deviceDetail",
-  components: {
-    navBar: () => import("@/components/navigation/navBar.vue"),
-  },
-  data() {
-    return {
-      // 连接状态
-      connectStatus: false,
-      value: 1,
-      loading: false,
-      address: this.$route.query.address,
-      // 连接定时器
-      connectInterval: null,
-    };
-  },
-
-  mounted() {
-    if (window.history && window.history.pushState) {
-      history.pushState(null, null, document.URL);
-      window.addEventListener("popstate", this.goBack, false); //false阻止默认事件
-    }
-    // 设置加载
-    this.setLoading(true);
-    // 连接设备
-    if (!this.connectStatus) {
-      this.connect();
-    }
-  },
-
-  destroyed() {
-    window.removeEventListener("popstate", this.goBack, false); //false阻止默认事件
-    if (this.connectInterval) {
-      clearInterval(this.connectInterval);
-      this.connectInterval = null;
-    }
-    // 关闭遮罩层
-    this.setLoading(false);
-  },
-
-  methods: {
-    goBack() {
-      this.$router.replace("/home");
-    },
-    jumpToPage(page) {
-      this.$router.push("/home/deviceDetail/" + page);
-    },
-
-    // 连接设备
-    connect() {
-      let params = {
-        address: this.address,
-      };
-      this.$androidApi
-        .connectDevice(params)
-        .then(() => {
-          this.getConnectingStatus(params);
-        })
-        .catch((errorMsg) => {
-          Notify({ type: "warning", message: errorMsg });
-          this.$router.replace("/home");
-        });
-    },
-
-    /**
-     * 获取连接状态
-     */
-    getConnectingStatus(params) {
-      this.connectInterval = setInterval(() => {
-        this.$androidApi
-          .getConnectingStatus(params)
-          .then((res) => {
-            let connectStatus = false;
-            if (1 == res) {
-              // 连接中
-            } else if (2 == res) {
-              connectStatus = true;
-              // 连接成功
-              // this.setLoading(false);
-              // 向后台确认是否需要秘钥进行连接
-              
-            } else {
-              // 连接失败
-              clearInterval(this.clearInterval);
-              this.setLoading();
-              // 退出页面
-              this.$router.replace("/home");
-            }
-            // 如果当前连接状态与传递过来的不一致 重新赋值
-            if (connectStatus != this.connectStatus) {
-              this.connectStatus = connectStatus;
-              if (this.connectStatus && this.connectStatus == true) {
-                this.startNotify(params);
-              }
-            }
-          })
-          .catch((errorMsg) => {
-            Notify({ type: "warning", message: errorMsg });
-          });
-      }, 3000);
-    },
-
-    // 写入数据
-    write() {
-      let params = {
-        address: this.address,
-      };
-      this.$androidApi.write(params);
-    },
-
-    read() {
-      let params = {
-        address: this.address,
-      };
-      this.$androidApi.read(params);
-    },
-
-    startNotify(params) {
-      setTimeout(() => {
-        this.$androidApi.startNotify(params);
-      }, 200);
-    },
-
-    // 加载
-    setLoading(loading) {
-      if (loading) {
-        this.loading = this.$loading({
-          lock: true,
-          text: "连接中...",
-          spinner: "el-icon-loading",
-          background: "rgba(0, 0, 0, 0.7)",
-        });
-      } else {
-        this.loading.close();
-      }
-    },
-  },
-};
+import deviceDetail from "@/views/home/children/deviceDetail";
+export default deviceDetail;
 </script>
 <style lang='scss' scoped>
 .content {
   overflow: auto;
+
+  .info-box {
+    height: 8.5rem;
+    overflow: auto;
+  }
+
+  .rate {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0.1rem;
+    font-size: 0.4rem;
+  }
   // 基础信息
   .base-info-box {
-    // height: 4.65rem;
     background: #ffffff;
     box-shadow: 0rem 0.04rem 0.06rem 0.01rem rgba(0, 0, 0, 0.1);
     border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
   }
 
   .special-info-box {
-    // height: 3.6rem;
     background: #ffffff;
     box-shadow: 0rem 0.04rem 0.06rem 0.01rem rgba(0, 0, 0, 0.1);
-    // border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
     border-radius: 0.1rem;
     margin-top: 0.16rem;
   }
@@ -345,20 +354,24 @@ export default {
         justify-content: center;
         .van-image {
           width: 0.5rem;
-          height: 0.5rem;
         }
       }
       .name {
         margin-top: 0.1rem;
         height: 0.42rem;
-        font-size: 0.28rem;
+        font-size: 0.3rem;
         font-family: PingFang SC-Regular, PingFang SC;
         font-weight: 400;
         line-height: 0.39rem;
         display: flex;
-        // justify-content: center;
         align-items: center;
         text-align: center;
+        .cann-connect-open {
+          color: #007fff;
+        }
+        .cann-connect-close {
+          color: #cc0000;
+        }
       }
     }
   }
