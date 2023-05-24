@@ -9,7 +9,7 @@ import com.ble.blescansdk.ble.BleOptions;
 import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.analysis.AnalysisSeekStandardBeaconHandle;
 import com.ble.blescansdk.ble.callback.request.BleScanCallback;
-import com.ble.blescansdk.ble.entity.constants.SeekStandardDeviceConstants;
+import com.ble.blescansdk.ble.entity.bo.BlueToothDeviceBO;
 import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
 import com.ble.blescansdk.ble.entity.seek.StandardThoroughfareInfo;
 import com.ble.blescansdk.ble.enums.SortTypeEnum;
@@ -41,7 +41,7 @@ public class SeekStandardBeaconStorage extends AbstractStorage {
     // 回调
     private static BleScanCallback<SeekStandardDevice> bleScanCallback;
     // 扫描间隔
-    private static final long scanPeriod = BleSdkManager.getBleOptions().getScanPeriod();
+    private static final long intermittentTime = BleSdkManager.getBleOptions().getIntermittentTime();
 
     private static ScheduledExecutorService scheduledExecutorServicePool;
     // 过滤信息
@@ -88,23 +88,36 @@ public class SeekStandardBeaconStorage extends AbstractStorage {
         SeekStandardDevice seekStandardDevice = deviceMap.get(address);
 
         if (null != seekStandardDevice) {
-            List<StandardThoroughfareInfo> thoroughfares = seekStandardDevice.getThoroughfares();
-            if (null != thoroughfares && thoroughfares.size() > 0) {
-                device.setThoroughfares(thoroughfares);
+            StandardThoroughfareInfo standardThoroughfareInfo = seekStandardDevice.getStandardThoroughfareInfo();
+            if (Objects.nonNull(standardThoroughfareInfo)) {
+                device.setStandardThoroughfareInfo(standardThoroughfareInfo);
             }
             device = calcBroadcastInterval(device, seekStandardDevice);
         }
+
         deviceMap.put(address, device);
 
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void analysis(byte[] scanBytes, BluetoothDevice device, int rssi) {
+    public void analysis(byte[] scanBytes, BluetoothDevice device, boolean isConnectable, int rssi) {
         // 基础信息验证
-        if (!filterMacAndRssi(filterInfo, device, rssi)) {
+        if (!filterMacAndRssi(filterInfo, device, isConnectable, rssi)) {
             return;
         }
-        SeekStandardDevice analysis = analysisHandle.analysis(scanBytes, device, rssi);
+
+        SeekStandardDevice standardDevice = deviceMap.get(device.getAddress());
+
+        SeekStandardDevice seekStandardDevice = new SeekStandardDevice();
+        if (null != standardDevice) {
+            seekStandardDevice.setStandardThoroughfareInfo(standardDevice.getStandardThoroughfareInfo());
+            // 只要有一路是可连接 那就都是可连接的 避免AOA不可连接
+            if (standardDevice.isConnectable()) {
+                isConnectable = true;
+            }
+        }
+
+        SeekStandardDevice analysis = analysisHandle.analysis(seekStandardDevice, scanBytes, device, isConnectable, rssi);
 
         if (!filterDevice(analysis)) {
             return;
@@ -131,18 +144,22 @@ public class SeekStandardBeaconStorage extends AbstractStorage {
                     bleScanCallback.onLeScan(Collections.emptyList());
                 }
             }
-        }, scanPeriod, scanPeriod, TimeUnit.MILLISECONDS);
+        }, 100, intermittentTime, TimeUnit.MILLISECONDS);
     }
 
 
     private boolean filterDevice(SeekStandardDevice seekStandardDevice) {
+
+        if (Objects.isNull(seekStandardDevice)) {
+            return false;
+        }
 
         if (Objects.isNull(filterInfo)) {
             return true;
         }
 
         if (filterInfo.isNormDevice()) {
-            return seekStandardDevice.isLocSmart();
+            return seekStandardDevice.getAddress().startsWith("19:18");
         }
 
         return true;
@@ -196,9 +213,18 @@ public class SeekStandardBeaconStorage extends AbstractStorage {
             }
             long diff = currentTime - value.getScanTime();
             if (diff > deviceSurviveTime) {
-//                BleLogUtil.i("设备过期，被清除：" + key + " 超时时间：" + diff);
+                // BleLogUtil.i("设备过期，被清除：" + key + " 超时时间：" + diff);
                 deviceMap.remove(key);
             }
         }
+    }
+
+
+    public SeekStandardDevice getScanDevice(String address) {
+        if (null == deviceMap || deviceMap.isEmpty()) {
+            return null;
+        }
+
+        return deviceMap.get(address);
     }
 }

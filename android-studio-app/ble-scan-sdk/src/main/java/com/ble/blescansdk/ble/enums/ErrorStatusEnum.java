@@ -66,6 +66,16 @@ public enum ErrorStatusEnum {
     READ_ERROR(1013),
 
     /**
+     * 写入参数错误
+     */
+    WRITE_PARAMS_ERROR(1014),
+
+    /**
+     *秘钥错误
+     */
+    SECRET_KEY_ERROR(1015),
+
+    /**
      * 未知错误
      */
     UNKNOWN_ERROR(-1),

@@ -2,10 +2,7 @@ package com.ble.blescansdk.ble.utils;
 
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.location.LocationManager;
 import android.os.Build;
 import android.provider.Settings;

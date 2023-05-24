@@ -12,27 +12,27 @@
         android:scaleY="0"
         android:translateX="54"
         android:translateY="54">
-    <!--  <group android:scaleX="0"-->
-    <!--      android:scaleY="0"-->
-    <!--      android:translateX="54"-->
-    <!--      android:translateY="54">-->
-    <!--    <group android:scaleX="0"-->
-    <!--        android:scaleY="0"-->
-    <!--        android:translateX="54"-->
-    <!--        android:translateY="54">-->
-    <!--      <group android:scaleX="0.009351851"-->
-    <!--          android:scaleY="0.009351851"-->
-    <!--          android:translateX="-0.54"-->
-    <!--          android:translateY="-0.54">-->
-    <!--        <group android:scaleX="1.01"-->
-    <!--            android:scaleY="1.01"-->
-    <!--            android:translateX="-0.54"-->
-    <!--            android:translateY="-0.54">-->
+      <group android:scaleX="0"
+          android:scaleY="0"
+          android:translateX="54"
+          android:translateY="54">
+        <group android:scaleX="0"
+            android:scaleY="0"
+            android:translateX="54"
+            android:translateY="54">
+          <group android:scaleX="0.009351851"
+              android:scaleY="0.009351851"
+              android:translateX="-0.54"
+              android:translateY="-0.54">
+            <group android:scaleX="1.01"
+                android:scaleY="1.01"
+                android:translateX="-0.54"
+                android:translateY="-0.54">
 
-    <!--        </group>-->
-    <!--      </group>-->
-    <!--    </group>-->
-    <!--  </group>-->
+            </group>
+          </group>
+        </group>
+      </group>
     </group>
   </group>
 </vector>

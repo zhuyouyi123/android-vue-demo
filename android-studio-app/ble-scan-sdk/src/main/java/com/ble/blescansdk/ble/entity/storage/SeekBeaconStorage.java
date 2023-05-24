@@ -2,13 +2,11 @@ package com.ble.blescansdk.ble.entity.storage;
 
 import android.bluetooth.BluetoothDevice;
 
-
 import com.ble.blescansdk.ble.BleOptions;
 import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.analysis.AnalysisSeekBeaconHandle;
 import com.ble.blescansdk.ble.callback.request.BleScanCallback;
 import com.ble.blescansdk.ble.entity.seek.SeekBleDevice;
-import com.ble.blescansdk.ble.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,11 +31,12 @@ public class SeekBeaconStorage extends AbstractStorage {
     private static BleScanCallback<SeekBleDevice> bleScanCallback;
 
     private static boolean isIntermittentScanning = BleSdkManager.getBleOptions().isIntermittentScanning();
-    private static final long scanPeriod = BleSdkManager.getBleOptions().getScanPeriod();
+    // 扫描间隔
+    private static final long intermittentTime = BleSdkManager.getBleOptions().getIntermittentTime();
 
     private static ScheduledExecutorService scheduledExecutorServicePool;
 
-    private static final BleOptions.FilterInfo filterInfo = BleSdkManager.getBleOptions().getFilterInfo();
+    private static BleOptions.FilterInfo filterInfo = null;
 
     public static SeekBeaconStorage getInstance() {
         if (INSTANCE == null) {
@@ -50,6 +49,7 @@ public class SeekBeaconStorage extends AbstractStorage {
         if (null == callback) {
             return;
         }
+        filterInfo = BleSdkManager.getBleOptions().getFilterInfo();
         isIntermittentScanning = BleSdkManager.getBleOptions().isIntermittentScanning();
         bleScanCallback = callback;
         seekMap.clear();
@@ -73,17 +73,16 @@ public class SeekBeaconStorage extends AbstractStorage {
 
         String address = device.getAddress();
 
-        SeekBleDevice seekBleDevice = seekMap.get(address);
-        if (null == seekBleDevice) {
-            seekMap.put(address, device);
-        } else if (seekBleDevice.getRssi() < device.getRssi()) {
-            seekMap.put(address, device);
-        }
-
+        seekMap.put(address, device);
     }
 
-    public void analysis(byte[] scanBytes, BluetoothDevice device, int rssi) {
-        SeekBleDevice analysis = ANALYSIS_SEEK_BEACON_HANDLE.analysis(scanBytes, device, rssi);
+    public void analysis(byte[] scanBytes, BluetoothDevice device, boolean isConnectable, int rssi) {
+        // 基础信息验证
+        if (!filterMacAndRssi(filterInfo, device, isConnectable, rssi)) {
+            return;
+        }
+
+        SeekBleDevice analysis = ANALYSIS_SEEK_BEACON_HANDLE.analysis(seekMap.get(device.getAddress()), scanBytes, device, isConnectable, rssi);
         if (!filterDevice(analysis)) {
             return;
         }
@@ -96,13 +95,14 @@ public class SeekBeaconStorage extends AbstractStorage {
     public void onRssiMaxDevice() {
         SeekBleDevice seekBleDevice = null;
 
+        boolean needSeekBeacon = null == filterInfo || filterInfo.isNormDevice();
         for (Map.Entry<String, SeekBleDevice> entry : seekMap.entrySet()) {
             SeekBleDevice value = entry.getValue();
             if (null == value) {
                 continue;
             }
 
-            if (!value.isSeekBeacon()) {
+            if (needSeekBeacon && !value.isSeekBeacon()) {
                 continue;
             }
 
@@ -133,7 +133,7 @@ public class SeekBeaconStorage extends AbstractStorage {
                     bleScanCallback.onLeScan(Collections.emptyList());
                 }
             }
-        }, scanPeriod, scanPeriod, TimeUnit.MILLISECONDS);
+        }, 100, intermittentTime, TimeUnit.MILLISECONDS);
     }
 
     public void release() {
@@ -144,39 +144,19 @@ public class SeekBeaconStorage extends AbstractStorage {
         }
     }
 
-    public void sort() {
-
-    }
-
     private boolean filterDevice(SeekBleDevice seekBleDevice) {
-        if (null == filterInfo) {
-            return true;
-        }
 
-        String filterInfoMac = filterInfo.getAddress();
-        if (StringUtils.isNotBlank(filterInfoMac)) {
-            if (!seekBleDevice.getAddress().equals(filterInfoMac)) {
-                return false;
-            }
-        }
-
-        String filterInfoName = filterInfo.getName();
-        if (StringUtils.isNotBlank(filterInfoName)) {
-            String name = seekBleDevice.getName();
-            if (StringUtils.isBlank(name) || !name.equals(filterInfoName)) {
-                return false;
-            }
-        }
-
-        Integer filterInfoRssi = filterInfo.getRssi();
-        if (null != filterInfoRssi && filterInfoRssi > seekBleDevice.getRssi()) {
+        if (Objects.isNull(seekBleDevice)) {
             return false;
+        }
+
+        if (Objects.isNull(filterInfo)) {
+            return true;
         }
 
         if (filterInfo.isNormDevice()) {
             return seekBleDevice.isSeekBeacon();
         }
-
 
         return true;
     }

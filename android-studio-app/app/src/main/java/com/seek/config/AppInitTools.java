@@ -7,12 +7,15 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,7 +24,11 @@ import androidx.core.app.NotificationCompat;
 
 import com.ble.blescansdk.ble.BleOptions;
 import com.ble.blescansdk.ble.BleSdkManager;
+import com.ble.blescansdk.ble.entity.BleDevice;
 import com.ble.blescansdk.ble.enums.BleScanLevelEnum;
+import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
+
+import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 
@@ -29,7 +36,7 @@ public class AppInitTools extends AppCompatActivity {
 
     public WebView webView;
 
-    //获取到通知管理器
+    // 获取到通知管理器
     public static NotificationManager mNotificationManager = null;
     @SuppressLint("StaticFieldLeak")
     public static NotificationCompat.Builder builder = null;
@@ -43,21 +50,52 @@ public class AppInitTools extends AppCompatActivity {
         webView = findViewById(R.id.mainWebView);
         webView.onResume();
 
+        webView.setWebChromeClient(new WebChromeClient());
+
         initPermission();
 
-        BleSdkManager.getBleOptions().setLogSwitch(true)
-                .setIntermittentScanning(true)
-                .setScanPeriod(500)
-                .setContinuousScanning(true)
-                .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_LOW_POWER)
-                .setFilterInfo(new BleOptions.FilterInfo().setAddress("BC8B"));
-
-        BleSdkManager.getInstance().init(this);
+        initSdkConfig();
 
         initToast();
 
+        setLanguage();
+
         Config.isNewApi = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
 
+    }
+
+    private void setLanguage() {
+        String language = SharePreferenceUtil.getInstance().shareGet(SharePreferenceUtil.APP_LANGUAGE);
+        if (!TextUtils.isEmpty(language)) {
+            Locale locale = new Locale(language);
+            Locale.setDefault(locale);
+            Configuration config = new Configuration();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                config.setLocale(locale);
+            } else {
+                config.locale = locale;
+            }
+            getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+        }
+    }
+
+    private void initSdkConfig() {
+
+        BleOptions<BleDevice> cacheConfig = BleSdkManager.getBleOptions().getCacheConfig(this);
+        if (null == cacheConfig) {
+            BleSdkManager.getBleOptions().setLogSwitch(true)
+                    .setIntermittentScanning(true)
+                    .setScanPeriod(10000)
+                    .setIntermittentTime(500)
+                    .setContinuousScanning(false)
+                    .setConnectFailedRetryCount(3)
+                    .setConnectTimeout(2000)
+                    .setDatabaseSupport(true)
+                    .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_LOW_POWER);
+        } else {
+            BleSdkManager.setBleOptions(cacheConfig);
+        }
+        BleSdkManager.getInstance().init(this);
     }
 
 
@@ -118,9 +156,6 @@ public class AppInitTools extends AppCompatActivity {
         }
     }
 
-    public static void showNotify(String title, String text, Context context) {
-        showNotify(R.drawable.logo_48x48, title, text, context);
-    }
 
     public int getStatusHeight() {
         int result = 0;

@@ -13,12 +13,31 @@ public class SharePreferenceUtil {
 
     public static final String PREFERENCE_NAME = "loc_smart_share";
 
+    /**
+     * 最后使用的秘钥
+     */
+    public static final String LAST_USE_SECRET_KEY = "LAST_USE_SECRET_KEY";
+    /**
+     * sdk配置缓存
+     */
+    public static final String SDK_CONFIG_INFO_CACHE_KEY = "SDK_CONFIG_INFO_CACHE_KEY";
+
+    public static final String APP_LANGUAGE = "APP_LANGUAGE";
+
+
+    public static SharePreferenceUtil getInstance(Context context) {
+        return init(context);
+    }
 
     public static SharePreferenceUtil getInstance() {
+        return init(BleSdkManager.getContext());
+    }
+
+    private static SharePreferenceUtil init(Context context) {
         if (instance == null) {
             instance = new SharePreferenceUtil();
             if (Objects.isNull(deploySharePreference)) {
-                deploySharePreference = BleSdkManager.getContext().getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+                deploySharePreference = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
             }
         }
         return instance;

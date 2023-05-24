@@ -4,9 +4,6 @@ import androidx.annotation.NonNull;
 
 import com.ble.blescansdk.ble.entity.BleDevice;
 import com.ble.blescansdk.ble.entity.constants.SeekStandardDeviceConstants;
-import com.ble.blescansdk.ble.utils.BleLogUtil;
-
-import java.util.List;
 
 public class SeekStandardDevice extends BleDevice {
     // 是否是locSmart信标
@@ -17,11 +14,9 @@ public class SeekStandardDevice extends BleDevice {
      */
     private int battery = SeekStandardDeviceConstants.DEFAULT_BATTERY;
 
-
     private long broadcastInterval = SeekStandardDeviceConstants.DEFAULT_BROADCAST_INTERVAL;
 
-
-    private List<StandardThoroughfareInfo> thoroughfares;
+    private StandardThoroughfareInfo standardThoroughfareInfo;
 
     public boolean isLocSmart() {
         return locSmartBeacon == 1;
@@ -35,12 +30,15 @@ public class SeekStandardDevice extends BleDevice {
         this.locSmartBeacon = locSmartBeacon;
     }
 
-    public List<StandardThoroughfareInfo> getThoroughfares() {
-        return thoroughfares;
+    public StandardThoroughfareInfo getStandardThoroughfareInfo() {
+        if (null == standardThoroughfareInfo) {
+            standardThoroughfareInfo = new StandardThoroughfareInfo();
+        }
+        return standardThoroughfareInfo;
     }
 
-    public void setThoroughfares(List<StandardThoroughfareInfo> thoroughfares) {
-        this.thoroughfares = thoroughfares;
+    public void setStandardThoroughfareInfo(StandardThoroughfareInfo standardThoroughfareInfo) {
+        this.standardThoroughfareInfo = standardThoroughfareInfo;
     }
 
     public int getBattery() {
@@ -63,13 +61,15 @@ public class SeekStandardDevice extends BleDevice {
     @Override
     public String toString() {
         return "SeekStandardDevice{" +
-                "address='" + getAddress() + '\'' +
-                ", rssi=" + getRssi() +
-                ", name='" + getName() + '\'' +
-                ", scanTime=" + getScanTime() +
-                ", deviceType=" + getDeviceType() +
-                ", locSmartBeacon=" + locSmartBeacon +
-                ", thoroughfares=" + thoroughfares +
+                "address=" + getAddress() +
+                "name=" + getName() +
+                "scanTime=" + getScanTime() +
+                "rssi=" + getRssi() +
+                "connectable=" + isConnectable() +
+                "locSmartBeacon=" + locSmartBeacon +
+                ", battery=" + battery +
+                ", broadcastInterval=" + broadcastInterval +
+                ", standardThoroughfareInfo=" + standardThoroughfareInfo +
                 '}';
     }
 }

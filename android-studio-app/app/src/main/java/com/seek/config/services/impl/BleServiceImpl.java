@@ -1,23 +1,14 @@
 package com.seek.config.services.impl;
 
-import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothGattCharacteristic;
-
-import com.ble.blescansdk.ble.BleOptions;
 import com.ble.blescansdk.ble.BleSdkManager;
-import com.ble.blescansdk.ble.callback.request.BleConnectCallback;
-import com.ble.blescansdk.ble.callback.request.BleNotifyCallback;
-import com.ble.blescansdk.ble.callback.request.BleReadCallback;
 import com.ble.blescansdk.ble.callback.request.BleScanCallback;
-import com.ble.blescansdk.ble.callback.request.BleWriteCallback;
-import com.ble.blescansdk.ble.entity.BleDevice;
 import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
 import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
 import com.ble.blescansdk.ble.enums.SortTypeEnum;
+import com.ble.blescansdk.ble.holder.SeekStandardDeviceHolder;
 import com.ble.blescansdk.ble.proxy.Rproxy;
 import com.ble.blescansdk.ble.proxy.request.ConnectRequest;
-import com.ble.blescansdk.ble.utils.BleLogUtil;
-import com.ble.blescansdk.ble.utils.ProtocolUtil;
+import com.ble.blescansdk.db.helper.SecretKeyDAOHelper;
 import com.seek.config.Config;
 import com.seek.config.entity.dto.ScanInitDTO;
 import com.seek.config.entity.enums.ErrorEnum;
@@ -25,7 +16,6 @@ import com.seek.config.entity.vo.ScanDataVO;
 import com.seek.config.services.BleService;
 import com.seek.config.utils.SystemUtil;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -52,8 +42,13 @@ public class BleServiceImpl implements BleService {
             BleSdkManager.getInstance().stopScan();
         }
 
-        BleSdkManager.getBleOptions().setSortType(SortTypeEnum.getByType(dto.getSortType()))
-                .setFilterInfo(new BleOptions.FilterInfo().setAddress(dto.getAddress()));
+        BleSdkManager.getBleOptions()
+                .setSortType(SortTypeEnum.getByType(dto.getSortType()))
+                .setFilterInfo(BleSdkManager.getBleOptions().getFilterInfo()
+                        .setAddress(dto.getAddress())
+                        .setNormDevice(!dto.getAllDevice())
+                        .setRssi(dto.getRssiValue())
+                ).saveCacheConfig();
     }
 
     /**
@@ -120,21 +115,6 @@ public class BleServiceImpl implements BleService {
         return vo;
     }
 
-    @Override
-    public void connect(String address) {
-        ConnectRequest<SeekStandardDevice> request = Rproxy.getRequest(ConnectRequest.class);
-        SeekStandardDevice bleDevice = request.getConnectedDevice(address);
-
-        // 设备已连接
-        if (Objects.nonNull(bleDevice) && bleDevice.getConnectState() == BleConnectStatusEnum.CONNECTED.getStatus()) {
-            return;
-        }
-        BleSdkManager.getInstance().releaseGatts();
-        SeekStandardDevice device = new SeekStandardDevice();
-        device.setAddress(address);
-        BleSdkManager.getInstance().connect(device, connectCallback);
-    }
-
 
     @Override
     public Integer getConnectionStatus(String address) {
@@ -146,25 +126,16 @@ public class BleServiceImpl implements BleService {
         return bleDevice.getConnectState();
     }
 
+    /**
+     * 查询秘钥
+     *
+     * @return 秘钥
+     */
     @Override
-    public void write(String address) {
-
+    public String querySecretKey() {
+        String address = SeekStandardDeviceHolder.getInstance().getAddress();
+        return SecretKeyDAOHelper.queryRecordByAddress(address);
     }
 
-
-    private final BleConnectCallback<SeekStandardDevice> connectCallback = new BleConnectCallback<SeekStandardDevice>() {
-        @Override
-        public void onConnectChange(SeekStandardDevice bleDevice, int i) {
-            BleLogUtil.i("连接状态改变" + bleDevice);
-        }
-
-        @SuppressLint("CheckResult")
-        @Override
-        public void onConnectFailed(SeekStandardDevice bleDevice, int errorCode) {
-            BleLogUtil.i("连接错误" + bleDevice);
-            Toasty.info(Config.mainContext, ErrorEnum.getFailMessage(errorCode));
-            BleLogUtil.e("连接错误" + ErrorEnum.getFailMessage(errorCode));
-        }
-    };
 
 }

@@ -52,4 +52,6 @@ dependencies {
 
     // 加强型 com.huawei.hms:scanplus:2.9.0.300
     implementation 'com.huawei.hms:scan:2.9.0.300'
+
+    implementation 'com.github.lzyzsd:jsbridge:1.0.4'
 }

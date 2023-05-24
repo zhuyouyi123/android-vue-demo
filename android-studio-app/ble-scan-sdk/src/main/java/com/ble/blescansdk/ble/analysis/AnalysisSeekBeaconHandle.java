@@ -2,14 +2,17 @@ package com.ble.blescansdk.ble.analysis;
 
 import android.bluetooth.BluetoothDevice;
 
+import com.ble.blescansdk.ble.entity.bo.SeekDeviceAnalysisBO;
 import com.ble.blescansdk.ble.entity.seek.DecryptProcessUtil;
 import com.ble.blescansdk.ble.entity.seek.SeekBleDevice;
-import com.ble.blescansdk.ble.entity.bo.SeekDeviceAnalysisBO;
 import com.ble.blescansdk.ble.enums.SKYBeaconPowerEnum;
 import com.ble.blescansdk.ble.enums.SKYDeviceTypeEnum;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.ble.blescansdk.ble.utils.SKYBeaconEncryptUtil;
 import com.ble.blescansdk.ble.utils.SeekVersionAdaptionUtil;
+import com.ble.blescansdk.ble.utils.TimeUtil;
+
+import java.util.Objects;
 
 public class AnalysisSeekBeaconHandle extends AbstractDeviceAnalysis<SeekBleDevice> {
 
@@ -23,13 +26,17 @@ public class AnalysisSeekBeaconHandle extends AbstractDeviceAnalysis<SeekBleDevi
     }
 
     @Override
-    public SeekBleDevice analysis(byte[] scanBytes, BluetoothDevice device, int rssi) {
-        SeekBleDevice seekBleDevice = preHandle(new SeekBleDevice(), device, rssi);
-        return handle(scanBytes, seekBleDevice);
+    public SeekBleDevice analysis(SeekBleDevice seekBleDevice, byte[] scanBytes, BluetoothDevice device, boolean isConnectable, int rssi) {
+        if (Objects.nonNull(seekBleDevice)) {
+            seekBleDevice = preHandle(seekBleDevice, device, isConnectable, rssi);
+        } else {
+            seekBleDevice = preHandle(new SeekBleDevice(), device, isConnectable, rssi);
+        }
+        return handle(scanBytes, seekBleDevice, isConnectable);
     }
 
     @Override
-    protected SeekBleDevice handle(byte[] scanBytes, SeekBleDevice seekBleDevice) {
+    protected SeekBleDevice handle(byte[] scanBytes, SeekBleDevice seekBleDevice, boolean isConnectable) {
         return fromScanDataToSKYBeacon(scanBytes, seekBleDevice);
     }
 
@@ -128,6 +135,7 @@ public class AnalysisSeekBeaconHandle extends AbstractDeviceAnalysis<SeekBleDevi
             // 不在oad模式下
             isOad = checkIsOad(hardwareVersion, firmwareVersionMajor, firmwareVersionMinor, decryptScanData);
             if (!isOad) {
+                beacon.setBattery(decryptScanData[3]);
                 // 设置光感值
                 if (SeekVersionAdaptionUtil.isLightSensorContain(beacon.getHardwareVersion(), beacon.getFirmwareVersionMajor(), beacon.getFirmwareVersionMinor())) {
                     beacon.setLightValue((decryptScanData[24] & 0x00FF) * 4);
@@ -137,6 +145,9 @@ public class AnalysisSeekBeaconHandle extends AbstractDeviceAnalysis<SeekBleDevi
             }
             beacon.setIsEncrypted((decryptScanData[5] & 0x02) > 0 ? 1 : 0);
             beacon.setIsLocked((decryptScanData[5] & 0x01) > 0x00 ? 1 : 0);
+
+            // 判断是否是多id设备
+            handleMultiIdsBeacon(beacon, decryptScanData, isOad);
         } else {
             // 没有response
             byte measuredPowerByte = scanData[startByte + 24];
@@ -291,7 +302,55 @@ public class AnalysisSeekBeaconHandle extends AbstractDeviceAnalysis<SeekBleDevi
         }
     }
 
-    private void handleMultiIdsBeacon(SeekBleDevice device) {
 
+    private void handleMultiIdsBeacon(SeekBleDevice device, byte[] decryptScanData, boolean isOad) {
+        SeekBleDevice.MultiId multiId = new SeekBleDevice.MultiId();
+        if (SeekVersionAdaptionUtil.isMultiIDsVersion(decryptScanData[0], decryptScanData[1])) {
+            multiId.setTimestampMillisecond(TimeUtil.getCurrentTimestampMillisecond());
+            multiId.setHardwareVersion(decryptScanData[0] & 0x00FF);
+            multiId.setFirmwareVersionMajor(decryptScanData[1] & 0x00FF);
+            multiId.setFirmwareVersionMinor(decryptScanData[2] & 0x00FF);
+            if (!isOad) {
+                multiId.setBattery(decryptScanData[3]);
+                if (SeekVersionAdaptionUtil.isTempteratureSensorContain(device.getHardwareVersion(), device.getFirmwareVersionMajor(), device.getFirmwareVersionMinor())) {
+                    multiId.setTemperature(decryptScanData[4]);
+                }
+                if (SeekVersionAdaptionUtil.isLightSensorContain(device.getHardwareVersion(), device.getFirmwareVersionMajor(), device.getFirmwareVersionMinor())) {
+                    multiId.setLightValue((decryptScanData[24] & 0x00FF) * 4);
+                }
+                if (SeekVersionAdaptionUtil.isIntervalFiveSecondProtocol(device.getHardwareVersion(), device.getFirmwareVersionMajor())) {
+                    int tmpInterval = (decryptScanData[22] & 0x00FF);
+                    if (tmpInterval > 100) {
+                        multiId.setIntervalMillisecond((tmpInterval - 100) * 50 + 1000);
+                    } else {
+                        multiId.setIntervalMillisecond(tmpInterval * 10);
+                    }
+                } else {
+                    multiId.setIntervalMillisecond((decryptScanData[22] & 0x00FF) * 10);
+                }
+            }
+            multiId.setSeekBeacon(1);
+            if ((decryptScanData[5] & 0x01) > 0x00) {
+                multiId.setIsLocked(1);
+            } else {
+                multiId.setIsLocked(0);
+            }
+        }
+
+        // 对多id的iBeacon做特殊的处理
+        byte[] deviceAddressTmp = ProtocolUtil.macStringToBytes(device.getAddress());
+        if (deviceAddressTmp.length == 6) {
+            if (deviceAddressTmp[0] == (byte) 0x19 && deviceAddressTmp[1] == (byte) 0x18 && ((deviceAddressTmp[3] & (byte) 0xC0) != 0) && (multiId.getSeekBeacon() != 1)) {
+                deviceAddressTmp[3] = (byte) (deviceAddressTmp[3] & 0x3F);
+                multiId.setSeekBeacon(1);
+                multiId.setAddress(ProtocolUtil.bytesToMacString(deviceAddressTmp));
+                multiId.setTimestampMillisecond(TimeUtil.getCurrentTimestampMillisecond());
+            } else if (deviceAddressTmp[0] == (byte) 0x19 && deviceAddressTmp[1] == (byte) 0x18) {
+                deviceAddressTmp[3] = (byte) (deviceAddressTmp[3] & 0x3F);
+                multiId.setAddress(ProtocolUtil.bytesToMacString(deviceAddressTmp));
+            }
+        }
+
+        device.setMultiId(multiId);
     }
 }

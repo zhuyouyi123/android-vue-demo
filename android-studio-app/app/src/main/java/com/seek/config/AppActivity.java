@@ -15,6 +15,7 @@ import com.ble.blescansdk.ble.utils.StringUtils;
 import com.huawei.hms.hmsscankit.ScanUtil;
 import com.huawei.hms.ml.scan.HmsScan;
 import com.seek.config.entity.constants.ActiveForResultConstants;
+import com.seek.config.utils.JsBridgeUtil;
 import com.seek.config.vue.JavaScriptObject;
 
 import java.util.HashMap;
@@ -30,7 +31,8 @@ public class AppActivity extends AppInitTools {
 
     public void reloadMainPage(String url) {
         if (url == null) {
-            url = Config.getWebIndexUrl();
+            Config.loadUrl();
+            return;
         }
         webView.loadUrl(url);
     }
@@ -39,10 +41,10 @@ public class AppActivity extends AppInitTools {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //获得控件
-//        openWelcome();
+        openWelcome();
         initRefresh();
         String url = getIntent().getStringExtra("webUrl");
-        url = url == null ? Config.getWebIndexUrl() : url;
+        url = url == null ? Config.getUrl() : url;
         initWebView(url);
         AppActivity.appActivity = this;
         Config.mainContext = AppActivity.this;
@@ -60,8 +62,8 @@ public class AppActivity extends AppInitTools {
     /**
      * 打开窗口，并返回窗口句柄
      *
-     * @param url
-     * @return
+     * @param url 地址
+     * @return in
      */
     public Intent openWebView(String url) {
         Intent intent = new Intent();
@@ -77,10 +79,6 @@ public class AppActivity extends AppInitTools {
     public boolean closeWebView(Integer formId) {
         finishActivity(formId);
         return true;
-    }
-
-    public Intent getWebViewIntent(String hashCode) {
-        return intentMap.get(hashCode);
     }
 
     @Override
@@ -162,7 +160,8 @@ public class AppActivity extends AppInitTools {
             HmsScan obj = data.getParcelableExtra(ScanUtil.RESULT);
             if (obj != null && StringUtils.isNotBlank(obj.originalValue)) {
                 SharePreferenceUtil.getInstance().shareSet(ActiveForResultConstants.SCAN_QR_REQUEST_KEY, obj.originalValue);
-                Toasty.info(this, obj.originalValue, 100).show();
+                String scanResult = obj.originalValue.replaceAll(":", "").toUpperCase();
+                JsBridgeUtil.pushEvent(JsBridgeUtil.SCAN_RESULT, scanResult);
             }
         }
 

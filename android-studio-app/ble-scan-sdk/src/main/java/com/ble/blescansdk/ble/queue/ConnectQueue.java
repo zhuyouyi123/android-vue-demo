@@ -7,7 +7,6 @@ import com.ble.blescansdk.ble.entity.BleDevice;
 import com.ble.blescansdk.ble.queue.reconnect.DefaultReConnectHandler;
 
 
-
 public final class ConnectQueue extends Queue {
 
     private static volatile ConnectQueue sInstance;

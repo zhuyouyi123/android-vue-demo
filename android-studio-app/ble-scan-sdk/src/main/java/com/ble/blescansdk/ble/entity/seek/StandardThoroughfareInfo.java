@@ -1,105 +1,194 @@
 package com.ble.blescansdk.ble.entity.seek;
 
-import androidx.annotation.NonNull;
+import com.ble.blescansdk.ble.entity.seek.thoroughfare.Acc;
+import com.ble.blescansdk.ble.entity.seek.thoroughfare.IBeacon;
+import com.ble.blescansdk.ble.entity.seek.thoroughfare.Info;
+import com.ble.blescansdk.ble.entity.seek.thoroughfare.Line;
+import com.ble.blescansdk.ble.entity.seek.thoroughfare.Quuppa;
+import com.ble.blescansdk.ble.entity.seek.thoroughfare.TLM;
+import com.ble.blescansdk.ble.entity.seek.thoroughfare.UID;
+import com.ble.blescansdk.ble.entity.seek.thoroughfare.URL;
+import com.ble.blescansdk.ble.enums.seekstandard.ThoroughfareTypeEnum;
+import com.ble.blescansdk.ble.utils.ProtocolUtil;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class StandardThoroughfareInfo {
-    // 通道类型
-    private final String type;
 
-    private String uuid;
+    private final ConcurrentMap<String, Map<String, Object>> objectMap = new ConcurrentHashMap<>();
 
-    private int major;
+    private int battery;
 
-    private int minor;
+    private String deviceName;
 
-    private int measurePower;
+    private List<Object> beacons;
 
-    private String namespaceId;
+    private List<Object> uids;
 
-    private String instanceId;
+    private List<Object> urls;
 
-    private String link;
+    private TLM tlm;
 
-    public StandardThoroughfareInfo(String type) {
-        this.type = type;
+    private Acc acc;
+
+    private Line line;
+
+    private Info info;
+
+    private Quuppa quuppa;
+
+    public int getBattery() {
+        return battery;
     }
 
-    public String getType() {
-        return type;
+    public List<Object> getBeacons() {
+        return beacons;
     }
 
-    public String getUuid() {
-        return uuid;
-    }
-
-    public StandardThoroughfareInfo setUuid(String uuid) {
-        this.uuid = uuid;
+    public StandardThoroughfareInfo setBattery(int battery) {
+        this.battery = battery;
         return this;
     }
 
-    public int getMajor() {
-        return major;
+    public String getDeviceName() {
+        return deviceName;
     }
 
-    public StandardThoroughfareInfo setMajor(int major) {
-        this.major = major;
+    public StandardThoroughfareInfo setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
         return this;
     }
 
-    public int getMinor() {
-        return minor;
+    public void setBeacons() {
+        Map<String, Object> stringObjectMap = objectMap.get(ThoroughfareTypeEnum.I_BEACON.getValue());
+        if (null == stringObjectMap || stringObjectMap.isEmpty()) {
+            this.beacons = Collections.emptyList();
+        } else {
+            this.beacons = new ArrayList<>(stringObjectMap.values());
+        }
     }
 
-    public StandardThoroughfareInfo setMinor(int minor) {
-        this.minor = minor;
+    public StandardThoroughfareInfo addBeacon(IBeacon beacon) {
+        String key = beacon.getUuid() + ProtocolUtil.byteArrToHexStr(ProtocolUtil.intToByteArrayTwo(beacon.getMajor())) + ProtocolUtil.byteArrToHexStr(ProtocolUtil.intToByteArrayTwo(beacon.getMinor()));
+        String type = beacon.getType();
+        Map<String, Object> stringObjectMap = objectMap.get(type);
+        if (null == stringObjectMap) {
+            stringObjectMap = new HashMap<>();
+        }
+        stringObjectMap.put(key, beacon);
+        objectMap.put(type, stringObjectMap);
         return this;
     }
 
-    public int getMeasurePower() {
-        return measurePower;
+
+    public void setUids() {
+        Map<String, Object> stringObjectMap = objectMap.get(ThoroughfareTypeEnum.EDDYSTONE_UID.getValue());
+        if (null == stringObjectMap || stringObjectMap.isEmpty()) {
+            this.uids = Collections.emptyList();
+        } else {
+            this.uids = new ArrayList<>(stringObjectMap.values());
+        }
     }
 
-    public StandardThoroughfareInfo setMeasurePower(int measurePower) {
-        this.measurePower = measurePower;
+    public StandardThoroughfareInfo addUid(UID uid) {
+        String key = uid.getNamespaceId() + uid.getInstanceId();
+        String type = uid.getType();
+        Map<String, Object> stringObjectMap = objectMap.get(type);
+        if (null == stringObjectMap) {
+            stringObjectMap = new HashMap<>();
+        }
+        stringObjectMap.put(key, uid);
+        objectMap.put(type, stringObjectMap);
         return this;
     }
 
-    public String getNamespaceId() {
-        return namespaceId;
+
+    public void setUrls() {
+        Map<String, Object> stringObjectMap = objectMap.get(ThoroughfareTypeEnum.EDDYSTONE_URL.getValue());
+        if (null == stringObjectMap || stringObjectMap.isEmpty()) {
+            this.urls = Collections.emptyList();
+        } else {
+            this.urls = new ArrayList<>(stringObjectMap.values());
+        }
+
     }
 
-    public StandardThoroughfareInfo setNamespaceId(String namespaceId) {
-        this.namespaceId = namespaceId;
+
+    public StandardThoroughfareInfo addUrl(URL url) {
+        String key = url.getLink();
+        String type = url.getType();
+        Map<String, Object> stringObjectMap = objectMap.get(type);
+        if (null == stringObjectMap) {
+            stringObjectMap = new HashMap<>();
+        }
+        stringObjectMap.put(key, url);
+        objectMap.put(type, stringObjectMap);
         return this;
     }
 
-    public String getInstanceId() {
-        return instanceId;
+
+    public TLM getTlm() {
+        return tlm;
     }
 
-    public StandardThoroughfareInfo setInstanceId(String instanceId) {
-        this.instanceId = instanceId;
+    public StandardThoroughfareInfo setTlm(TLM tlm) {
+        this.tlm = tlm;
         return this;
     }
 
-    public String getLink() {
-        return link;
+    public Acc getAcc() {
+        return acc;
     }
 
-    public StandardThoroughfareInfo setLink(String link) {
-        this.link = link;
+    public StandardThoroughfareInfo setAcc(Acc acc) {
+        this.acc = acc;
         return this;
     }
 
-    @NonNull
+    public Line getLine() {
+        return line;
+    }
+
+    public StandardThoroughfareInfo setLine(Line line) {
+        this.line = line;
+        return this;
+    }
+
+
+    public Info getInfo() {
+        return info;
+    }
+
+    public StandardThoroughfareInfo setInfo(Info info) {
+        this.info = info;
+        return this;
+    }
+
+    public Quuppa getQuuppa() {
+        return quuppa;
+    }
+
+    public StandardThoroughfareInfo setQuuppa(Quuppa quuppa) {
+        this.quuppa = quuppa;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "StandardThoroughfareInfo{" +
-                "type='" + type + '\'' +
-                ", uuid='" + uuid + '\'' +
-                ", major=" + major +
-                ", minor=" + minor +
-                ", measurePower=" + measurePower +
+                "objectMap=" + objectMap +
+                ", battery=" + battery +
+                ", beacons=" + beacons +
+                ", uids=" + uids +
+                ", urls=" + urls +
+                ", tlm=" + tlm +
+                ", acc=" + acc +
                 '}';
     }
 }

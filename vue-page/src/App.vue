@@ -2,13 +2,23 @@
   <div id="app" class="w h over-h box-b" ref="app">
     <div style="height: 0.9rem"></div>
 
-    <router-view :nowTime="time" :key="key" />
+    <router-view :nowTime="time" v-if="isReload" :key="key" />
   </div>
 </template>
 
 <script>
 import axios from "axios";
-import { Toast, Notify, Icon, Field, Cell, CellGroup, Button } from "vant";
+import {
+  Toast,
+  Notify,
+  Icon,
+  Field,
+  Cell,
+  CellGroup,
+  Button,
+  Dialog,
+} from "vant";
+
 import { getNowDateTime } from "@/utils/index.js";
 export default {
   name: "App",
@@ -18,20 +28,59 @@ export default {
     [Cell.name]: Cell,
     [CellGroup.name]: CellGroup,
     [Button.name]: Button,
+    [Dialog.name]: Dialog,
+    [Dialog.Component.name]: Dialog.Component,
+  },
+  provide() {
+    return {
+      reload: this.reload,
+    };
   },
   data() {
     return {
       intervalId: null,
       time: getNowDateTime(0),
+      commonAndroidEvent: null,
+      isReload: true,
     };
   },
+  created() {},
+
   computed: {
     key() {
       return this.$route.path + Math.random();
     },
-    mounted() {},
   },
+
+  watch: {
+    "$i18n.locale"(newValue, oldValue) {
+      if (newValue != oldValue) {
+        this.reload();
+      }
+    },
+  },
+
+  mounted() {
+    //通用安卓推送回调
+    window.commonAndroidEvent = this.commonAndroidCallBack;
+    this.commonAndroidEvent = new Event("commonAndroidEvent");
+  },
+
   methods: {
+    reload() {
+      this.isReload = false;
+      this.$nextTick(() => {
+        this.isReload = true;
+      });
+    },
+    commonAndroidCallBack(returnJson) {
+      try {
+        this.commonAndroidEvent.data = JSON.parse(returnJson);
+        window.dispatchEvent(this.commonAndroidEvent);
+      } catch (error) {
+        console.error("commonAndroidCallBack error");
+      }
+    },
     /**
      * 检查网络请求
      */
@@ -89,16 +138,12 @@ export default {
       };
     },
   },
-  mounted() {},
   created() {},
   destroyed() {},
 };
 </script>
 
-<style lang="scss">
-@import url(../static/css/vant.scss);
-@import url(../static/css/element.scss);
-
+<style lang="scss" >
 html,
 body,
 #app {
@@ -133,6 +178,13 @@ body,
     border: 1px solid #d8dceb;
     width: 95%;
     margin-left: 2.5%;
+  }
+
+  .not-click {
+    pointer-events: none;
+    background: rgba(99, 98, 98, 0.213);
+    opacity: 0.1;
+    z-index: 100;
   }
 }
 </style>

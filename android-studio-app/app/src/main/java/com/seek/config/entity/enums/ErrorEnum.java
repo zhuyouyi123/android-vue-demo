@@ -63,6 +63,11 @@ public enum ErrorEnum {
     NOT_INIT_UUID(R.string.not_init_uuid, 1011, "未初始化UUID"),
 
     /**
+     * 写入参数错误
+     */
+    WRITE_PARAMS_ERROR(R.string.params_error,1014,"参数错误"),
+
+    /**
      * 未知错误
      */
     UNKNOWN_ERROR(R.string.unknown_error, -1, "unknown error"),

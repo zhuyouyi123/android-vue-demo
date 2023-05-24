@@ -54,7 +54,7 @@ public class DefaultReConnectHandler<T extends BleDevice> extends BleConnectCall
      */
     private void addAutoPool(T device) {
         if (device == null) return;
-        if (device.isAutoConnect()) {
+        if (device.isConnectable()) {
             if (!autoDevices.contains(device)) {
                 autoDevices.add(device);
             }
@@ -84,7 +84,7 @@ public class DefaultReConnectHandler<T extends BleDevice> extends BleConnectCall
 
     public void resetAutoConnect(T device, boolean autoConnect) {
         if (device == null) return;
-        device.setAutoConnect(autoConnect);
+        device.setConnectable(autoConnect);
         if (!autoConnect) {
             removeAutoPool(device);
             if (device.getConnectState() == BleConnectStatusEnum.CONNECTING.getStatus()) {
@@ -120,6 +120,13 @@ public class DefaultReConnectHandler<T extends BleDevice> extends BleConnectCall
             removeAutoPool(device);
         } else if (device.getConnectState() == BleConnectStatusEnum.DISCONNECT.getStatus()) {
             addAutoPool(device);
+        }
+    }
+
+    @Override
+    public void onConnectSuccess(T device) {
+        if (device.getConnectState() == BleConnectStatusEnum.CONNECTED.getStatus()) {
+            removeAutoPool(device);
         }
     }
 

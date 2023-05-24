@@ -3,9 +3,11 @@ package com.ble.blescansdk.ble.scan;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.callback.IScanWrapperCallback;
@@ -42,6 +44,7 @@ class BluetoothScannerImplLollipop extends BleScannerCompat {
     }
 
     private final ScanCallback scannerCallback = new ScanCallback() {
+        @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             BluetoothDevice device = result.getDevice();
@@ -50,7 +53,7 @@ class BluetoothScannerImplLollipop extends BleScannerCompat {
             }
             byte[] scanRecord = result.getScanRecord().getBytes();
             if (scanWrapperCallback != null) {
-                scanWrapperCallback.onLeScan(device, result.getRssi(), scanRecord);
+                scanWrapperCallback.onLeScan(device,result.isConnectable(), result.getRssi(), scanRecord);
             }
         }
 

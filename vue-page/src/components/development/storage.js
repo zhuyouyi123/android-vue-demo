@@ -1,75 +1,446 @@
 export default {
-
   // 首页
   getHomeList() {
     return home.list;
-  }
-
-
-
-
-}
+  },
+};
 
 var home = {
-  list: [{
-      name: "iBeacon",
-      address: "19:18:FC:15:10:46",
-      battery: 100,
-      rssi: -60,
-      broadcastInterval: 330,
-      thoroughfares: [{
-        type: "UID",
-        instanceId: "0000",
-        namespaceId: "07BD01FC07C501FC0700"
-      }],
-      beacon: {
-        uuid: "1918FC80B1113441A9ACB1001C2FE510",
-        major: 20001,
-        minor: 22222,
-        calibrationDistance: -79,
+  list: [
+    {
+      battery: -1,
+      broadcastInterval: 1303,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [
+          {
+            major: 3,
+            measurePower: 205,
+            minor: 3,
+            type: "iBeacon",
+            uuid: "1123456789ABCDEF1123456789ABCDEF",
+          },
+        ],
+        objectMap: {
+          iBeacon: {
+            "1123456789ABCDEF1123456789ABCDEF00030003": {
+              major: 3,
+              measurePower: 205,
+              minor: 3,
+              type: "iBeacon",
+              uuid: "1123456789ABCDEF1123456789ABCDEF",
+            },
+          },
+        },
+        uids: [],
+        urls: [],
       },
-      acc: {
-        xAxis: "1.00",
-        yAxis: "1.00",
-        yAxis: "1.00",
-      },
+      address: "19:18:FC:25:01:10",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -50,
+      scanTime: 1683355645491,
     },
     {
-      name: "Unnamed",
-      address: "19:18:FC:15:10:47",
-      battery: 100,
-      rssi: -73,
-      broadcastInterval: 330,
-      beacon: {
-        uuid: "1918FC80B1113441A9ACB1001C2FE510",
-        major: 20001,
-        minor: 22224,
-        calibrationDistance: -78,
+      battery: -1,
+      broadcastInterval: -1,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [
+          {
+            major: 0,
+            measurePower: 0,
+            minor: 0,
+            type: "iBeacon",
+            uuid: "4F1C8CC4A70000000000000000000000",
+          },
+        ],
+        objectMap: {
+          iBeacon: {
+            "4F1C8CC4A7000000000000000000000000000000": {
+              major: 0,
+              measurePower: 0,
+              minor: 0,
+              type: "iBeacon",
+              uuid: "4F1C8CC4A70000000000000000000000",
+            },
+          },
+        },
+        uids: [],
+        urls: [],
       },
-      acc: {
-        xAxis: "1.30",
-        yAxis: "1.30",
-        yAxis: "1.30",
-      },
+      address: "54:B9:D2:1C:17:FE",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -50,
+      scanTime: 1683355645409,
     },
     {
-      name: "Unnamed",
-      address: "19:18:FC:15:10:48",
-      battery: 100,
-      rssi: -75,
-      broadcastInterval: 330,
-      beacon: {
-        uuid: "1918FC80B1113441A9ACB1001C2FE510",
-        major: 20001,
-        minor: 32547,
-        calibrationDistance: -78,
+      battery: -1,
+      broadcastInterval: -1,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [
+          {
+            major: 0,
+            measurePower: 0,
+            minor: 0,
+            type: "iBeacon",
+            uuid: "4F1C8CC4A7020A000000000000000000",
+          },
+        ],
+        objectMap: {
+          iBeacon: {
+            "4F1C8CC4A7020A00000000000000000000000000": {
+              major: 0,
+              measurePower: 0,
+              minor: 0,
+              type: "iBeacon",
+              uuid: "4F1C8CC4A7020A000000000000000000",
+            },
+          },
+        },
+        uids: [],
+        urls: [],
       },
-      acc: {
-        xAxis: "1.20",
-        yAxis: "1.20",
-        yAxis: "1.20",
-      },
+      address: "70:AC:62:79:E6:64",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -53,
+      scanTime: 1683355646463,
     },
-  ]
-}
+    {
+      battery: -1,
+      broadcastInterval: -1,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [
+          {
+            major: 0,
+            measurePower: 0,
+            minor: 0,
+            type: "iBeacon",
+            uuid: "0118C388C30000000000000000000000",
+          },
+        ],
+        objectMap: {
+          iBeacon: {
+            "0118C388C3000000000000000000000000000000": {
+              major: 0,
+              measurePower: 0,
+              minor: 0,
+              type: "iBeacon",
+              uuid: "0118C388C30000000000000000000000",
+            },
+          },
+        },
+        uids: [],
+        urls: [],
+      },
+      address: "4C:E9:A6:D6:0D:77",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -69,
+      scanTime: 1683355645484,
+    },
+    {
+      battery: -1,
+      broadcastInterval: 63,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [
+          {
+            major: 19228,
+            measurePower: 29,
+            minor: 36779,
+            type: "iBeacon",
+            uuid: "08F8BCC79EA4071611A2C6D7DCFE1005",
+          },
+        ],
+        objectMap: {
+          iBeacon: {
+            "08F8BCC79EA4071611A2C6D7DCFE10054B1C8FAB": {
+              major: 19228,
+              measurePower: 29,
+              minor: 36779,
+              type: "iBeacon",
+              uuid: "08F8BCC79EA4071611A2C6D7DCFE1005",
+            },
+          },
+        },
+        uids: [],
+        urls: [],
+      },
+      address: "60:D9:95:5A:1C:C3",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -72,
+      scanTime: 1683355645532,
+    },
+    {
+      battery: -1,
+      broadcastInterval: -1,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [],
+        objectMap: {},
+        uids: [],
+        urls: [],
+      },
+      address: "7A:AF:98:4B:AF:3F",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -78,
+      scanTime: 1683355645434,
+    },
+    {
+      battery: -1,
+      broadcastInterval: -1,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [],
+        objectMap: {},
+        uids: [],
+        urls: [],
+      },
+      address: "41:C4:6F:C1:B8:11",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -79,
+      scanTime: 1683355646445,
+    },
+    {
+      battery: -1,
+      broadcastInterval: -1,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [
+          {
+            major: 20014,
+            measurePower: 197,
+            minor: 61413,
+            type: "iBeacon",
+            uuid: "1918FC80B1113441A9ACB1001C2FE510",
+          },
+        ],
+        objectMap: {
+          iBeacon: {
+            "1918FC80B1113441A9ACB1001C2FE5104E2EEFE5": {
+              major: 20014,
+              measurePower: 197,
+              minor: 61413,
+              type: "iBeacon",
+              uuid: "1918FC80B1113441A9ACB1001C2FE510",
+            },
+          },
+        },
+        uids: [],
+        urls: [],
+      },
+      address: "19:18:FC:18:97:44",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -79,
+      scanTime: 1683355643083,
+    },
+    {
+      battery: -1,
+      broadcastInterval: 1121,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 100,
+        beacons: [],
+        deviceName: "¼¬?#¬",
+        info: { mac: "00020002FF03", type: "DeviceInfo" },
+        objectMap: {},
+        uids: [],
+        urls: [],
+      },
+      address: "AC:23:3F:AC:BC:8B",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -82,
+      scanTime: 1683355646447,
+    },
+    {
+      battery: -1,
+      broadcastInterval: -1,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [],
+        objectMap: {},
+        uids: [],
+        urls: [],
+      },
+      address: "62:76:1E:61:30:5A",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -83,
+      scanTime: 1683355646459,
+    },
+    {
+      battery: -1,
+      broadcastInterval: -1,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [
+          {
+            major: 20010,
+            measurePower: 197,
+            minor: 48179,
+            type: "iBeacon",
+            uuid: "1918FC80B1113441A9ACB1001C2FE510",
+          },
+        ],
+        objectMap: {
+          iBeacon: {
+            "1918FC80B1113441A9ACB1001C2FE5104E2ABC33": {
+              major: 20010,
+              measurePower: 197,
+              minor: 48179,
+              type: "iBeacon",
+              uuid: "1918FC80B1113441A9ACB1001C2FE510",
+            },
+          },
+        },
+        uids: [],
+        urls: [],
+      },
+      address: "19:18:FC:14:CD:F9",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -84,
+      scanTime: 1683355646450,
+    },
+    {
+      battery: -1,
+      broadcastInterval: 3401,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [],
+        objectMap: {},
+        uids: [],
+        urls: [],
+      },
+      address: "55:B6:3D:B0:3C:66",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -87,
+      scanTime: 1683355646470,
+    },
+    {
+      battery: -1,
+      broadcastInterval: -1,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [],
+        objectMap: {},
+        uids: [],
+        urls: [],
+      },
+      address: "77:36:C0:FD:46:4C",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -89,
+      scanTime: 1683355643143,
+    },
+    {
+      battery: -1,
+      broadcastInterval: -1,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [
+          {
+            major: 20009,
+            measurePower: 177,
+            minor: 45243,
+            type: "iBeacon",
+            uuid: "1918FC80B1113441A9ACB1001C2FE510",
+          },
+        ],
+        objectMap: {
+          iBeacon: {
+            "1918FC80B1113441A9ACB1001C2FE5104E29B0BB": {
+              major: 20009,
+              measurePower: 177,
+              minor: 45243,
+              type: "iBeacon",
+              uuid: "1918FC80B1113441A9ACB1001C2FE510",
+            },
+          },
+        },
+        uids: [],
+        urls: [],
+      },
+      address: "19:18:FC:0D:39:D0",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -90,
+      scanTime: 1683355643116,
+    },
+    {
+      battery: -1,
+      broadcastInterval: -1,
+      locSmartBeacon: -1,
+      standardThoroughfareInfo: {
+        battery: 0,
+        beacons: [
+          {
+            major: 20008,
+            measurePower: 197,
+            minor: 12390,
+            type: "iBeacon",
+            uuid: "1918FC80B1113441A9ACB1001C2FE510",
+          },
+        ],
+        objectMap: {
+          iBeacon: {
+            "1918FC80B1113441A9ACB1001C2FE5104E283066": {
+              major: 20008,
+              measurePower: 197,
+              minor: 12390,
+              type: "iBeacon",
+              uuid: "1918FC80B1113441A9ACB1001C2FE510",
+            },
+          },
+        },
+        uids: [],
+        urls: [],
+      },
+      address: "19:18:FC:12:00:18",
+      connectState: 0,
+      connectable: true,
+      deviceType: 0,
+      rssi: -92,
+      scanTime: 1683355643104,
+    },
+  ],
+};
 // 首页设备列表

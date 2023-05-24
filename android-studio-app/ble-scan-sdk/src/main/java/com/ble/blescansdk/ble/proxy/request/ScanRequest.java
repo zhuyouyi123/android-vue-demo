@@ -143,7 +143,7 @@ public class ScanRequest<T extends BleDevice> implements IScanWrapperCallback {
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
-    public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+    public void onLeScan(BluetoothDevice device, boolean isConnectable, int rssi, byte[] scanRecord) {
         String address = device.getAddress().replaceAll(":", "");
         if (Objects.isNull(device)) {
             return;
@@ -154,9 +154,9 @@ public class ScanRequest<T extends BleDevice> implements IScanWrapperCallback {
         if (!isIgnoreRepeat || !scanDevices.containsKey(address)) {
             scanDevices.put(address, blueToothDeviceBO);
             if (ManufacturerEnum.SEEK.getCode() == manufacturer) {
-                SeekBeaconStorage.getInstance().analysis(scanRecord, device, rssi);
+                SeekBeaconStorage.getInstance().analysis(scanRecord, device, isConnectable, rssi);
             } else if (ManufacturerEnum.SEEK_STANDARD.getCode() == manufacturer) {
-                SeekStandardBeaconStorage.getInstance().analysis(scanRecord, device, rssi);
+                SeekStandardBeaconStorage.getInstance().analysis(scanRecord, device, isConnectable, rssi);
             }
 
         }

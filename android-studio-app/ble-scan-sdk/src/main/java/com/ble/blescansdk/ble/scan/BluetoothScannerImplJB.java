@@ -1,7 +1,6 @@
 package com.ble.blescansdk.ble.scan;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 
 import com.ble.blescansdk.ble.callback.IScanWrapperCallback;
 
@@ -20,5 +19,5 @@ class BluetoothScannerImplJB extends BleScannerCompat {
         bluetoothAdapter.stopLeScan(leScanCallback);
     }
 
-    private final BluetoothAdapter.LeScanCallback leScanCallback = (device, rssi, scanRecord) -> scanWrapperCallback.onLeScan(device, rssi, scanRecord);
+    private final BluetoothAdapter.LeScanCallback leScanCallback = (device, rssi, scanRecord) -> scanWrapperCallback.onLeScan(device,true, rssi, scanRecord);
 }

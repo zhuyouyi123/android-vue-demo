@@ -10,6 +10,7 @@ public class BleLogUtil {
     private static boolean isDebug = false;
 
     public static void init() {
+        BleLogUtil.i("BleLogUtil init success");
         isDebug = BleSdkManager.getBleOptions().isLogSwitch();
         TAG = BleSdkManager.getBleOptions().getLogTag();
     }

@@ -41,7 +41,13 @@ public class RequestImpl<T extends BleDevice> implements RequestListener<T> {
     @Override
     public boolean connect(T device, BleConnectCallback<T> callback) {
         ConnectRequest<T> request = Rproxy.getRequest(ConnectRequest.class);
-        return request.connect(device, callback);
+        return request.connect(device, callback, false);
+    }
+
+    @Override
+    public void cancelConnecting(T device) {
+        ConnectRequest<T> request = Rproxy.getRequest(ConnectRequest.class);
+        request.cancelConnecting(device);
     }
 
     /**

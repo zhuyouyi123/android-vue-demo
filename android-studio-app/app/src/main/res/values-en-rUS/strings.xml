@@ -27,4 +27,10 @@
     <!--Tips-->
     <string name="open_location_info_switch">To scan Bluetooth LE devices more accurately, please turn on GPS positioning</string>
     <string name="device_address_format_error">Device address format error</string>
+    <string name="params_error">Parameter error</string>
+    <string name="ble_connect_success">Bluetooth connection successful</string>
+
+    <string name="config_channel_error">Error configuring channel</string>
+    <string name="config_params_error">Configuration parameter error</string>
+    <string name="request_error">Request error</string>
 </resources>

@@ -188,7 +188,6 @@ public class CoreEventHandlerOld {
 
         }
         if (jsonArray == null && parameterTypes.length >= 1) {
-            System.out.println(111);
 //            String split = !parameters[0].getType().getTypeName().equals(Integer.class.getTypeName()) ? "\"" : "";
 //            String str = "{\"" + parameters[0].getName() + "\":" + split + json + split + "}";
 //            JSONObject obj = new JSONObject(str);

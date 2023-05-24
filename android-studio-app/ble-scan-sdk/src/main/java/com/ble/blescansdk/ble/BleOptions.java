@@ -1,10 +1,19 @@
 package com.ble.blescansdk.ble;
 
+import android.content.Context;
+
 import com.ble.blescansdk.ble.entity.BleDevice;
 import com.ble.blescansdk.ble.enums.BleScanLevelEnum;
 import com.ble.blescansdk.ble.enums.ManufacturerEnum;
 import com.ble.blescansdk.ble.enums.SortTypeEnum;
+import com.ble.blescansdk.ble.utils.BleLogUtil;
+import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
+import com.ble.blescansdk.ble.utils.StringUtils;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
+import java.util.List;
 import java.util.UUID;
 
 public class BleOptions<T extends BleDevice> {
@@ -13,6 +22,11 @@ public class BleOptions<T extends BleDevice> {
      * 蓝牙扫描周期时长
      */
     private long scanPeriod = 10 * 1000L;
+
+    /**
+     * 蓝牙扫描间歇时长
+     */
+    private long intermittentTime = 1000L;
 
     /**
      * 连续扫描
@@ -58,7 +72,9 @@ public class BleOptions<T extends BleDevice> {
     /**
      * 蓝牙连接重试次数
      */
-    private int connectFailedRetryCount = 1;
+    private int connectFailedRetryCount = 0;
+
+    private boolean databaseSupport = false;
 
     /**
      * 排序方式
@@ -78,7 +94,9 @@ public class BleOptions<T extends BleDevice> {
 
         private boolean normDevice = false;
 
-        private Integer rssi;
+        private int rssi = -100;
+
+        private boolean supportConnectable = false;
 
         public String getAddress() {
             return address;
@@ -99,7 +117,7 @@ public class BleOptions<T extends BleDevice> {
         }
 
         public boolean isNormDevice() {
-            return normDevice;
+            return this.normDevice;
         }
 
         public FilterInfo setNormDevice(boolean normDevice) {
@@ -115,6 +133,15 @@ public class BleOptions<T extends BleDevice> {
             this.rssi = rssi;
             return this;
         }
+
+        public boolean isSupportConnectable() {
+            return supportConnectable;
+        }
+
+        public FilterInfo setSupportConnectable(boolean supportConnectable) {
+            this.supportConnectable = supportConnectable;
+            return this;
+        }
     }
 
     public long getScanPeriod() {
@@ -126,6 +153,18 @@ public class BleOptions<T extends BleDevice> {
             return this;
         }
         this.scanPeriod = scanPeriod;
+        return this;
+    }
+
+    public long getIntermittentTime() {
+        return intermittentTime;
+    }
+
+    public BleOptions<T> setIntermittentTime(long intermittentTime) {
+        if (intermittentTime <= 0) {
+            return this;
+        }
+        this.intermittentTime = intermittentTime;
         return this;
     }
 
@@ -236,11 +275,28 @@ public class BleOptions<T extends BleDevice> {
 
 
     public FilterInfo getFilterInfo() {
+        if (null == filterInfo) {
+            filterInfo = new FilterInfo();
+        }
         return filterInfo;
     }
 
     public BleOptions<T> setFilterInfo(FilterInfo filterInfo) {
         this.filterInfo = filterInfo;
+        return this;
+    }
+
+    /**
+     * 设置sdk是否使用数据库
+     *
+     * @return
+     */
+    public boolean isDatabaseSupport() {
+        return databaseSupport;
+    }
+
+    public BleOptions<T> setDatabaseSupport(boolean databaseSupport) {
+        this.databaseSupport = databaseSupport;
         return this;
     }
 
@@ -254,5 +310,31 @@ public class BleOptions<T extends BleDevice> {
         }
         this.sortType = sortType;
         return this;
+    }
+
+    public void saveCacheConfig() {
+        SharePreferenceUtil.getInstance().shareSet(SharePreferenceUtil.SDK_CONFIG_INFO_CACHE_KEY, new Gson().toJson(this));
+    }
+
+    public BleOptions<T> getCacheConfig(Context context) {
+        return queryCacheConfig(context);
+    }
+
+    public BleOptions<T> getCacheConfig() {
+        return queryCacheConfig(BleSdkManager.getContext());
+    }
+
+    private BleOptions<T> queryCacheConfig(Context context) {
+        String config = SharePreferenceUtil.getInstance(context).shareGet(SharePreferenceUtil.SDK_CONFIG_INFO_CACHE_KEY);
+        if (StringUtils.isBlank(config)) {
+            return null;
+        }
+        try {
+            return new Gson().fromJson(config, new TypeToken<BleOptions<T>>() {
+            }.getType());
+        } catch (JsonSyntaxException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

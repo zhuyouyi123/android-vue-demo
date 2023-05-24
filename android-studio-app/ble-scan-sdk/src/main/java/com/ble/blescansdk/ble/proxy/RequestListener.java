@@ -31,6 +31,8 @@ public interface RequestListener<T extends BleDevice> {
      */
     boolean connect(T device, BleConnectCallback<T> callback);
 
+    void cancelConnecting(T device);
+
     /**
      * 读取数据
      *

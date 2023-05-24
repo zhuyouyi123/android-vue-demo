@@ -5,6 +5,9 @@
 
 package com.ble.blescansdk.ble.utils;
 
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+
 /**
  * @author zhuyouyi
  */
@@ -119,6 +122,10 @@ public class ProtocolUtil {
     public static byte[] intToByteArr(int i) {
         byte[] bs = new byte[]{(byte) (i >> 24), (byte) (i >> 16), (byte) (i >> 8), (byte) i};
         return bs;
+    }
+
+    public static byte[] intToByteArrayTwo(int in) {
+        return new byte[]{(byte) (in >> 8 & 255), (byte) (in & 255)};
     }
 
     public static long bytes6LenToLong(byte[] bs) {
@@ -319,10 +326,132 @@ public class ProtocolUtil {
      * @return 解析结果
      */
     public static String analysisByStartByte(byte[] scanData, int startByte, int length) {
-        byte[] proximityUuidBytes = new byte[length];
-        System.arraycopy(scanData, startByte, proximityUuidBytes, 0, length);
-        return byteArrToHexStr(proximityUuidBytes);
+
+        return byteArrToHexStr(copyBytes(scanData, startByte, length));
     }
 
+    /**
+     * 根据长度和开始byte复制bytes
+     *
+     * @param scanData  数据
+     * @param startByte 开始位
+     * @param length    长度
+     * @return bytes
+     */
+    public static byte[] copyBytes(byte[] scanData, int startByte, int length) {
+        byte[] proximityUuidBytes = new byte[length];
+        System.arraycopy(scanData, startByte, proximityUuidBytes, 0, length);
+        return proximityUuidBytes;
+    }
+
+    public static int hexadecimal16Conversion(String hexadecimalStr) {
+        //转化得到的目标数据
+        int getDataDecimal = 0;
+        //16进制代表数据 4位数字
+        if (hexadecimalStr.length() == 4) {
+            // 获取第一位。判断是正数还是负数
+            int bit1Num = Integer.parseInt(hexadecimalStr.substring(0, 1), 16);
+            //小于8是正数
+            if (bit1Num < 8) {
+                getDataDecimal = Integer.parseInt(hexadecimalStr, 16);
+            } else {
+                //负数
+                //先不全八位
+                hexadecimalStr = "FFFF" + hexadecimalStr;
+                getDataDecimal = new BigInteger(hexadecimalStr, 16).intValue();
+            }
+            return getDataDecimal;
+        }
+        return 0;
+    }
+
+    public static double convertCharToShort(char a) {
+        int b = a;
+        int i = (b & 0x80);
+        if (0 != i) {
+            b = (b & 0x7f);
+            b = ~b;
+            b = (b + 1);
+            b = (b & 0x7f);
+            b = -b;
+        }
+        return b / 128.0 * 2.0;
+    }
+
+    /**
+     * byte数组转proximityUuid String
+     *
+     * @param uuid bytes
+     * @return 结果
+     */
+    public static String byte16ToProximityUuidStr(byte[] uuid) {
+        if (null == uuid) {
+            return "";
+        }
+        String hexString = byteArrToHexStr(uuid);
+        return hexString.substring(0, 8) +
+                "-" +
+                hexString.substring(8, 12) +
+                "-" +
+                hexString.substring(12, 16) +
+                "-" +
+                hexString.substring(16, 20) +
+                "-" +
+                hexString.substring(20, 32);
+    }
+
+    /**
+     * mac String转byte数组
+     *
+     * @param macString
+     * @return 结果
+     */
+    public static byte[] macStringToBytes(String macString) {
+        byte[] result = new byte[6];
+
+        byte[] tmp0 = new byte[12];
+        byte[] tmp1 = null;
+        try {
+            tmp1 = macString.getBytes("ISO-8859-1");
+            int i = 0, j = 0;
+            for (; i < tmp1.length; i++) {
+                if (i != 2 && i != 5 && i != 8 && i != 11 && i != 14) {
+                    if (j < 12) {
+                        tmp0[j] = tmp1[i];
+                        j++;
+                    }
+                }
+            }
+            String tmp2 = new String(tmp0, "ISO-8859-1");
+            result = hexStrToBytes(tmp2);
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+
+    /**
+     * byte数组转MacString，格式：00:00:00:00:00:00
+     *
+     * @param src
+     * @return 结果
+     */
+    public static String bytesToMacString(byte[] src) {
+        String hexString = byteArrToHexStr(src);
+        return hexString.substring(0, 2) +
+                ":" +
+                hexString.substring(2, 4) +
+                ":" +
+                hexString.substring(4, 6) +
+                ":" +
+                hexString.substring(6, 8) +
+                ":" +
+                hexString.substring(8, 10) +
+                ":" +
+                hexString.substring(10, 12);
+    }
 
 }

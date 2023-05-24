@@ -25,6 +25,7 @@ import java.util.Map;
 
 import android.content.Context;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -353,6 +354,7 @@ public class CoreEventHandler {
                             arrayList.add(obj[0]);
                         }
                     } catch (Exception e) {
+                        Log.e("getValue", "getValue: "+e.getMessage() );
                     }
                 }
                 objects[index] = arrayList;

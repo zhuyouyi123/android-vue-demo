@@ -37,6 +37,11 @@ public class SeekDeviceConstants {
     public static final int DEFAULT_SKY_BEACON_IS_SEEKCY_IBEACON = -1;
 
     /**
+     * 默认的温度
+     */
+    public static final int DEFAULT_SKY_BEACON_TEMPERATURE_FALSE = 100;
+
+    /**
      * 默认的硬件版本号
      */
     public static final int DEFAULT_SKY_BEACON_HARDWARE_VERSION = -1;

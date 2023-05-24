@@ -2,8 +2,6 @@ package com.ble.blescansdk.ble.callback;
 
 import android.bluetooth.BluetoothDevice;
 
-import com.ble.blescansdk.ble.entity.BleDevice;
-
 /**
  * Created by LiuLei on 2017/10/23.
  */
@@ -26,7 +24,7 @@ public interface IScanWrapperCallback {
      * @param rssi       rssi
      * @param scanRecord Bluetooth radio package
      */
-    void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord);
+    void onLeScan(BluetoothDevice device,boolean isConnectable, int rssi, byte[] scanRecord);
 
     /**
      * errorCode=1;Fails to start scan as BLE scan with the same settings is already started by the app.

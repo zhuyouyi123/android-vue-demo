@@ -40,8 +40,11 @@ public class BluetoothChangedObserver extends BroadcastReceiver {
 
     public void unregisterReceiver() {
         try {
-            BleSdkManager.getContext().unregisterReceiver(this);
-            bleStatusCallback = null;
+            if (bleStatusCallback != null) {
+                BleSdkManager.getContext().unregisterReceiver(this);
+                bleStatusCallback = null;
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }

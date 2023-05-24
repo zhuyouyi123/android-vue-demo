@@ -34,6 +34,9 @@ public class WriteRequest<T extends BleDevice> implements IWriteWrapperCallback<
 
     public boolean write(T device, String data, BleWriteCallback<T> callback) {
         this.bleWrapperCallback = callback;
+        if (null == device) {
+            return false;
+        }
         return bleRequest.writeCharacteristic(device.getAddress(), data);
     }
 }

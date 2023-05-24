@@ -22,10 +22,10 @@ public class Config {
      * 2.使用 npm run build 打包vue文件
      * 3.使用android-studio 打包成apk文件
      */
-//    public static Boolean APK = false;
     public static Boolean APK = false;
 
-    /**ble_scan_sdk_V0.0.1.jar
+    /**
+     * ble_scan_sdk_V0.0.1.jar
      * 基本项目目录
      */
     public static String basePackages = "com.seek.config";
@@ -53,31 +53,6 @@ public class Config {
     @SuppressLint("StaticFieldLeak")
     public static WebView webView;
 
-    @SuppressLint("StaticFieldLeak")
-    public static Context scanContext;
-
-    /**
-     * 获取当前webView请求页面
-     *
-     * @return
-     */
-    public static String getWebIndexUrl() {
-        return getAssetsPath();
-    }
-
-    /**
-     * 获取当前webView 错误页面
-     *
-     * @return
-     */
-    public static String getWebErrorUrl() {
-        return getAssetsPath();
-    }
-
-    public static String getAssetsPath(){
-        return "http://172.16.100.38:8888";
-    }
-
     @SuppressLint("SimpleDateFormat")
     public static DateFormat[] df = new SimpleDateFormat[]{
             new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZZZ"),
@@ -99,16 +74,23 @@ public class Config {
             return null;
         }
         try {
-            Date date = df[tryCount].parse(val);
-            return date;
+            return df[tryCount].parse(val);
         } catch (ParseException e) {
             tryCount++;
             return parseDate(val, tryCount);
         }
     }
 
+    public static void loadUrl() {
+        webView.loadUrl(getUrl());
+    }
 
-
+    public static String getUrl() {
+        if (APK) {
+            return "file:///android_asset/ui/index.html";
+        }
+        return "http://172.16.31.189:8888";
+    }
 
 
 }

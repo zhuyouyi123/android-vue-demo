@@ -19,6 +19,8 @@ public abstract class BleConnectCallback<T extends BleDevice> {
      */
     public abstract void onConnectChange(T device,int status);
 
+    public abstract void onConnectSuccess(T device);
+
     public void onConnectCancel(T device) {
     }
 

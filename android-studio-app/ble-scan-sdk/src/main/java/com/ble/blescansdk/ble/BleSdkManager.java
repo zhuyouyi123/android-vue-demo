@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 
+import com.ble.blescansdk.batch.BeaconBatchConfigActuator;
+import com.ble.blescansdk.batch.entity.BeaconConfig;
 import com.ble.blescansdk.ble.callback.BluetoothChangedObserver;
 import com.ble.blescansdk.ble.callback.request.BleConnectCallback;
 import com.ble.blescansdk.ble.callback.request.BleNotifyCallback;
@@ -11,7 +13,6 @@ import com.ble.blescansdk.ble.callback.request.BleReadCallback;
 import com.ble.blescansdk.ble.callback.request.BleScanCallback;
 import com.ble.blescansdk.ble.callback.request.BleWriteCallback;
 import com.ble.blescansdk.ble.entity.BleDevice;
-import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
 import com.ble.blescansdk.ble.enums.ErrorStatusEnum;
 import com.ble.blescansdk.ble.proxy.RequestImpl;
 import com.ble.blescansdk.ble.proxy.RequestListener;
@@ -23,6 +24,7 @@ import com.ble.blescansdk.ble.proxy.request.ScanRequest;
 import com.ble.blescansdk.ble.utils.BleLogUtil;
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.PermissionUtil;
+import com.ble.blescansdk.db.SdkDatabase;
 
 import java.util.Collection;
 import java.util.List;
@@ -64,9 +66,10 @@ public final class BleSdkManager<T extends BleDevice> {
 
         BleRequestImpl<T> bleRequestImpl = BleRequestImpl.getInstance();
         bleRequestImpl.init(ctx);
-        BleLogUtil.init();
-        BleLogUtil.i("BleLogUtil init success");
 
+        SdkDatabase.init();
+
+        BleLogUtil.init();
     }
 
     public static Context getContext() {
@@ -99,8 +102,10 @@ public final class BleSdkManager<T extends BleDevice> {
      */
     public void stopScan() {
         BleLogUtil.i("stop scan");
-        // 解除蓝牙监听
-        bleObserver.unregisterReceiver();
+        if (null != bleObserver) {
+            // 解除蓝牙监听
+            bleObserver.unregisterReceiver();
+        }
         request.stopScan();
     }
 
@@ -113,6 +118,13 @@ public final class BleSdkManager<T extends BleDevice> {
     public void connect(T device, BleConnectCallback callback) {
         synchronized (locker) {
             request.connect(device, callback);
+        }
+    }
+
+    public void cancelConnecting(T device) {
+        synchronized (locker) {
+            request.cancelConnecting(device);
+
         }
     }
 
@@ -138,8 +150,8 @@ public final class BleSdkManager<T extends BleDevice> {
         return request.write(device, data, callback);
     }
 
-    public boolean write(T device, String data, BleWriteCallback callback) {
-        return request.write(device, data, callback);
+    public void write(T device, String data, BleWriteCallback callback) {
+        request.write(device, data, callback);
     }
 
     /**
@@ -179,6 +191,22 @@ public final class BleSdkManager<T extends BleDevice> {
     }
 
     /**
+     * 批量配置信标
+     *
+     * @param addressList 地址列表
+     * @param configs     配置信息列表
+     */
+    public void batchConfig(List<String> addressList, List<BeaconConfig> configs) {
+        if (BeaconBatchConfigActuator.getInstance().channelConfigInit(addressList, configs, "CDEFGH")) {
+            BeaconBatchConfigActuator.getInstance().start();
+        }
+    }
+
+    public List<BeaconBatchConfigActuator.ExecutorResult> getBatchConfigList() {
+        return BeaconBatchConfigActuator.getInstance().getExecutorResultList();
+    }
+
+    /**
      * 初始化蓝牙状态监听器
      */
     private void initBleObserver() {
@@ -200,6 +228,10 @@ public final class BleSdkManager<T extends BleDevice> {
             bleOptions = new BleOptions<>();
         }
         return bleOptions;
+    }
+
+    public static <T extends BleDevice> void setBleOptions(BleOptions<T> options) {
+        bleOptions = options;
     }
 
     private boolean checkContext() {

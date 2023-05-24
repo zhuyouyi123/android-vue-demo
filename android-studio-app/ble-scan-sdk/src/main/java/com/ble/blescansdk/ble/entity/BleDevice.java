@@ -67,7 +67,7 @@ public class BleDevice implements Parcelable {
 
     private byte[] scanRecord;
 
-    private boolean autoConnect = false;
+    private boolean connectable = false;
 
     public int getConnectState() {
         return connectState;
@@ -129,12 +129,12 @@ public class BleDevice implements Parcelable {
         this.scanTime = scanTime;
     }
 
-    public boolean isAutoConnect() {
-        return autoConnect;
+    public boolean isConnectable() {
+        return connectable;
     }
 
-    public void setAutoConnect(boolean autoConnect) {
-        this.autoConnect = autoConnect;
+    public void setConnectable(boolean connectable) {
+        this.connectable = connectable;
     }
 
     public static final Creator<BleDevice> CREATOR = new Creator<BleDevice>() {

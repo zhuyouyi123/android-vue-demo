@@ -50,6 +50,8 @@ public class SeekBleDevice extends BleDevice {
 
     private double distance = SeekDeviceConstants.DEFAULT_SKY_BEACON_DISTANCE_FALSE; // 距离
 
+    private MultiId multiId;
+
     public int getIsLocked() {
         return isLocked;
     }
@@ -182,9 +184,150 @@ public class SeekBleDevice extends BleDevice {
         this.distance = distance;
     }
 
+    public boolean isMultiId() {
+        return null != multiId && multiId.getSeekBeacon() == 1;
+    }
+
+    public MultiId getMultiId() {
+        return multiId;
+    }
+
+    public void setMultiId(MultiId multiId) {
+        this.multiId = multiId;
+    }
+
+    public static class MultiId {
+
+        private String address;
+        private long timestampMillisecond;
+        // 硬件版本号
+        private int hardwareVersion = SeekDeviceConstants.DEFAULT_SKY_BEACON_HARDWARE_VERSION;
+        // 主软件版本号
+        private int firmwareVersionMajor = SeekDeviceConstants.DEFAULT_SKY_BEACON_FIRMWARE_VERSION_MAJOR;
+        // 次软件版本号
+        private int firmwareVersionMinor = SeekDeviceConstants.DEFAULT_SKY_BEACON_FIRMWARE_VERSION_MINOR;
+        // 是否是寻息iBeacon，0表示关闭，1表示开启
+        private int seekBeacon = SeekDeviceConstants.DEFAULT_SKY_BEACON_IS_SEEKCY_IBEACON;
+        // 温度：摄氏度
+        private int temperature = SeekDeviceConstants.DEFAULT_SKY_BEACON_TEMPERATURE_FALSE;
+        // 光感值Lex
+        private int lightValue = SeekDeviceConstants.DEFAULT_SKY_BEACON_LIGHT_SENSOR_VALUE;
+        // 发送间隔
+        private int intervalMillisecond = SeekDeviceConstants.DEFAULT_SKY_BEACON_INTERVAL_MILLISECOND_FALSE;
+        // 是否打开防篡改模式，0表示关闭，1表示开启
+        private int isLocked = SeekDeviceConstants.DEFAULT_SKY_BEACON_IS_LOCKED_FALSE;
+        // 电量：％
+        private int battery = SeekDeviceConstants.DEFAULT_SKY_BEACON_BATTERY_FALSE;
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public long getTimestampMillisecond() {
+            return timestampMillisecond;
+        }
+
+        public void setTimestampMillisecond(long timestampMillisecond) {
+            this.timestampMillisecond = timestampMillisecond;
+        }
+
+        public int getHardwareVersion() {
+            return hardwareVersion;
+        }
+
+        public void setHardwareVersion(int hardwareVersion) {
+            this.hardwareVersion = hardwareVersion;
+        }
+
+        public int getFirmwareVersionMajor() {
+            return firmwareVersionMajor;
+        }
+
+        public void setFirmwareVersionMajor(int firmwareVersionMajor) {
+            this.firmwareVersionMajor = firmwareVersionMajor;
+        }
+
+        public int getFirmwareVersionMinor() {
+            return firmwareVersionMinor;
+        }
+
+        public void setFirmwareVersionMinor(int firmwareVersionMinor) {
+            this.firmwareVersionMinor = firmwareVersionMinor;
+        }
+
+        public int getSeekBeacon() {
+            return seekBeacon;
+        }
+
+        public void setSeekBeacon(int seekBeacon) {
+            this.seekBeacon = seekBeacon;
+        }
+
+        public int getTemperature() {
+            return temperature;
+        }
+
+        public void setTemperature(int temperature) {
+            this.temperature = temperature;
+        }
+
+        public int getLightValue() {
+            return lightValue;
+        }
+
+        public void setLightValue(int lightValue) {
+            this.lightValue = lightValue;
+        }
+
+        public int getIntervalMillisecond() {
+            return intervalMillisecond;
+        }
+
+        public void setIntervalMillisecond(int intervalMillisecond) {
+            this.intervalMillisecond = intervalMillisecond;
+        }
+
+        public int getIsLocked() {
+            return isLocked;
+        }
+
+        public void setIsLocked(int isLocked) {
+            this.isLocked = isLocked;
+        }
+
+        public int getBattery() {
+            return battery;
+        }
+
+        public void setBattery(int battery) {
+            this.battery = battery;
+        }
+
+        @Override
+        public String toString() {
+            return "MultiId{" +
+                    "address='" + address + '\'' +
+                    ", timestampMillisecond=" + timestampMillisecond +
+                    ", hardwareVersion=" + hardwareVersion +
+                    ", firmwareVersionMajor=" + firmwareVersionMajor +
+                    ", firmwareVersionMinor=" + firmwareVersionMinor +
+                    ", seekBeacon=" + seekBeacon +
+                    ", temperature=" + temperature +
+                    ", lightValue=" + lightValue +
+                    ", intervalMillisecond=" + intervalMillisecond +
+                    ", isLocked=" + isLocked +
+                    ", battery=" + battery +
+                    '}';
+        }
+    }
+
     @Override
     public String toString() {
-        return super.toString() + "SeekBleDevice{" +
+        return "SeekBleDevice{" +
                 "isLocked=" + isLocked +
                 ", isEncrypted=" + isEncrypted +
                 ", uuid='" + uuid + '\'' +
@@ -201,6 +344,7 @@ public class SeekBleDevice extends BleDevice {
                 ", battery=" + battery +
                 ", measuredPower=" + measuredPower +
                 ", distance=" + distance +
+                ", multiId=" + multiId +
                 '}';
     }
 }

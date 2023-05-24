@@ -5,13 +5,15 @@ import android.bluetooth.BluetoothDevice;
 import com.ble.blescansdk.ble.BleOptions;
 import com.ble.blescansdk.ble.entity.constants.SeekStandardDeviceConstants;
 import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
+import com.ble.blescansdk.ble.utils.BleLogUtil;
 import com.ble.blescansdk.ble.utils.StringUtils;
 
 import java.util.Objects;
+import java.util.Random;
 
 public abstract class AbstractStorage {
 
-    private static final int BROADCAST_MIN = 85;
+    private static final int BROADCAST_MIN = 90;
     private static final int BROADCAST_DIFF_RANGE_1 = 5;
     private static final int BROADCAST_DIFF_RANGE_2 = -5;
 
@@ -20,7 +22,7 @@ public abstract class AbstractStorage {
 
     public abstract void release();
 
-    public boolean filterMacAndRssi(BleOptions.FilterInfo filterInfo, BluetoothDevice device, int rssi) {
+    public boolean filterMacAndRssi(BleOptions.FilterInfo filterInfo, BluetoothDevice device, boolean isConnectable, int rssi) {
         if (Objects.isNull(device)) {
             return false;
         }
@@ -29,10 +31,14 @@ public abstract class AbstractStorage {
             return true;
         }
 
+        if (filterInfo.isSupportConnectable() && !isConnectable) {
+            return false;
+        }
+
         String filterInfoMac = filterInfo.getAddress();
         if (StringUtils.isNotBlank(filterInfoMac)) {
             String address = device.getAddress().replaceAll(":", "");
-            if (!address.contains(filterInfoMac.replaceAll(":", ""))) {
+            if (!address.contains(filterInfoMac.toUpperCase().replaceAll(":", ""))) {
                 return false;
             }
         }
@@ -55,6 +61,7 @@ public abstract class AbstractStorage {
 
     /**
      * 计算 设置广播间隔
+     *
      * @param currDevice 当前扫描到的设备
      * @param lastDevice 上一包的设备
      * @return 赋值之后信息
@@ -74,9 +81,17 @@ public abstract class AbstractStorage {
         } else {
             long diff = broadcastIntervalDiff - broadcastInterval;
             if (diff <= BROADCAST_DIFF_RANGE_1 && diff >= BROADCAST_DIFF_RANGE_2) {
-                currDevice.setBroadcastInterval(broadcastIntervalDiff);
+                if (broadcastIntervalDiff <= BROADCAST_MIN) {
+                    currDevice.setBroadcastInterval(BROADCAST_MIN + new Random().nextInt(10));
+                } else {
+                    currDevice.setBroadcastInterval(broadcastIntervalDiff);
+                }
             } else {
-                currDevice.setBroadcastInterval(broadcastInterval);
+                if (broadcastIntervalDiff <= BROADCAST_MIN) {
+                    currDevice.setBroadcastInterval(BROADCAST_MIN + new Random().nextInt(10));
+                } else {
+                    currDevice.setBroadcastInterval(broadcastInterval);
+                }
             }
         }
         return currDevice;

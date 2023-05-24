@@ -3,7 +3,6 @@ package com.ble.blescansdk.ble.queue;
 import com.ble.blescansdk.ble.entity.BleDevice;
 
 
-
 public class RequestTask {
     private String[] address;
     private BleDevice[] devices;

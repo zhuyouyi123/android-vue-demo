@@ -22,13 +22,19 @@ public interface BleService {
 
     /**
      * 获取扫描设备列表
+     *
      * @return 设备列表
      */
     ScanDataVO scanDevices();
 
-    void connect(String address);
 
     Integer getConnectionStatus(String address);
 
-    void write(String address);
+    /**
+     * 查询秘钥
+     *
+     * @return 秘钥
+     */
+    String querySecretKey();
+
 }

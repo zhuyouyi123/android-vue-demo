@@ -1,12 +1,22 @@
 package com.seek.config.controller;
 
+import android.os.Build;
 import android.util.Log;
 
-import com.ble.blescansdk.ble.helper.SeekStandardCommunicationHelper;
+import androidx.annotation.RequiresApi;
+
+import com.ble.blescansdk.ble.BleOptions;
+import com.ble.blescansdk.ble.BleSdkManager;
+import com.ble.blescansdk.ble.entity.BleDevice;
+import com.ble.blescansdk.ble.holder.SeekStandardDeviceHolder;
+import com.ble.blescansdk.ble.utils.StringUtils;
+import com.ble.blescansdk.db.SdkDatabase;
+import com.ble.blescansdk.db.dataobject.SecretKeyDO;
 import com.seek.config.annotation.AppController;
 import com.seek.config.annotation.AppRequestMapper;
 import com.seek.config.annotation.AppRequestMethod;
 import com.seek.config.entity.dto.BleConnectDTO;
+import com.seek.config.entity.dto.BleWriteDTO;
 import com.seek.config.entity.dto.ScanInitDTO;
 import com.seek.config.entity.response.RespVO;
 import com.seek.config.entity.vo.ScanDataVO;
@@ -14,6 +24,9 @@ import com.seek.config.services.BleService;
 import com.seek.config.services.impl.BleServiceImpl;
 import com.seek.config.utils.I18nUtil;
 import com.seek.config.utils.RegexUtil;
+import com.seek.config.utils.helper.SeekStandardCommunicationHelper;
+
+import java.util.Objects;
 
 @AppController(path = "ble")
 public class BleController {
@@ -53,7 +66,17 @@ public class BleController {
             return RespVO.failure(I18nUtil.getMessage(I18nUtil.DEVICE_ADDRESS_FORMAT_ERROR));
         }
 
-        bleService.connect(dto.getAddress());
+        SeekStandardCommunicationHelper.getInstance().connect(dto.getAddress());
+        return RespVO.success();
+    }
+
+    @AppRequestMapper(path = "/cancel", method = AppRequestMethod.POST)
+    public RespVO<Void> cancelConnect(BleConnectDTO dto) {
+        if (!RegexUtil.macRegexMatch(dto.getAddress())) {
+            return RespVO.failure(I18nUtil.getMessage(I18nUtil.DEVICE_ADDRESS_FORMAT_ERROR));
+        }
+
+        SeekStandardCommunicationHelper.getInstance().cancelConnect(dto.getAddress());
         return RespVO.success();
     }
 
@@ -66,15 +89,39 @@ public class BleController {
         return RespVO.success(bleService.getConnectionStatus(dto.getAddress()));
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @AppRequestMapper(path = "/write", method = AppRequestMethod.POST)
-    public RespVO<Void> write(BleConnectDTO dto) {
-        if (!RegexUtil.macRegexMatch(dto.getAddress())) {
-            return RespVO.failure(I18nUtil.getMessage(I18nUtil.DEVICE_ADDRESS_FORMAT_ERROR));
-        }
-
-        bleService.write(dto.getAddress());
+    public RespVO<Void> write(BleWriteDTO dto) {
+        SeekStandardCommunicationHelper.getInstance().write(dto.getKey(), dto.getData());
         return RespVO.success();
     }
+
+    /**
+     * 获取连接信息
+     *
+     * @return 连接信息
+     */
+    @AppRequestMapper(path = "/connect/detail")
+    public RespVO<SeekStandardDeviceHolder> getConnectDetail(BleConnectDTO dto) {
+        if (Objects.isNull(dto) || StringUtils.isBlank(dto.getAddress())) {
+            return RespVO.success();
+        }
+        String address = dto.getAddress();
+        SeekStandardDeviceHolder instance = SeekStandardDeviceHolder.getInstance();
+
+        if (StringUtils.isNotBlank(instance.getAddress()) && address.equals(instance.getAddress())) {
+            return RespVO.success(instance);
+        }
+
+        SeekStandardDeviceHolder.release();
+        return RespVO.success();
+    }
+
+    @AppRequestMapper(path = "/secret")
+    public RespVO<String> querySecretKey() {
+        return RespVO.success(bleService.querySecretKey());
+    }
+
 
     @AppRequestMapper(path = "/startNotify", method = AppRequestMethod.POST)
     public RespVO<Void> startNotify(BleConnectDTO dto) {
