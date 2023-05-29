@@ -418,7 +418,9 @@ public class SeekStandardDeviceHolder {
                     list.add(EddystoneUrlPrefixEnum.getByCode(strings.get(0)));
                 }
                 if (strings.size() > 2) {
-                    list.add(strings.get(2));
+                    // 处理下特殊字符
+                    String urlContent = strings.get(2).replaceAll("\b", "").trim();
+                    list.add(urlContent);
                 }
                 if (strings.size() > 3) {
                     list.add(EddystoneUrlSuffixEnum.getByCode(strings.get(3)));

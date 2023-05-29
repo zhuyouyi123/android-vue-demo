@@ -8,9 +8,6 @@ import com.google.gson.Gson;
 import com.seek.config.Config;
 
 import java.util.HashMap;
-import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class JsBridgeUtil {
 
@@ -53,6 +50,8 @@ public class JsBridgeUtil {
                     map.put("eventName", eventName);
                     map.put("data", message);
                     String json = gson.toJson(map);
+
+
                     Config.webView.evaluateJavascript(String.format("javascript:commonAndroidEvent('%s')", json), new ValueCallback<String>() {
                         @Override
                         public void onReceiveValue(String s) {

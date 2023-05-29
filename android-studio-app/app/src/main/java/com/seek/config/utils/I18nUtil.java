@@ -38,6 +38,10 @@ public class I18nUtil {
 
     public static final int REQUEST_ERROR = R.string.request_error;
 
+    public static final int PRESS_AGAIN_TO_EXIT = R.string.press_again_to_exit;
+
+
+
 
     public static String getMessage(int code) {
         Context mainContext = Config.mainContext;

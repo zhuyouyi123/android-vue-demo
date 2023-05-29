@@ -123,6 +123,7 @@
             maxlength="6"
             placeholder="DeviceName"
             v-model.trim="deviceName"
+            @input="deviceNameInput"
           />
         </div>
 
@@ -381,7 +382,7 @@ export default {
       triggerActions: this.$storage.triggerActions,
 
       // 触发条件
-      triggerCondition: "加速度",
+      triggerCondition: this.$i18n.t("baseButton.acceleration"),
       // 触发条件 ActionSheet
       triggerShow: false,
       // 滑块
@@ -428,7 +429,7 @@ export default {
       } else if (n > 40 && n <= 50) {
         this.broadcastPowerValue = -50;
       } else if (n > 50 && n <= 60) {
-        this.broadcastPowerValue = 60;
+        this.broadcastPowerValue = -30;
       } else if (n > 60 && n <= 70) {
         this.broadcastPowerValue = -20;
       } else if (n > 70 && n <= 80) {
@@ -458,7 +459,7 @@ export default {
       } else if (n > 40 && n <= 50) {
         this.triggerBroadcastPowerValue = -50;
       } else if (n > 50 && n <= 60) {
-        this.triggerBroadcastPowerValue = 60;
+        this.triggerBroadcastPowerValue = -30;
       } else if (n > 60 && n <= 70) {
         this.triggerBroadcastPowerValue = -20;
       } else if (n > 70 && n <= 80) {
@@ -480,6 +481,44 @@ export default {
       history.pushState(null, null, document.URL);
       //false阻止默认事件
       window.addEventListener("popstate", this.fun, false);
+    }
+
+    let data = this.$storage.toBeConfiguredChannelList;
+    this.frameTypeActions = JSON.parse(
+      JSON.stringify(this.$storage.frameTypes)
+    );
+    if (data && data.length > 0) {
+      for (let i = 0; i < data.length; i++) {
+        const channel = data[i];
+        if (channel.frameType == this.$storage.frameTypes[0].name) {
+          continue;
+        }
+        if (channel.frameType == this.$storage.frameTypes[1].name) {
+          continue;
+        }
+        if (channel.frameType == this.$storage.frameTypes[2].name) {
+          continue;
+        }
+
+        // 其他帧类型删除对应的类型
+        for (let j = 0; j < this.frameTypeActions.length; j++) {
+          const e = this.frameTypeActions[j];
+          if (e.name == channel.frameType) {
+            this.frameTypeActions.splice(j, 1);
+            break;
+          }
+        }
+      }
+    } else {
+      // 第一条不允许配置核心物联
+      for (let n = 0; n < this.frameTypeActions.length; n++) {
+        const e = this.frameTypeActions[n];
+        if (e.name == this.$storage.frameTypes[7].name) {
+          e.disabled = true;
+          this.$set(this.frameTypeActions, n, e);
+          break;
+        }
+      }
     }
   },
 
@@ -535,6 +574,9 @@ export default {
       this.saveForm.broadcastPower = this.broadcastPowerValue / 10;
       this.saveForm.broadcastInterval = this.broadcastSliderValue;
       this.saveForm.triggerSwitch = this.triggerSwitch;
+      if (this.deviceName) {
+        this.saveForm.deviceName = this.deviceName;
+      }
 
       if (this.triggerSwitch) {
         this.saveForm.triggerBroadcastTime = this.triggerBroadcastTimeValue;
@@ -594,6 +636,19 @@ export default {
         str = str.toUpperCase();
       }
       this.iBeaconBroadcastData[index] = str;
+    },
+
+    deviceNameInput(value) {
+      let codeReg = new RegExp("[A-Za-z0-9]+"); //正则 英文+数字；
+      let len = value.length;
+      let str = "";
+      for (var i = 0; i < len; i++) {
+        if (codeReg.test(value[i])) {
+          str += value[i];
+        }
+      }
+
+      this.deviceName = str;
     },
 
     /**
@@ -715,13 +770,13 @@ export default {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 1.7rem;
+      width: 1.5rem;
     }
     .slider {
       margin: 0 0.32rem;
     }
     .unit {
-      width: 1rem;
+      width: 1.4rem;
       text-align: center;
       float: right;
     }

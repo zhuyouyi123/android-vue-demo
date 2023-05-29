@@ -488,7 +488,7 @@ export default {
     updateChannel(item) {
       console.log(item);
       // 编辑
-      this.$router.push({
+      this.$router.replace({
         path: "/home/deviceDetail/configureChannel/add",
         query: {
           address: this.address,
@@ -502,7 +502,7 @@ export default {
      */
     add(item) {
       // 编辑
-      this.$router.push({
+      this.$router.replace({
         path: "/home/deviceDetail/configureChannel/add",
         query: {
           address: this.address,

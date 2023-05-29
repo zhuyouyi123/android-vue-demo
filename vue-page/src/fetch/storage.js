@@ -1,3 +1,5 @@
+import i18n from "@/components/i18n";
+
 export default {
   /**
    * 通道信息 通道列表里面赋值
@@ -8,9 +10,9 @@ export default {
 
   // 触发条件列表
   triggerActions: [
-    { name: "双击按钮", code: 1 },
-    { name: "三击按钮", code: 2 },
-    { name: "加速度", code: 3 },
+    { name: i18n.t("baseButton.doubleClick"), code: 1 },
+    { name: i18n.t("baseButton.tripleClick"), code: 2 },
+    { name: i18n.t("baseButton.acceleration"), code: 3 },
   ],
   // 通道号列表
   channelNumberActions: [
@@ -27,38 +29,47 @@ export default {
     {
       code: 1,
       name: "iBeacon",
+      disabled: false,
     },
     {
       code: 2,
       name: "UID",
+      disabled: false,
     },
     {
       code: 3,
       name: "URL",
+      disabled: false,
     },
     {
       code: 4,
       name: "TLM",
+      disabled: false,
     },
     {
       code: 5,
       name: "ACC",
+      disabled: false,
     },
     {
       code: 6,
       name: "DeviceInfo",
+      disabled: false,
     },
     {
       code: 7,
       name: "LINE",
+      disabled: false,
     },
     {
       code: 8,
       name: "Coreaiot",
+      disabled: false,
     },
     {
       code: 9,
       name: "Quuppa",
+      disabled: false,
     },
   ],
 
@@ -73,6 +84,11 @@ export default {
   toBeConfiguredList: [],
   // 批量配置通道 配置通道列表
   toBeConfiguredChannelList: [],
+  // 批量配置信息
+  batchConfigChannelInfo: {
+    batchConfigChannelFlag: false,
+    secretKey: "",
+  },
 
   /**
    * 添加配置通道

@@ -50,7 +50,7 @@
             />
             <van-field
               input-align="right"
-              label-width="3.8rem"
+              label-width="3.6rem"
               disabled
               v-model="deviceInfo.factoryVersionInfo.hardwareVersion"
               :label="$t('device.detail.lable.hardwareVersion')"
@@ -358,7 +358,7 @@ export default deviceDetail;
       }
       .name {
         margin-top: 0.1rem;
-        height: 0.42rem;
+        height: 0.45rem;
         font-size: 0.3rem;
         font-family: PingFang SC-Regular, PingFang SC;
         font-weight: 400;

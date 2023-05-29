@@ -78,6 +78,7 @@ export default {
         this.commonAndroidEvent.data = JSON.parse(returnJson);
         window.dispatchEvent(this.commonAndroidEvent);
       } catch (error) {
+        console.log(returnJson);
         console.error("commonAndroidCallBack error");
       }
     },
@@ -178,6 +179,10 @@ body,
     border: 1px solid #d8dceb;
     width: 95%;
     margin-left: 2.5%;
+  }
+
+  .division-line2 {
+    border: 1px solid #d8dceb;
   }
 
   .not-click {

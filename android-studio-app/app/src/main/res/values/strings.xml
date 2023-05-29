@@ -1,7 +1,7 @@
 <resources>
 
-    <string name="app_name">LocSmart</string>
-    <string name="welcome_title">LocSmart</string>
+    <string name="app_name">BeaconFIT</string>
+    <string name="welcome_title">BeaconFIT</string>
 
     <!--错误信息-->
     <string name="unknown_error">未知错误</string>
@@ -35,4 +35,19 @@
     <string name="config_params_error">配置参数错误</string>
     <string name="request_error">请求出错</string>
 
+    <string name="press_again_to_exit">再按一次退出</string>
+    <!--批量配置错误-->
+    <string name="command_execution_timeout">命令执行超时</string>
+    <string name="device_connecting_failed">设备连接失败</string>
+    <string name="secret_key_error">防篡改秘钥错误</string>
+    <string name="factory_information_reading_failed">出厂信息读取失败</string>
+    <string name="failed_to_read_channel_information">读取通道信息失败</string>
+    <string name="key_configuration_failed">秘钥配置失败</string>
+    <string name="channel_configuration_failed">通道配置失败</string>
+    <string name="notification_opening_failed">通知开启失败</string>
+    <string name="device_writing_data_error">设备写入数据出错</string>
+    <string name="not_support_i_beacon">部分通道无法设置iBeacon协议</string>
+    <string name="device_not_support_acc">当前设备不支持配置ACC协议</string>
+    <string name="not_only_exist_coreaiot">设备不能只存在Coreaiot协议</string>
+    <string name="at_least_one_always_broadcast">至少有一条通道开启始终广播</string>
 </resources>

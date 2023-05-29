@@ -8,6 +8,13 @@
         class="navIcon"
         @click="sdkConfig"
       />
+
+      <van-icon
+        :name="require('../../assets/image/batch/batch-record.svg')"
+        slot="right"
+        @click="openBatchConfigRecordPopup"
+        v-show="batchModel"
+      />
     </nav-bar>
 
     <div class="content">
@@ -127,7 +134,7 @@
                       item.standardThoroughfareInfo.battery > 0
                     "
                   >
-                    电量:
+                    Battery:
                     {{
                       item.standardThoroughfareInfo &&
                       item.standardThoroughfareInfo.battery
@@ -416,22 +423,43 @@
         :title="i18nInfo.title.batchConfigSecretKey"
         show-cancel-button
         :close-on-click-overlay="false"
-        :before-close="secretKeyDialogBeforeClose"
+        :before-close="batchSecretKeyDialogBeforeClose"
         :cancel-button-text="$t('baseButton.cancel')"
         :confirm-button-text="$t('baseButton.sure')"
       >
         <div class="dialog-box">
           <van-field
             maxlength="6"
+            clearable
             v-model.trim="secretKey.oldSecretKey"
+            @input="secretKeyInput(secretKey.oldSecretKey, 'old')"
             :placeholder="i18nInfo.tips.oldSecretDialogPlaceholder"
           />
           <van-field
             maxlength="6"
+            clearable
             v-model.trim="secretKey.newSecretKey"
+            @input="secretKeyInput(secretKey.newSecretKey, 'new')"
             :placeholder="i18nInfo.tips.newSecretDialogPlaceholder"
           />
         </div>
+      </van-dialog>
+
+      <!-- 弹窗 -->
+      <van-dialog
+        v-model="secretKeyDialog"
+        :title="i18nInfo.title.secretKeySetting"
+        show-cancel-button
+        :cancel-button-text="$t('baseButton.cancel')"
+        :confirm-button-text="$t('baseButton.sure')"
+        :before-close="secretKeyDialogBeforeClose"
+        theme="round-button"
+      >
+        <van-field
+          maxlength="6"
+          v-model.trim="channelSecretKey"
+          :placeholder="i18nInfo.tips.secretDialogPlaceholder"
+        />
       </van-dialog>
 
       <!-- 批量配置遮罩 -->
@@ -440,15 +468,88 @@
         <div class="wrapper" @click.stop>
           <div class="block">
             <van-loading vertical type="spinner" color="#ffffff">
-              {{ $t("device.batchConfigChannel.message.configuration") }}
+              {{ i18nInfo.tips.configuration }}
               {{ alreadConfigNum }}
               /
-              {{ allConfigNum }}
+              {{ batchCount }}
               ...
             </van-loading>
           </div>
         </div>
       </van-overlay>
+
+      <!-- 批量记录弹出层 -->
+      <!-- 圆角弹窗（底部） -->
+      <van-popup
+        v-model="batchConfigRecordPopupShow"
+        round
+        position="bottom"
+        :style="{ height: '90%' }"
+        closeable
+      >
+        <div class="title">{{ i18nInfo.title.batchRecord }}</div>
+        <van-tabs v-model:active="batchConfigPopupActive">
+          <van-tab title="Channel">
+            <div class="list">
+              <div class="item" v-for="(item, index) in channelRecordList">
+                <div class="item-box">
+                  <div class="index">{{ index + 1 }}</div>
+
+                  <div class="address">
+                    <div>Mac</div>
+                    <div>{{ item.address }}</div>
+                  </div>
+                  <div class="division-line2"></div>
+
+                  <div class="error-reason">
+                    <div>{{ i18nInfo.lable.errorReason }}</div>
+
+                    <div class="failure-reason">{{ item.failReason }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </van-tab>
+          <van-tab title="SecretKey">
+            <div class="list">
+              <div class="item" v-for="(item, index) in secretKeyRecordList">
+                <div class="item-box">
+                  <div class="index">{{ index + 1 }}</div>
+
+                  <div class="address">
+                    <div>Mac</div>
+                    <div>{{ item.address }}</div>
+                  </div>
+                  <div class="division-line2"></div>
+
+                  <div class="error-reason">
+                    <div>{{ i18nInfo.lable.errorReason }}</div>
+
+                    <div class="failure-reason">{{ item.failReason }}</div>
+                  </div>
+                </div>
+              </div>
+            </div></van-tab
+          >
+        </van-tabs>
+        <div class="retry-button">
+          <van-button
+            v-if="batchConfigPopupActive == 0"
+            :disabled="!channelRecordList.length"
+            @click="batchConfigRetry('channel')"
+          >
+            重试
+          </van-button>
+
+          <van-button
+            v-else
+            :disabled="!secretKeyRecordList.length"
+            @click="batchConfigRetry('secret')"
+          >
+            重试
+          </van-button>
+        </div>
+      </van-popup>
     </div>
   </div>
 </template>
@@ -463,6 +564,12 @@ import {
   Notify,
   Checkbox,
   CheckboxGroup,
+  Loading,
+  Overlay,
+  Dialog,
+  Popup,
+  Tab,
+  Tabs,
 } from "vant";
 
 export default {
@@ -498,25 +605,37 @@ export default {
       languageSettingDialog: false,
       // 批量配置秘钥弹窗
       batchConfigSecretKeyDialog: false,
+      secretKeyDialog: false,
 
       secretKey: {
         newSecretKey: "",
         oldSecretKey: "",
       },
 
+      channelSecretKey: "",
+
       // 配置秘钥遮罩
       configOverlay: false,
       // 已配置数量
       alreadConfigNum: 0,
-      // 待配置数量
-      allConfigNum: 0,
-
       language: "简体中文",
 
       // 批量模式列表
       batchList: [],
       // 批量模式数量
       batchCount: 0,
+      batchConfigInterval: null,
+      // 批量配置弹窗层显示
+      batchConfigRecordPopupShow: false,
+      // tab active
+      batchConfigPopupActive: 0,
+      channelRecordList: [],
+      secretKeyRecordList: [],
+
+      // 批量重试
+      isBatchConfigRetry: false,
+      // 批量配置通道
+      batchConfigChannelFlag: false,
     };
   },
 
@@ -526,6 +645,11 @@ export default {
     [Search.name]: Search,
     [Checkbox.name]: Checkbox,
     [CheckboxGroup.name]: CheckboxGroup,
+    [Loading.name]: Loading,
+    [Overlay.name]: Overlay,
+    [Popup.name]: Popup,
+    [Tab.name]: Tab,
+    [Tabs.name]: Tabs,
     navBar: navBar,
   },
 
@@ -537,6 +661,7 @@ export default {
       history.pushState(null, null, document.URL);
       //false阻止默认事件
       window.addEventListener("popstate", this.goBack, false);
+      this.$androidApi.clearCanBackHistory();
     }
     window.addEventListener("commonAndroidEvent", this.callJs);
 
@@ -556,21 +681,79 @@ export default {
   methods: {
     // 退出APP
     goBack() {},
+    openBatchConfigRecordPopup() {
+      this.batchConfigRecordPopupShow = true;
+
+      this.channelRecordList = [];
+      this.secretKeyRecordList = [];
+      this.$androidApi.queryBatchConfigFailureRecord().then((data) => {
+        if (data && data.length > 0) {
+          console.log(JSON.stringify(data));
+          data.forEach((e) => {
+            if (e.type == 0) {
+              this.channelRecordList.push(e);
+            } else if (e.type == 1) {
+              this.secretKeyRecordList.push(e);
+            }
+          });
+        }
+      });
+    },
+
     sdkConfig() {
-      this.$router.replace("/config");
+      this.$router.push("/config");
     },
 
     callJs(e) {
       console.log(JSON.stringify(e));
       switch (e.data.eventName) {
         case "SCAN_RESULT":
-          this.searchValue = e.data.data;
-          // 重新调用开始扫描
-          this.initParams.address = e.data.data;
-          this.init();
+          // 批量模式扫码
+          if (this.batchModel) {
+            this.handleBatchScanResult(e.data.data);
+          } else {
+            this.searchValue = e.data.data;
+            // 重新调用开始扫描
+            this.initParams.address = e.data.data;
+            this.init();
+          }
           break;
         default:
           break;
+      }
+    },
+
+    handleBatchScanResult(data) {
+      let scanDataSplit = data.split("_");
+      let map = new Map();
+      // 19:18:FC:09:DA:EC_19:18:FC:09:DA:ED
+      let startMac, endMac;
+      if (scanDataSplit.length == 2) {
+        startMac = parseInt(scanDataSplit[0], 16);
+        endMac = parseInt(scanDataSplit[1], 16);
+      }
+      // 19:18:FC:09:DA:EC_1918FC80-B111-3441-A9AC-B1001C2FE510_20001_18851
+      else if (scanDataSplit.length == 4) {
+        startMac = parseInt(scanDataSplit[0], 16);
+        endMac = startMac;
+      }
+      // 19:18:FC:09:DA:EC_1918FC80-B111-3441-A9AC-B1001C2FE510_20001_18851_16
+      else if (scanDataSplit.length == 5) {
+        startMac = parseInt(scanDataSplit[0], 16);
+        endMac = startMac + parseInt(scanDataSplit[4]) - 1;
+      }
+
+      for (let i = 0; i <= endMac - startMac; i++) {
+        map.set((startMac + i).toString(16).toUpperCase(), startMac + i);
+      }
+
+      if (map.size > 0) {
+        this.list.forEach((e) => {
+          let mac = e.address.replace(/:/g, "");
+          if (map.has(mac)) {
+            e.selected = true;
+          }
+        });
       }
     },
 
@@ -610,6 +793,8 @@ export default {
         }
         // 重置批量数据
         this.batchList = [];
+        this.$storage.toBeConfiguredList = [];
+        this.batchCount = 0;
       }
     },
 
@@ -671,17 +856,26 @@ export default {
      * @param {页面} e
      */
     enterBatchConfigPage(e) {
+      this.$storage.toBeConfiguredChannelList = [];
+      let list = [];
+      this.list.forEach((e) => {
+        if (e.selected == true) {
+          list.push(e.address);
+        }
+      });
+      this.$storage.toBeConfiguredList = [...list];
       if (e == "channel-home") {
-        this.$storage.toBeConfiguredChannelList = [];
-        let list = [];
-        this.list.forEach((e) => {
-          if (e.selected == true) {
-            list.push(e.address);
-          }
-        });
-        this.$storage.toBeConfiguredList = [...list];
-        this.$router.replace("/home/batch-config/" + e);
+        this.$storage.batchConfigChannelInfo = {
+          batchConfigChannelFlag: false,
+          secretKey: "",
+        };
+        this.$router.push("/home/batch-config/" + e);
       } else if (e == "secret-key") {
+        this.batchConfigSecretKeyDialog = true;
+        this.secretKey = {
+          oldSecretKey: "",
+          newSecretKey: "",
+        };
       }
     },
 
@@ -736,11 +930,20 @@ export default {
       };
 
       this.$androidApi.init(params).then(() => {
+        if (this.$storage.batchConfigChannelInfo.batchConfigChannelFlag) {
+          this.$storage.batchConfigChannelInfo.batchConfigChannelFlag = false;
+          this.startBatchConfigChannel();
+          this.scanState = false;
+          return;
+        }
         this.startScan();
       });
     },
 
     openDeviceFilterDialog() {
+      if (!this.checkBatchModel()) {
+        return;
+      }
       this.deviceFilterDialog = true;
       this.filterInfoParamsCache = JSON.parse(JSON.stringify(this.initParams));
     },
@@ -750,20 +953,74 @@ export default {
       this.language = this.$storage.language;
     },
 
-    /**
-     * 打开批量配置弹窗
-     */
-    openBatchConfigSecretKeyDialog() {
-      this.batchConfigSecretKeyDialog = true;
-      this.secretKey = {
-        oldSecretKey: "",
-        newSecretKey: "",
-      };
+    batchConfigRetry(type) {
+      this.isBatchConfigRetry = true;
+      this.alreadConfigNum = 0;
+      this.batchCount = 0;
+      this.$storage.toBeConfiguredList = [];
+
+      if (type == "channel") {
+        this.channelRecordList.forEach((e) =>
+          this.$storage.toBeConfiguredList.push(e.address)
+        );
+        this.batchCount = this.channelRecordList.length;
+        this.$storage.toBeConfiguredChannelList = [];
+        this.secretKeyDialog = true;
+        this.channelSecretKey = "";
+      } else if (type == "secret") {
+        this.secretKeyRecordList.forEach((e) =>
+          this.$storage.toBeConfiguredList.push(e.address)
+        );
+        this.batchCount = this.secretKeyRecordList.length;
+        this.batchConfigRecordPopupShow = false;
+        this.batchConfigSecretKeyDialog = true;
+        this.secretKey = {
+          oldSecretKey: "",
+          newSecretKey: "",
+        };
+      }
     },
 
-    secretKeyDialogBeforeClose(action, done) {
+    startBatchConfigChannel() {
+      this.isBatchConfigRetry = false;
+
+      let params = {
+        secretKey: this.$storage.batchConfigChannelInfo.secretKey,
+        addressJson: JSON.stringify(this.$storage.toBeConfiguredList),
+        beaconListJson: JSON.stringify(this.$storage.toBeConfiguredChannelList),
+        retry: false,
+      };
+      this.alreadConfigNum = 0;
+      this.batchCount = this.$storage.toBeConfiguredList.length;
+      this.$androidApi
+        .batchConfigChannel(params)
+        .then(() => {
+          this.configOverlay = true;
+          this.queryConfigResultList();
+        })
+        .catch((errorMsg) => {
+          Notify({ type: "warning", message: errorMsg });
+        });
+
+      // 关闭错误列表弹窗
+      this.batchConfigChannelFlag = false;
+      this.$storage.toBeConfiguredChannelList = [];
+      this.$storage.toBeConfiguredList = [];
+    },
+
+    /**
+     * 秘钥批量配置弹窗
+     * @param {欣慰} action
+     * @param {done} done
+     */
+    batchSecretKeyDialogBeforeClose(action, done) {
       if (action == "confirm") {
-        if (!this.secretKey.oldSecretKey || !!this.secretKey.newSecretKey) {
+        if (
+          !this.secretKey.oldSecretKey ||
+          !this.secretKey.newSecretKey ||
+          this.secretKey.oldSecretKey.length != 6 ||
+          this.secretKey.newSecretKey.length != 6
+        ) {
           Notify({
             type: "warning",
             message: this.$i18n.t("notifyMessage.base.paramsError"),
@@ -771,15 +1028,149 @@ export default {
           done(false);
           return;
         }
-        this.configOverlay = true;
+
+        if (this.secretKey.oldSecretKey == this.secretKey.newSecretKey) {
+          Notify({
+            type: "warning",
+            message: this.i18nInfo.tips.secretKeySameTips,
+          });
+          done(false);
+          return;
+        }
+
+        // 调用Android 开始获取结果
+        this.$androidApi
+          .batchConfigSecretKey({
+            addressJson: JSON.stringify(this.$storage.toBeConfiguredList),
+            oldSecretKey: this.secretKey.oldSecretKey,
+            secretKey: this.secretKey.newSecretKey,
+          })
+          .then(() => {
+            this.configOverlay = true;
+            this.batchModel = false;
+            this.alreadConfigNum = 0;
+            this.queryConfigResultList();
+          })
+          .catch((errorMsg) => {
+            Notify({ type: "warning", message: errorMsg });
+          });
       }
+      // 关闭错误列表弹窗
+      this.batchConfigRecordPopupShow = false;
       done();
+    },
+
+    secretKeyDialogBeforeClose(action, done) {
+      if (action == "confirm") {
+        if (!this.channelSecretKey || this.channelSecretKey.length != 6) {
+          Notify({
+            type: "warning",
+            message: this.$i18n.t("notifyMessage.base.paramsError"),
+          });
+          done(false);
+        }
+
+        let params = {
+          secretKey: this.channelSecretKey,
+          addressJson: JSON.stringify(this.$storage.toBeConfiguredList),
+          retry: true,
+        };
+        this.$androidApi
+          .batchConfigChannel(params)
+          .then(() => {
+            this.configOverlay = true;
+            this.alreadConfigNum = 0;
+            this.queryConfigResultList();
+          })
+          .catch((errorMsg) => {
+            Notify({ type: "warning", message: errorMsg });
+          });
+      }
+      // 关闭错误列表弹窗
+      this.batchConfigRecordPopupShow = false;
+      done();
+    },
+
+    secretKeyInput(value, type) {
+      let codeReg = new RegExp("[A-Za-z0-9]+"); //正则 英文+数字；
+      let len = value.length;
+      let str = "";
+      for (var i = 0; i < len; i++) {
+        if (codeReg.test(value[i])) {
+          str += value[i];
+        }
+      }
+      if (type == "old") {
+        this.secretKey.oldSecretKey = str;
+      } else {
+        this.secretKey.newSecretKey = str;
+      }
+    },
+
+    /**
+     * 查询批量配置结果
+     */
+    queryConfigResultList() {
+      if (null != this.batchConfigInterval) {
+        clearInterval(this.batchConfigInterval);
+      }
+
+      this.batchConfigInterval = setInterval(() => {
+        this.$androidApi.batchConfigChannelList().then((res) => {
+          let num = 0;
+          let successNum = 0;
+          let failNum = 0;
+          if (res && res.length > 0) {
+            res.forEach((e) => {
+              if (e.state != 1) {
+                num++;
+                if (e.state == 0) {
+                  successNum++;
+                } else {
+                  failNum++;
+                }
+              }
+            });
+            this.alreadConfigNum = num;
+            if (num == this.batchCount) {
+              clearInterval(this.batchConfigInterval);
+              this.configOverlay = false;
+              Dialog.confirm({
+                title: this.i18nInfo.title.updateResult,
+                message:
+                  "本次配置共" +
+                  this.batchCount +
+                  "个设备：<br>" +
+                  "成功：" +
+                  successNum +
+                  "个" +
+                  "，失败：" +
+                  failNum +
+                  "个",
+                className: "warnDialogClass",
+                cancelButtonText: this.i18nInfo.button.errorList,
+                confirmButtonText: this.$i18n.t("baseButton.sure"),
+                theme: "round-button",
+                messageAlign: "left",
+                showCancelButton: failNum > 0,
+              })
+                .then(() => {})
+                .catch(() => {
+                  this.openBatchConfigRecordPopup();
+                });
+            }
+          }
+        });
+      }, 1000);
     },
 
     /**
      * 处理排序
      */
     handleSort(command) {
+      if (!this.checkBatchModel()) {
+        return;
+      }
       this.initParams.sortType = command;
       this.init();
     },
@@ -1209,7 +1600,7 @@ export default {
       width: 3.2rem;
       height: 0.88rem;
       border-radius: 0.44rem 0.44rem 0.44rem 0.44rem;
-      font-size: 0.36rem;
+      font-size: 0.31rem;
       font-family: PingFang SC-Regular, PingFang SC;
       font-weight: 400;
       line-height: 0.29rem;
@@ -1240,6 +1631,93 @@ export default {
 
     .scan {
       color: #ffffff;
+      font-size: 0.26rem;
+    }
+  }
+
+  .van-overlay {
+    background: #00000025;
+  }
+  .wrapper {
+    background: rgb(163, 153, 153);
+    height: 2rem;
+    width: 3rem;
+    .block {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .van-popup {
+    .title {
+      width: 1.44rem;
+      height: 0.86rem;
+      font-size: 0.36rem;
+      font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+      font-weight: 400;
+      color: #000000;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .list {
+      height: 68vh;
+      background: #eef3fa;
+      overflow: auto;
+      color: #000000;
+      font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+
+      .item {
+        width: 7rem;
+        background: #ffffff;
+        box-shadow: 0rem 0.04rem 0.06rem 0.01rem rgba(0, 0, 0, 0.1);
+        border-radius: 0.1rem 0.1rem 0.1rem 0.1rem;
+        margin: auto;
+        margin-top: 0.16rem;
+
+        .item-box {
+          padding: 0.2rem 0.2rem;
+        }
+        .index {
+          height: 0.32rem;
+          font-size: 0.32rem;
+          font-weight: 400;
+        }
+        .address,
+        .error-reason {
+          min-height: 0.8rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          .failure-reason {
+            width: 4.5rem;
+            margin-top: 0.15rem;
+            text-align: right;
+            font-size: 0.27rem;
+          }
+        }
+      }
+    }
+    .retry-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 1.4rem;
+
+      .van-button {
+        height: 0.88rem;
+        width: 6rem;
+        background: #007fff;
+        box-shadow: 0rem 0.04rem 0.06rem 0.01rem rgba(0, 0, 0, 0.1);
+        border-radius: 0.44rem 0.44rem 0.44rem 0.44rem;
+        font-size: 0.36rem;
+        font-family: PingFang SC-Regular, PingFang SC;
+        font-weight: 400;
+        color: #ffffff;
+        line-height: 0.29rem;
+      }
     }
   }
 }

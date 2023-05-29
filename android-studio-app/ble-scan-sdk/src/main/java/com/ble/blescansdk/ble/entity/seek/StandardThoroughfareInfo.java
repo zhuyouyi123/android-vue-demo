@@ -52,7 +52,7 @@ public class StandardThoroughfareInfo {
     }
 
     public StandardThoroughfareInfo setBattery(int battery) {
-        this.battery = battery;
+        this.battery = Math.min(battery, 100);
         return this;
     }
 

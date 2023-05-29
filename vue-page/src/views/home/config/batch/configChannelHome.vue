@@ -102,7 +102,12 @@
           </div>
 
           <template #right>
-            <van-button square type="danger" text="删除" />
+            <van-button
+              @click="deleteChannel(index)"
+              square
+              type="danger"
+              :text="$t('baseButton.remove')"
+            />
           </template>
         </van-swipe-cell>
       </div>
@@ -138,6 +143,23 @@
           </div>
         </div>
       </van-overlay>
+
+      <!-- 弹窗 -->
+      <van-dialog
+        v-model="secretKeyDialog"
+        :title="batchI18nInfo.message.secretKeySetting"
+        show-cancel-button
+        :cancel-button-text="$t('baseButton.cancel')"
+        :confirm-button-text="$t('baseButton.sure')"
+        :before-close="secretKeyDialogBeforeClose"
+        theme="round-button"
+      >
+        <van-field
+          maxlength="6"
+          v-model.trim="secretKey"
+          :placeholder="batchI18nInfo.message.secretDialogPlaceholder"
+        />
+      </van-dialog>
     </div>
   </div>
 </template>
@@ -182,6 +204,9 @@ export default {
       allConfigNum: 0,
 
       executable: true,
+
+      secretKeyDialog: false,
+      secretKey: "",
     };
   },
 
@@ -194,7 +219,17 @@ export default {
     navBar: () => import("@/components/navigation/navBar.vue"),
   },
   mounted() {
+    if (window.history && window.history.pushState) {
+      history.pushState(null, null, document.URL);
+      //false阻止默认事件
+      window.addEventListener("popstate", this.goBack, false);
+    }
     this.loadingToBeConfiguredChannel();
+  },
+
+  destroyed() {
+    //false阻止默认事件
+    window.removeEventListener("popstate", this.goBack, false);
   },
 
   methods: {
@@ -229,9 +264,13 @@ export default {
     buttonClick(e) {
       switch (e) {
         case 0:
+          if (this.toBeConfiguredChannelList.length == 6) {
+            return;
+          }
           this.$router.replace("channel-home/add");
           break;
         case 1:
+          this.$router.replace("/home");
           break;
         case 2:
           // 配置通道
@@ -240,6 +279,7 @@ export default {
             Notify({ type: "warning", message: "请退出当前页面，重新编辑" });
             return;
           }
+          this.secretKeyDialog = true;
 
           if (
             !this.toBeConfiguredChannelList ||
@@ -251,24 +291,79 @@ export default {
             });
             return;
           }
-          let params = {
-            addressJson: JSON.stringify(this.$storage.toBeConfiguredList),
-            beaconListJson: JSON.stringify(
-              this.$storage.toBeConfiguredChannelList
-            ),
-          };
-          this.$androidApi
-            .batchConfigChannel(params)
-            .then(() => {
-              this.configOverlay = true;
-              this.alreadConfigNum = 0;
-              this.queryConfigResultList();
-            })
-            .catch((errorMsg) => {});
+
+          let data = this.$storage.toBeConfiguredChannelList;
+          // 只有一条 不能是Coreaiot
+          if (data) {
+            if (
+              data.length == 1 &&
+              data[0].frameType == this.$storage.frameTypes[7].name
+            ) {
+              Notify({
+                type: "warning",
+                message: this.batchI18nInfo.message.notOnlyExistCoreaiot,
+              });
+              return;
+            }
+            let alwaysBroadcast = false;
+            data.forEach((e) => {
+              if (e.alwaysBroadcast) {
+                alwaysBroadcast = true;
+              }
+            });
+            if (!alwaysBroadcast) {
+              Notify({
+                type: "warning",
+                message: this.batchI18nInfo.message.atLeastOneAlwaysBroadcast,
+              });
+              return;
+            }
+          }
           break;
         default:
           break;
       }
+    },
+
+    deleteChannel(e) {
+      this.$storage.toBeConfiguredChannelList.splice(e, 1);
+    },
+
+    secretKeyDialogBeforeClose(action, done) {
+      if (action == "confirm") {
+        if (!this.secretKey || this.secretKey.length != 6) {
+          Notify({
+            type: "warning",
+            message: this.$i18n.t("notifyMessage.base.paramsError"),
+          });
+          done(false);
+        }
+
+        this.$storage.batchConfigChannelInfo.batchConfigChannelFlag = true;
+        this.$storage.batchConfigChannelInfo.secretKey = this.secretKey;
+
+        this.$router.replace("/home");
+        // return;
+
+        // let params = {
+        //   secretKey: this.secretKey,
+        //   addressJson: JSON.stringify(this.$storage.toBeConfiguredList),
+        //   beaconListJson: JSON.stringify(
+        //     this.$storage.toBeConfiguredChannelList
+        //   ),
+        // };
+        // this.$androidApi
+        //   .batchConfigChannel(params)
+        //   .then(() => {
+        //     this.configOverlay = true;
+        //     this.alreadConfigNum = 0;
+        //     this.queryConfigResultList();
+        //   })
+        //   .catch((errorMsg) => {
+        //     Notify({ type: "warning", message: errorMsg });
+        //   });
+      }
+      done();
     },
 
     queryConfigResultList() {

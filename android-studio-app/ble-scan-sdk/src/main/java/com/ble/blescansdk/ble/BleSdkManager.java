@@ -24,7 +24,11 @@ import com.ble.blescansdk.ble.proxy.request.ScanRequest;
 import com.ble.blescansdk.ble.utils.BleLogUtil;
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.PermissionUtil;
+import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.ble.blescansdk.db.SdkDatabase;
+import com.ble.blescansdk.db.enums.BatchConfigTypeEnum;
+import com.ble.blescansdk.db.helper.BatchConfigRecordHelper;
+import com.google.gson.Gson;
 
 import java.util.Collection;
 import java.util.List;
@@ -196,10 +200,24 @@ public final class BleSdkManager<T extends BleDevice> {
      * @param addressList 地址列表
      * @param configs     配置信息列表
      */
-    public void batchConfig(List<String> addressList, List<BeaconConfig> configs) {
-        if (BeaconBatchConfigActuator.getInstance().channelConfigInit(addressList, configs, "CDEFGH")) {
+    public boolean batchConfigChannel(List<String> addressList, List<BeaconConfig> configs, String secretKey) {
+        if (BeaconBatchConfigActuator.getInstance().channelConfigInit(addressList, configs, secretKey)) {
+            BatchConfigRecordHelper.deleteByType(BatchConfigTypeEnum.CHANNEL);
+
+            SharePreferenceUtil.getInstance().shareSet(SharePreferenceUtil.BATCH_CONFIG_CHANNEL_LIST_KEY, new Gson().toJson(configs));
             BeaconBatchConfigActuator.getInstance().start();
+            return true;
         }
+        return false;
+    }
+
+    public boolean batchConfigSecretKey(List<String> addressList, String secretKey, String oldSecretKey) {
+        if (BeaconBatchConfigActuator.getInstance().secretKeyConfigInit(addressList, oldSecretKey, secretKey)) {
+            BatchConfigRecordHelper.deleteByType(BatchConfigTypeEnum.SECRET_KEY);
+            BeaconBatchConfigActuator.getInstance().start();
+            return true;
+        }
+        return false;
     }
 
     public List<BeaconBatchConfigActuator.ExecutorResult> getBatchConfigList() {

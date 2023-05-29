@@ -34,10 +34,16 @@ public class SystemController {
      *
      * @return
      */
-    @AppRequestMapper(path = "/openWebView", method = AppRequestMethod.GET)
-    public String openWebView(String url) {
-        Intent intent = AppActivity.appActivity.openWebView(url);
-        return intent.hashCode() + "";
+    @AppRequestMapper(path = "/clear-back", method = AppRequestMethod.POST)
+    public void clearWebViewBack() {
+        try {
+            Config.webView.post(() -> {
+                Config.webView.clearHistory();
+                Config.webView.clearCache(true);
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**

@@ -61,6 +61,8 @@ public enum EddystoneUrlSuffixEnum {
             return SUFFIX_0.getKey();
         }
 
+        code = code.toUpperCase();
+
         if (code.length() == 1) {
             code = "0" + code;
         }

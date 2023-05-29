@@ -85,8 +85,7 @@ public enum ThoroughfareTypeEnum {
             startByte++;
             int diff = length - (startByte - 7);
             url += AsciiUtil.convertHexToString(ProtocolUtil.analysisByStartByte(scanBytes, startByte, diff)).trim();
-            startByte = startByte + diff;
-            url += EddystoneUrlSuffixEnum.getByCode(ProtocolUtil.byteToHexStr(scanBytes[startByte]));
+            url += EddystoneUrlSuffixEnum.getByCode(ProtocolUtil.byteToHexStr(scanBytes[length-3]));
             return standardThoroughfareInfo
                     .addUrl(new URL(EDDYSTONE_URL.getValue())
                             .setLink(url)

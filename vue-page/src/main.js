@@ -31,9 +31,9 @@ router.afterEach((to, from, next) => {
 import Rem from "./utils/rem";
 Vue.use(Rem);
 
-import vConsole from 'vconsole';
-//打印1000次后自动清除
-var con = new vConsole({ maxLogNumber: 1000 });
+// import vConsole from 'vconsole';
+// //打印1000次后自动清除
+// var con = new vConsole({ maxLogNumber: 1000 });
 
 import i18n from "./components/i18n";
 

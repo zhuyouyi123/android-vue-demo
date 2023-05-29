@@ -13,8 +13,6 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 
-import androidx.core.os.HandlerCompat;
-
 import com.ble.blescansdk.ble.BleOptions;
 import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.callback.IConnectWrapperCallback;
@@ -124,7 +122,16 @@ public class BleRequestImpl<T extends BleDevice> {
             connectWrapperCallback.onFailed(bleDevice, ErrorStatusEnum.DEVICE_NOT_EXISTS.getErrorCode());
             return false;
         }
-        HandlerCompat.postDelayed(handler, () -> connectWrapperCallback.onFailed(bleDevice, ErrorStatusEnum.BLUETOOTH_CONNECT_TIMEOUT.getErrorCode()), device.getAddress(), options.getConnectTimeout());
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (bleDevice.getConnectState()==BleConnectStatusEnum.DISCONNECT.getStatus()){
+                    connectWrapperCallback.onFailed(bleDevice, ErrorStatusEnum.BLUETOOTH_CONNECT_TIMEOUT.getErrorCode());
+                }
+            }
+        }, options.getConnectTimeout());
+//        HandlerCompat.postDelayed(handler, () -> ), device.getAddress(), options.getConnectTimeout());
         bleDevice.setConnectState(BleConnectStatusEnum.CONNECTING.getStatus());
         bleDevice.setName(device.getName());
         connectWrapperCallback.onChange(bleDevice);

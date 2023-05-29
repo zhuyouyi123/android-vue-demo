@@ -22,7 +22,7 @@ public class Config {
      * 2.使用 npm run build 打包vue文件
      * 3.使用android-studio 打包成apk文件
      */
-    public static Boolean APK = false;
+    public static Boolean APK = true;
 
     /**
      * ble_scan_sdk_V0.0.1.jar

@@ -49,9 +49,9 @@ public class CoreEventHandler {
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static Object executeMethodOfController(String action, String jsonParam, Context _mContext) throws Exception {
-        if(jsonParam.equals("undefined")){
-            jsonParam="";
-        }                                   
+        if (jsonParam.equals("undefined")) {
+            jsonParam = "";
+        }
         mContext = _mContext;
         init();
         Method method = methodMap.get(action);
@@ -71,6 +71,7 @@ public class CoreEventHandler {
 
     /**
      * 添加 @AppAutowired注解类的自动实例化支持
+     *
      * @param object
      * @param clzss
      * @throws InstantiationException
@@ -162,7 +163,7 @@ public class CoreEventHandler {
                 i++;
             }
         }
-        if (jsonObject == null && jsonArray == null&&parameters.length>=1) {
+        if (jsonObject == null && jsonArray == null && parameters.length >= 1) {
 
             String split = parameters[0].getType().getTypeName() != Integer.class.getTypeName() ? "\"" : "";
             String str = "{\"" + parameters[0].getName() + "\":" + split + json + split + "}";
@@ -210,7 +211,7 @@ public class CoreEventHandler {
     public static void getParamObject(JSONObject json, Parameter parameter, Object[] objects, int index, int len) throws Exception {
         try {
             String name = parameter.getName();
-            Object val = !json.has(name) && len == 1 ? json :name.equals("arg"+index)?json.get(json.names().get(index).toString()): json.get(name);
+            Object val = !json.has(name) && len == 1 ? json : name.equals("arg" + index) ? json.get(json.names().get(index).toString()) : json.get(name);
             Class<?> clzss = parameter.getType();
             getValue(val, clzss, objects, index, parameter);
             //获取方法参数数组
@@ -354,7 +355,7 @@ public class CoreEventHandler {
                             arrayList.add(obj[0]);
                         }
                     } catch (Exception e) {
-                        Log.e("getValue", "getValue: "+e.getMessage() );
+                        Log.e("getValue", "getValue: " + e.getMessage());
                     }
                 }
                 objects[index] = arrayList;
@@ -376,6 +377,9 @@ public class CoreEventHandler {
             Enumeration<String> enumeration = df.entries();
             while (enumeration.hasMoreElements()) {
                 String className = enumeration.nextElement();
+                if (className.contains("$")) {
+                    continue;
+                }
                 if (className.contains(Config.basePackages + ".controller")) {
                     classNameList.put(className, Class.forName(className));
                 }

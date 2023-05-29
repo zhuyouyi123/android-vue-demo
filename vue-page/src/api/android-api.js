@@ -4,6 +4,9 @@ import config from "../fetch/config";
 import storage from "../components/development/storage";
 
 export default {
+  clearCanBackHistory() {
+    request("post", "system/clear-back");
+  },
   // 扫描二维码
   scanQrCode() {
     request("post", "system/scan-qr-code");
@@ -34,11 +37,11 @@ export default {
   },
 
   /**
-   * 
+   *
    * @returns 重新加载webview
    */
-  webviewReload(){
-    return request('post','system/webview/reload')
+  webviewReload() {
+    return request("post", "system/webview/reload");
   },
 
   /**
@@ -143,11 +146,23 @@ export default {
 
   // 批量配置通道
   batchConfigChannel(params) {
-    return request("post", "channel/batch/save", params);
+    return request("post", "channel/batch/save/channel", params);
+  },
+
+  // 批量配置通道
+  batchConfigSecretKey(params) {
+    return request("post", "channel/batch/save/secret-key", params);
   },
 
   batchConfigChannelList(params) {
     return request("get", "channel/batch/config/list", params);
+  },
+
+  /**
+   * 查询批量配置错误列表
+   */
+  queryBatchConfigFailureRecord(params) {
+    return request("get", "channel/batch/failure-list", params);
   },
 
   // sdk 接口

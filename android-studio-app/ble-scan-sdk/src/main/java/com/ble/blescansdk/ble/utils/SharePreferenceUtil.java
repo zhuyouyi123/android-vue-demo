@@ -24,6 +24,11 @@ public class SharePreferenceUtil {
 
     public static final String APP_LANGUAGE = "APP_LANGUAGE";
 
+    /**
+     * 批量配置通道列表信息
+     */
+    public static final String BATCH_CONFIG_CHANNEL_LIST_KEY = "BATCH_CONFIG_CHANNEL_LIST_KEY";
+
 
     public static SharePreferenceUtil getInstance(Context context) {
         return init(context);

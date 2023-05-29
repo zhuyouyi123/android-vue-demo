@@ -139,7 +139,7 @@ export default {
       if (!this.checkConnectStatus()) {
         return;
       }
-      this.$router.push({
+      this.$router.replace({
         path: "/home/deviceDetail/" + page,
         query: {
           address: this.address,
@@ -404,7 +404,7 @@ export default {
      */
     secretKeyDialogBeforeClose(action, done) {
       if (action == "confirm") {
-        if (!this.secretKey) {
+        if (!this.secretKey || this.secretKey.length != 6) {
           Notify({
             type: "warning",
             message: this.$i18n.t("notifyMessage.base.paramsError"),
@@ -613,7 +613,9 @@ export default {
               type: "warning",
               message: this.i18nInfo.tips.secretCheckError,
             });
-            this.secretKeyDialog = true;
+            setTimeout(() => {
+              this.secretKeyDialog = true;
+            }, 500);
           }
           break;
         case instruct.RESTORE_FACTORY_SETTINGS_RESULT:

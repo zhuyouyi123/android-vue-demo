@@ -16,6 +16,12 @@ public class BatchChannelConfigDTO {
 
     private String beaconListJson;
 
+    private String secretKey;
+
+    private String oldSecretKey;
+
+    private Boolean retry;
+
     public List<BeaconConfig> getChannelInfo() {
         if (StringUtils.isEmpty(beaconListJson)) {
             return new ArrayList<>();
@@ -30,7 +36,7 @@ public class BatchChannelConfigDTO {
 
     }
 
-    public List<String> getAddressList(){
+    public List<String> getAddressList() {
         if (StringUtils.isEmpty(addressJson)) {
             return new ArrayList<>();
         }
@@ -41,5 +47,20 @@ public class BatchChannelConfigDTO {
         } catch (JsonSyntaxException e) {
             return new ArrayList<>();
         }
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public String getOldSecretKey() {
+        return oldSecretKey;
+    }
+
+    public Boolean getRetry() {
+        if (null == retry) {
+            return false;
+        }
+        return retry;
     }
 }

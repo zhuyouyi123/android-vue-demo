@@ -265,7 +265,6 @@ public class SeekStandardCommunicationHelper {
             // 还在尝试重新连接
             int retryCountByAddress = RetryDispatcher.getInstance().getRetryCountByAddress(bleDevice.getAddress());
 
-            BleLogUtil.i("当前剩余重试次数" + retryCountByAddress + " 当前连接状态：" + bleDevice.getConnectState());
             if (retryCountByAddress == -1 && bleDevice.getConnectState() == 0) {
                 JsBridgeUtil.pushEvent(JsBridgeUtil.CONNECT_STATUS_CHANGE, JsBridgeUtil.success(0));
             }
@@ -273,9 +272,9 @@ public class SeekStandardCommunicationHelper {
 
         @Override
         public void onConnectSuccess(SeekStandardDevice device) {
-            if (device.isConnected()) {
-                Toasty.success(Config.mainContext, I18nUtil.getMessage(I18nUtil.CONNECT_SUCCESS)).show();
-            }
+//            if (device.isConnected()) {
+//                Toasty.success(Config.mainContext, I18nUtil.getMessage(I18nUtil.CONNECT_SUCCESS)).show();
+//            }
             JsBridgeUtil.pushEvent(JsBridgeUtil.CONNECT_STATUS_CHANGE, JsBridgeUtil.success(device.getConnectState()));
         }
 

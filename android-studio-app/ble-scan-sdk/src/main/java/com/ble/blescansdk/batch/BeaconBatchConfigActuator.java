@@ -6,6 +6,9 @@ import com.ble.blescansdk.batch.helper.BeaconConfigHelper;
 import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.StringUtils;
+import com.ble.blescansdk.db.enums.BatchConfigResultEnum;
+import com.ble.blescansdk.db.enums.BatchConfigTypeEnum;
+import com.ble.blescansdk.db.helper.BatchConfigRecordHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,10 +63,10 @@ public class BeaconBatchConfigActuator {
     private static ScheduledExecutorService scheduledExecutorService = null;
     private static ExecutorService executorService = null;
 
-    public static int CURR_OPERATION_TYPE = 0;
+    public static int CURR_OPERATION_TYPE = BatchConfigTypeEnum.CHANNEL.getCode();
 
-    public static final int BATCH_CONFIG_CHANNEL = 0;
-    public static final int BATCH_CONFIG_SECRET_KEY = 1;
+    public static final int BATCH_CONFIG_CHANNEL = BatchConfigTypeEnum.CHANNEL.getCode();
+    public static final int BATCH_CONFIG_SECRET_KEY = BatchConfigTypeEnum.SECRET_KEY.getCode();
 
 
     public static final BeaconConfigCallback CALLBACK = new BeaconConfigCallback() {
@@ -72,14 +75,17 @@ public class BeaconBatchConfigActuator {
             System.out.println("执行成功------");
             TO_BE_CINFIGURED_MAP.remove(address);
             EXECUTOR_RESULT_MAP.put(address, ExecutorResult.success());
+            BatchConfigRecordHelper.save(address,BatchConfigResultEnum.SUCCESS, BatchConfigTypeEnum.getByCode(CURR_OPERATION_TYPE), 0);
+
             BeaconConfigHelper.getInstance().release();
         }
 
         @Override
-        public void fail(String address, String message) {
-            System.out.println("执行失败------" + message);
+        public void fail(String address, int code) {
+            System.out.println("执行失败------" + code);
             TO_BE_CINFIGURED_MAP.remove(address);
-            EXECUTOR_RESULT_MAP.put(address, ExecutorResult.fail(message));
+            EXECUTOR_RESULT_MAP.put(address, ExecutorResult.fail(code));
+            BatchConfigRecordHelper.save(address,BatchConfigResultEnum.FAIL, BatchConfigTypeEnum.getByCode(CURR_OPERATION_TYPE), code);
             BeaconConfigHelper.getInstance().release();
         }
     };
@@ -103,7 +109,7 @@ public class BeaconBatchConfigActuator {
     }
 
     public boolean secretKeyConfigInit(List<String> addressList, String oldSecret, String newSecret) {
-        if (StringUtils.isBlank(oldSecretKey) || StringUtils.isBlank(newSecret)) {
+        if (StringUtils.isBlank(oldSecret) || StringUtils.isBlank(newSecret)) {
             return false;
         }
 
@@ -193,7 +199,7 @@ public class BeaconBatchConfigActuator {
                         CALLBACK.success(address);
                         break;
                     } else if (BeaconConfigHelper.EXECUTION_FAIL == result.getCode()) {
-                        CALLBACK.fail(address, result.getErrorMsg());
+                        CALLBACK.fail(address, result.getErrorCode());
                         break;
                     }
                     // 等待任务执行结束
@@ -212,27 +218,27 @@ public class BeaconBatchConfigActuator {
         private static final int FAIL = -1;
 
         private int state;
-        private String errorMsg;
+        private int errorCode;
 
         public int getState() {
             return state;
         }
 
-        public ExecutorResult(int state, String errorMsg) {
+        public ExecutorResult(int state, int errorCode) {
             this.state = state;
-            this.errorMsg = errorMsg;
+            this.errorCode = errorCode;
         }
 
         public static ExecutorResult success() {
-            return new ExecutorResult(SUCCESS, "");
+            return new ExecutorResult(SUCCESS, 0);
         }
 
-        public static ExecutorResult fail(String errorMsg) {
-            return new ExecutorResult(FAIL, errorMsg);
+        public static ExecutorResult fail(int errorCode) {
+            return new ExecutorResult(FAIL, errorCode);
         }
 
         public static ExecutorResult executing() {
-            return new ExecutorResult(EXECUTING, "errorMsg");
+            return new ExecutorResult(EXECUTING, 0);
         }
 
     }

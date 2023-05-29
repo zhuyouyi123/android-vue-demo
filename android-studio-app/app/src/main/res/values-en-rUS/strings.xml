@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">LocSmart</string>
-    <string name="welcome_title">LocSmart</string>
+    <string name="app_name">BeaconFIT</string>
+    <string name="welcome_title">BeaconFIT</string>
     <!--错误信息-->
     <string name="unknown_error">unknown error</string>
     <string name="init_error_context_is_null">Initialization failed, sdk cannot be used</string>
@@ -33,4 +33,21 @@
     <string name="config_channel_error">Error configuring channel</string>
     <string name="config_params_error">Configuration parameter error</string>
     <string name="request_error">Request error</string>
+
+    <string name="press_again_to_exit">press again to exit</string>
+    <!--批量配置错误-->
+    <string name="command_execution_timeout">Command execution timeout</string>
+    <string name="device_connecting_failed">Device connection failed</string>
+    <string name="secret_key_error">Anti tamper key error</string>
+    <string name="factory_information_reading_failed">Factory information reading failed</string>
+    <string name="failed_to_read_channel_information">Failed to read channel information</string>
+    <string name="key_configuration_failed">Key configuration failed</string>
+    <string name="channel_configuration_failed">Channel configuration failed</string>
+    <string name="notification_opening_failed">Notification opening failed</string>
+    <string name="device_writing_data_error">Device writing data error</string>
+    <string name="not_support_i_beacon">Some channels cannot set the iBeacon protocol</string>
+    <string name="device_not_support_acc">The current device does not support configuring the ACC protocol</string>
+    <string name="not_only_exist_coreaiot">The device cannot only have Coreaiot protocol</string>
+    <string name="at_least_one_always_broadcast">Always broadcast when at least one channel is open</string>
+
 </resources>

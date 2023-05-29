@@ -209,6 +209,9 @@ public class ConnectRequest<T extends BleDevice> implements IConnectWrapperCallb
                 } else if (BleConnectStatusEnum.DISCONNECT.getStatus() == device.getConnectState()) {
 //                    SeekStandardDeviceHolder.getInstance().setAddress("");
                     int retryCountByAddress = RetryDispatcher.getInstance().getRetryCountByAddress(device.getAddress());
+
+                    BleLogUtil.d("BeaconConfigHelper", "当前重试次数" + retryCountByAddress);
+
                     if (retryCountByAddress == 0) {
                         connectCallback.onConnectFailed(device, ErrorStatusEnum.BLUETOOTH_CONNECT_ERROR.getErrorCode());
                         return;

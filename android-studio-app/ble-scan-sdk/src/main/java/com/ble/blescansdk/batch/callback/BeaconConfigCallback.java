@@ -7,6 +7,6 @@ public interface BeaconConfigCallback {
 
     void success(String address);
 
-    void fail(String address, String message);
+    void fail(String address, int code);
 }
 

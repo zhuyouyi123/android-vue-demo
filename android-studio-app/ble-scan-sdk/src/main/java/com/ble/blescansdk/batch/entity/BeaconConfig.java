@@ -89,6 +89,9 @@ public class BeaconConfig {
     }
 
     public Boolean getAlwaysBroadcast() {
+        if (null == alwaysBroadcast) {
+            return true;
+        }
         return alwaysBroadcast;
     }
 
@@ -169,7 +172,7 @@ public class BeaconConfig {
     }
 
     public List<String> getBroadcastDataList() {
-        if (StringUtils.isBlank(broadcastDataJson)){
+        if (StringUtils.isBlank(broadcastDataJson)) {
             return new ArrayList<>();
         }
         try {

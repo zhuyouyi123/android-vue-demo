@@ -440,7 +440,7 @@ export default {
       calibrationDistanceValue: -51,
       // 广播功率
       broadcastPowerValue: -100,
-      broadcastPowerPageValue: 25,
+      broadcastPowerPageValue: null,
       // 广播内容
       iBeaconBroadcastData: ["", "", ""],
       // 广播内容
@@ -456,7 +456,7 @@ export default {
       triggerActions: this.$storage.triggerActions,
 
       // 触发条件
-      triggerCondition: "加速度",
+      triggerCondition: this.$i18n.t("baseButton.acceleration"),
       // 触发条件 ActionSheet
       triggerShow: false,
 
@@ -467,7 +467,7 @@ export default {
       triggerBroadcastTimeValue: 1,
       // 广播功率
       triggerBroadcastPowerValue: -100,
-      triggerBroadcastPowerPageValue: 25,
+      triggerBroadcastPowerPageValue: null,
 
       saveForm: {
         frameType: "iBeacon",
@@ -490,6 +490,7 @@ export default {
       if (n == null) {
         return;
       }
+      console.log(n);
       if (n <= 10) {
         this.broadcastPowerValue = -195;
       } else if (n > 10 && n <= 20) {
@@ -501,7 +502,7 @@ export default {
       } else if (n > 40 && n <= 50) {
         this.broadcastPowerValue = -50;
       } else if (n > 50 && n <= 60) {
-        this.broadcastPowerValue = 60;
+        this.broadcastPowerValue = -30;
       } else if (n > 60 && n <= 70) {
         this.broadcastPowerValue = -20;
       } else if (n > 70 && n <= 80) {
@@ -531,7 +532,7 @@ export default {
       } else if (n > 40 && n <= 50) {
         this.triggerBroadcastPowerValue = -50;
       } else if (n > 50 && n <= 60) {
-        this.triggerBroadcastPowerValue = 60;
+        this.triggerBroadcastPowerValue = -30;
       } else if (n > 60 && n <= 70) {
         this.triggerBroadcastPowerValue = -20;
       } else if (n > 70 && n <= 80) {
@@ -641,8 +642,12 @@ export default {
         this.calibrationDistanceValue =
           channelInfo.calibrationDistance - 0xff - 1;
         // 广播功率
+        console.log(11111122);
+        console.log(channelInfo.broadcastPowerValue);
         this.broadcastPowerValue = channelInfo.broadcastPowerValue * 10;
-        this.broadcastPowerPageValue = channelInfo.broadcastPowerValue * 10;
+        this.broadcastPowerPageValue = this.getBroadcastValue(
+          channelInfo.broadcastPowerValue
+        );
         // 触发器开关
         this.triggerSwitch = channelInfo.triggerSwitch;
         if (this.triggerSwitch) {
@@ -653,14 +658,21 @@ export default {
         }
 
         // 触发时间
-        this.triggerBroadcastTimeValue = channelInfo.triggerTime;
+        this.triggerBroadcastTimeValue =
+          channelInfo.triggerTime == 0 ? 1 : channelInfo.triggerTime;
         // 广播功率
         this.triggerBroadcastPowerValue =
           channelInfo.triggerBroadcastPowerValue * 10;
-        this.triggerBroadcastPowerPageValue =
-          channelInfo.triggerBroadcastPowerValue * 10;
+        this.triggerBroadcastPowerPageValue = this.getBroadcastValue(
+          channelInfo.triggerBroadcastPowerValue
+        );
         // 广播间隔
-        this.triggerBroadcastSliderValue = channelInfo.txInterval;
+        this.triggerBroadcastSliderValue = channelInfo.txInterval
+          ? channelInfo.txInterval
+          : 100;
+      } else {
+        this.broadcastPowerPageValue = 25;
+        this.triggerBroadcastPowerPageValue = 25;
       }
 
       // 通知下拉框
@@ -1028,6 +1040,57 @@ export default {
       }
       this.iBeaconBroadcastData[index] = str;
     },
+
+    getBroadcastValue(n) {
+      if (n == -19.5) {
+        return 5;
+      } else if (n == -13.5) {
+        return 15;
+      } else if (n == -10) {
+        return 25;
+      } else if (n == -7) {
+        return 35;
+      } else if (n == -5) {
+        return 45;
+      } else if (n == -3) {
+        return 55;
+      } else if (n == -2) {
+        return 65;
+      } else if (n == -1) {
+        return 75;
+      } else if (n == 0) {
+        return 85;
+      } else if (n == 1) {
+        return 95;
+      } else if (n == 1.5) {
+        return 105;
+      } else if (n == 2.5) {
+        return 115;
+      }
+      // else if (n > 10 && n <= 20) {
+      //   this.broadcastPowerValue = -135;
+      // } else if (n > 20 && n <= 30) {
+      //   this.broadcastPowerValue = -100;
+      // } else if (n > 30 && n <= 40) {
+      //   this.broadcastPowerValue = -70;
+      // } else if (n > 40 && n <= 50) {
+      //   this.broadcastPowerValue = -50;
+      // } else if (n > 50 && n <= 60) {
+      //   this.broadcastPowerValue = -30;
+      // } else if (n > 60 && n <= 70) {
+      //   this.broadcastPowerValue = -20;
+      // } else if (n > 70 && n <= 80) {
+      //   this.broadcastPowerValue = -10;
+      // } else if (n > 80 && n <= 90) {
+      //   this.broadcastPowerValue = 0;
+      // } else if (n > 90 && n <= 100) {
+      //   this.broadcastPowerValue = 10;
+      // } else if (n > 100 && n <= 110) {
+      //   this.broadcastPowerValue = 15;
+      // } else if (n > 110) {
+      //   this.broadcastPowerValue = 25;
+      // }
+    },
   },
 };
 </script>
@@ -1066,13 +1129,13 @@ export default {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 1.7rem;
+      width: 1.5rem;
     }
     .slider {
       margin: 0 0.32rem;
     }
     .unit {
-      width: 1rem;
+      width: 1.4rem;
       text-align: center;
       float: right;
     }

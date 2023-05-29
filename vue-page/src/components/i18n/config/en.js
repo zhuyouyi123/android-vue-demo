@@ -1,18 +1,18 @@
 export default {
   // 页面标题
   pageTitle: {
-    deviceDetail: "Detail",
-    configureChannel: "Configure Channel",
-    batchConfigureChannel: "Batch Config Channel",
+    deviceDetail: "Device details",
+    configureChannel: "Configure Channels",
+    batchConfigureChannel: "Batch configuration channels",
     addChannel: "Add Channel",
   },
 
   notifyMessage: {
     searchPlaceholder: "Please enter search keywords",
     base: {
-      dataEmpty: "No Data",
-      paramsError: "parameter error",
-      lengthError: "Length Error",
+      dataEmpty: "No data yet",
+      paramsError: "Parameter error",
+      lengthError: "Length error",
       operationSuccess: "Operation successful",
       operationError: "Operation failed",
       notResponding: "Not responding",
@@ -20,7 +20,7 @@ export default {
     },
     connect: {
       connectSuccess: "Successfully connected",
-      connectError: "connect failed",
+      connectError: "Connection failed",
     },
     scan: {
       startSuccess: "Scan enabled successfully",
@@ -28,59 +28,70 @@ export default {
   },
 
   baseButton: {
-    add: "add",
-    remove: "remove",
-    update: "update",
-    save: "save",
-    sure: "sure",
-    cancel: "cancel",
+    add: "Add",
+    remove: "Delete",
+    update: "Modify",
+    save: "Save",
+    sure: "Confirm",
+    cancel: "Cancel",
+    acceleration: "ACC",
+    doubleClick: "double click button",
+    tripleClick: "triple click button",
   },
 
   home: {
     button: {
-      sorted: "sort",
-      filter: "filterate",
-      language: "language",
-      batch: "batch",
-      batchConfigChannel: "configuration channels",
-      batchConfigSecretKey: "configuration keys",
+      sorted: "Sort",
+      filter: "Filtering",
+      language: "Language",
+      batch: "Bulk",
+      batchConfigChannel: "Batch configuration channels",
+      batchConfigSecretKey: "Batch configuration key",
       allDevice: "All devices",
       thisBrandDevice: "This brand of equipment",
-      refresh: "refresh",
+      refresh: "Refresh",
+      errorList: "Failure details",
     },
 
     tips: {
       deviceCanNotConnect: "The current device cannot be connected",
       newSecretDialogPlaceholder: "New key is 6 characters long",
       oldSecretDialogPlaceholder: "Old key is 6 characters long",
+      secretDialogPlaceholder: "key is 6 characters long",
+      configuration: "configuration",
+      secretKeySameTips: "keys cannot be the same",
     },
-    broadcastInterval: "broadcast interval",
+    broadcastInterval: "Broadcast interval",
     calibrationDistance: "Calibration distance",
-    battery: "battery",
+    battery: "Electricity",
 
     title: {
       batchConfigSecretKey: "Configure keys in batches",
+      updateResult: "modify the result",
+      batchRecord: "batch record",
+      secretKeySetting: "Fill in the secret key",
     },
 
     sort: {
-      rssiRise: "Rssi rise",
-      rssiFall: "Rssi fall",
-      macRise: "Mac rise",
-      macFall: "Mac fall",
-      batteryRise: "battery rise",
-      batteryFall: "battery fall",
-      sorted: "sort",
+      rssiRise: "Rssi Ascending",
+      rssiFall: "Rssi Descending",
+      macRise: "Mac Ascending",
+      macFall: "Mac Descending",
+      batteryRise: "Power Ascending Order",
+      batteryFall: "Power Descending Order",
+      sorted: "Sort",
     },
 
     lable: {
       deviceFilter: "Equipment filtering",
       selectLanguage: "Select Language",
+      errorReason: "failure reason",
     },
-    scannedCount: "number of devices scanned：",
+    scannedCount: "Number of devices scanned：",
     individua: " individua",
     triggerConditions: "Trigger conditions：",
     // 批量模式操作
-    batchModelNotAllowedClick: "Batch mode, cannot be used",
+    batchModelNotAllowedClick: "Batch mode cannot be used",
 
     language: "Chinese",
   },
@@ -93,7 +104,7 @@ export default {
         // 基础信息
         basicInformation: "Basic information",
         // 特件信息
-        specialInformation: "property information",
+        specialInformation: "Characteristic information",
         configureConnectable: "Configure connectable",
         // 恢复出厂设置
         restoreFactorySettings: "reset",
@@ -105,7 +116,7 @@ export default {
         hardwareVersion: "Hardware version",
         firmwareVersion: "Firmware version",
 
-        numberOfChannels: "channel number",
+        numberOfChannels: "Number of channels",
         supportPower: "Support power",
         supportData: "supporting data",
       },
@@ -116,21 +127,21 @@ export default {
         open: "open",
         close: "close",
         // 恢复出厂设置
-        restoreFactorySettings: "reset",
+        restoreFactorySettings: "Restore factory settings",
         // 关机
-        shutdown: "shutdown",
+        shutdown: "Shutdown",
         // 配置通道
-        configureChannel: "configure channel",
+        configureChannel: "Configure Channels",
         // 移除秘钥
-        removeSecretKey: "remove key",
+        removeSecretKey: "Remove Key",
         // 修改秘钥
-        updateSecretKey: "update key",
+        updateSecretKey: "Modify Secret Key",
         // 添加秘钥
-        addSecretKey: "add key",
+        addSecretKey: "Add Secret Key",
         // 修改设备名称
-        modifyDeviceName: "modify name",
+        modifyDeviceName: "Modify device name",
         // 触发响应时间
-        triggerResponseTime: "trigger response time",
+        triggerResponseTime: "Trigger response time",
       },
       function: {
         inputSecretKey: "Enter tamper proof key",
@@ -156,7 +167,7 @@ export default {
     // 通道
     channel: {
       channel: "channel",
-      channelNumber: "Channel Number",
+      channelNumber: "Channel number",
       // 帧类型
       frameType: "Frame Type",
       // 广播类型
@@ -175,26 +186,26 @@ export default {
         calibrationDistance: "Calibration distance",
         broadcastPower: "Broadcast power",
         broadcastTime: "Broadcast time",
-        triggerCondition: "Trigger Mode",
+        triggerCondition: "Trigger method",
         broadcastContent: "Broadcast content",
-        broadcastInterval: "broadcast interval",
-        basicParams: "basic parameters",
+        broadcastInterval: "Broadcast interval",
+        basicParams: "Basic parameters",
         triggerParams: "Trigger parameters",
         alwaysBroadcast: "Always broadcast",
         triggerBroadcast: "Trigger broadcast",
       },
       // 配置通道
       configChannel: {
-        channelConfigured: "Configured channel：",
+        channelConfigured: "Channel configured：",
       },
       addChannel: {
         alwaysBroadcast: "Always broadcast",
-        uuidContent: "32 bits in length, including0-9/a-f/A-F",
+        uuidContent: "32 bits in length, including 0-9/a-f/A-F",
         namespaceContent: "20 bits in length, including0-9/a-f/A-F",
-        instanceContent: "12 bits in length, including0-9/a-f/A-F",
-        hwidContent: "10 bits in length, including0-9/a-f/A-F",
-        vendorKeyContent: "8 bits in length, including0-9/a-f/A-F",
-        lotKeyContent: "16 bits in length, including0-9/a-f/A-F",
+        instanceContent: "Length 12 bits, including 0-9/a-f/A-F",
+        hwidContent: "10 digits in length, including 0-9/a-f/A-F",
+        vendorKeyContent: "Length 8 bits, including 0-9/a-f/A-F",
+        lotKeyContent: "16 bits in length, including 0-9/a-f/A-F",
         urlContent: "Please enter the website address",
         trigger: "trigger",
         triggerConditions: "Trigger conditions",
@@ -223,12 +234,12 @@ export default {
       button: {
         errorList: "Failure Details",
         retract: "retract",
-        expand: "expand",
+        expand: "open",
       },
       lable: {
         addChannel: "Add Channel",
-        cancelConfig: "Cancel",
-        configCahnnel: "Configure",
+        cancelConfig: "Cancel configuration",
+        configCahnnel: "Configure Channels",
         configResult: "Configuration Results",
         triggerBroadcast: "Trigger broadcast",
         alwaysBroadcast: "Always broadcast",
@@ -238,6 +249,11 @@ export default {
         configuration: "In configuration",
         addChannelFirst: "Please add a channel first",
         individua: "individual",
+        notOnlyExistCoreaiot: "The device cannot only have Coreaiot protocol",
+        atLeastOneAlwaysBroadcast:
+          "Always broadcast when at least one channel is open",
+        secretKeySetting: "Fill in the secret key",
+        secretDialogPlaceholder: "key is 6 characters long",
       },
     },
   },

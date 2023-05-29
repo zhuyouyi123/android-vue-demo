@@ -5,6 +5,7 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.batch.BeaconBatchConfigActuator;
+import com.ble.blescansdk.batch.entity.BeaconConfig;
 import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.entity.seek.config.ChannelConfig;
 import com.ble.blescansdk.ble.enums.BeaconCommEnum;
@@ -12,13 +13,25 @@ import com.ble.blescansdk.ble.enums.seekstandard.ThoroughfareTypeEnum;
 import com.ble.blescansdk.ble.enums.BroadcastPowerEnum;
 import com.ble.blescansdk.ble.holder.SeekStandardDeviceHolder;
 import com.ble.blescansdk.ble.utils.CollectionUtils;
+import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
+import com.ble.blescansdk.ble.utils.StringUtils;
+import com.ble.blescansdk.db.SdkDatabase;
+import com.ble.blescansdk.db.dataobject.BatchConfigRecordDO;
+import com.ble.blescansdk.db.enums.BatchConfigResultEnum;
+import com.ble.blescansdk.db.helper.BatchConfigRecordHelper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.seek.config.entity.dto.channel.BatchChannelConfigDTO;
 import com.seek.config.entity.dto.channel.ChannelConfigDTO;
+import com.seek.config.entity.enums.BatchConfigFailureEnum;
 import com.seek.config.entity.response.RespVO;
+import com.seek.config.entity.vo.channel.BatchConfigRecordVO;
 import com.seek.config.services.ChannelService;
 import com.seek.config.utils.I18nUtil;
 import com.seek.config.utils.helper.SeekStandardCommunicationHelper;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -129,12 +142,61 @@ public class ChannelServiceImpl implements ChannelService {
      * @param dto {@link BatchChannelConfigDTO}
      */
     @Override
-    public void beaconBatchConfigChannel(BatchChannelConfigDTO dto) {
-        BleSdkManager.getInstance().batchConfig(dto.getAddressList(), dto.getChannelInfo());
+    public boolean beaconBatchConfigChannel(BatchChannelConfigDTO dto) {
+        if (dto.getRetry()) {
+            String shareGet = SharePreferenceUtil.getInstance().shareGet(SharePreferenceUtil.BATCH_CONFIG_CHANNEL_LIST_KEY);
+            if (StringUtils.isBlank(shareGet)) {
+                return false;
+            }
+
+            List<BeaconConfig> list = new Gson().fromJson(shareGet, new TypeToken<List<BeaconConfig>>() {
+            }.getType());
+            return BleSdkManager.getInstance().batchConfigChannel(dto.getAddressList(), list, dto.getSecretKey());
+        }
+        return BleSdkManager.getInstance().batchConfigChannel(dto.getAddressList(), dto.getChannelInfo(), dto.getSecretKey());
+    }
+
+    /**
+     * 批量配置秘钥
+     *
+     * @param dto
+     */
+    @Override
+    public boolean beaconBatchConfigSecretKey(BatchChannelConfigDTO dto) {
+        return BleSdkManager.getInstance().batchConfigSecretKey(dto.getAddressList(), dto.getSecretKey(), dto.getOldSecretKey());
     }
 
     @Override
     public List<BeaconBatchConfigActuator.ExecutorResult> getBatchConfigList() {
         return BleSdkManager.getInstance().getBatchConfigList();
+    }
+
+    /**
+     * 查询批量配置失败列表
+     */
+    @Override
+    public List<BatchConfigRecordVO> queryBatchConfigFailureRecord() {
+        if (!SdkDatabase.supportDatabase) {
+            return Collections.emptyList();
+        }
+
+        List<BatchConfigRecordDO> recordDOS = BatchConfigRecordHelper.queryByResult(BatchConfigResultEnum.FAIL.getCode());
+
+        if (CollectionUtils.isEmpty(recordDOS)) {
+            return Collections.emptyList();
+        }
+
+        List<BatchConfigRecordVO> list = new ArrayList<>();
+        for (BatchConfigRecordDO recordDO : recordDOS) {
+            BatchConfigRecordVO vo = new BatchConfigRecordVO();
+            vo.setType(recordDO.getType());
+            vo.setResult(recordDO.getResult());
+            vo.setAddress(recordDO.getAddress());
+            vo.setFailReason(I18nUtil.getMessage(BatchConfigFailureEnum.getCodeByErrorCode(recordDO.getFailReason())));
+
+            list.add(vo);
+        }
+        return list;
+
     }
 }

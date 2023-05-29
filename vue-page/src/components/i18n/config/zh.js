@@ -34,6 +34,9 @@ export default {
     save: "保存",
     sure: "确认",
     cancel: "取消",
+    acceleration: "加速度",
+    doubleClick: "双击按钮",
+    tripleClick: "三击按钮",
   },
 
   home: {
@@ -47,12 +50,16 @@ export default {
       allDevice: "全部设备",
       thisBrandDevice: "此品牌设备",
       refresh: "刷新",
+      errorList: "失败明细",
     },
 
     tips: {
       deviceCanNotConnect: "当前设备不可连接",
       newSecretDialogPlaceholder: "新密钥为6个字符",
       oldSecretDialogPlaceholder: "旧密钥为6个字符",
+      secretDialogPlaceholder: "密钥为6个字符",
+      configuration: "配置中",
+      secretKeySameTips: "旧秘钥不能与新秘钥相同",
     },
     broadcastInterval: "广播间隔",
     calibrationDistance: "校准距离",
@@ -60,6 +67,9 @@ export default {
 
     title: {
       batchConfigSecretKey: "批量配置秘钥",
+      updateResult: "修改结果",
+      batchRecord: "批量记录",
+      secretKeySetting: "填写秘钥",
     },
 
     sort: {
@@ -75,6 +85,7 @@ export default {
     lable: {
       deviceFilter: "设备过滤",
       selectLanguage: "选择语言",
+      errorReason: "失败原因",
     },
     scannedCount: "扫描到设备数量：",
     individua: "个",
@@ -235,6 +246,10 @@ export default {
         configuration: "配置中",
         addChannelFirst: "请先添加通道",
         individua: "个",
+        notOnlyExistCoreaiot: "设备不能只存在Coreaiot协议",
+        atLeastOneAlwaysBroadcast: "至少有一条通道开启始终广播",
+        secretKeySetting: "填写秘钥",
+        secretDialogPlaceholder: "密钥为6个字符",
       },
     },
   },

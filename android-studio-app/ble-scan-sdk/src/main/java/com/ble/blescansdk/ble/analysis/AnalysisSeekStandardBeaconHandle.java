@@ -80,7 +80,7 @@ public class AnalysisSeekStandardBeaconHandle extends AbstractDeviceAnalysis<See
         // 通道类型
         String type = ProtocolUtil.analysisByStartByte(scanBytes, startByte, 2);
 
-        String childIde = ProtocolUtil.byteToHexStr(scanBytes[11]);
+        String childIde = ProtocolUtil.byteToHexStr(scanBytes[isConnectable ? 11 : 8]);
 
         return ThoroughfareTypeEnum.getByType(type, childIde);
 

@@ -14,9 +14,11 @@ import com.seek.config.entity.dto.channel.BatchChannelConfigDTO;
 import com.seek.config.entity.dto.channel.ChannelConfigDTO;
 import com.seek.config.entity.dto.channel.FrameTypeDropdownDTO;
 import com.seek.config.entity.response.RespVO;
+import com.seek.config.entity.vo.channel.BatchConfigRecordVO;
 import com.seek.config.entity.vo.channel.FrameTypeDropdownVO;
 import com.seek.config.services.ChannelService;
 import com.seek.config.services.impl.ChannelServiceImpl;
+import com.seek.config.utils.I18nUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,14 +59,30 @@ public class ChannelController {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    @AppRequestMapper(path = "/batch/save", method = AppRequestMethod.POST)
+    @AppRequestMapper(path = "/batch/save/channel", method = AppRequestMethod.POST)
     public RespVO<Void> beaconBatchConfigChannel(BatchChannelConfigDTO dto) {
-        channelService.beaconBatchConfigChannel(dto);
-        return RespVO.success();
+        if (channelService.beaconBatchConfigChannel(dto)) {
+            return RespVO.success();
+        }
+        return RespVO.failure(I18nUtil.getMessage(I18nUtil.REQUEST_ERROR));
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    @AppRequestMapper(path = "/batch/save/secret-key", method = AppRequestMethod.POST)
+    public RespVO<Boolean> beaconBatchConfigSecretKey(BatchChannelConfigDTO dto) {
+        if (channelService.beaconBatchConfigSecretKey(dto)) {
+            return RespVO.success();
+        }
+        return RespVO.failure(I18nUtil.getMessage(I18nUtil.REQUEST_ERROR));
     }
 
     @AppRequestMapper(path = "/batch/config/list")
     public RespVO<List<BeaconBatchConfigActuator.ExecutorResult>> beaconBatchConfigResult() {
         return RespVO.success(channelService.getBatchConfigList());
+    }
+
+    @AppRequestMapper(path = "/batch/failure-list")
+    public RespVO<List<BatchConfigRecordVO>> queryBatchConfigFailureRecord() {
+        return RespVO.success(channelService.queryBatchConfigFailureRecord());
     }
 }

@@ -89,7 +89,7 @@ public class AppInitTools extends AppCompatActivity {
                     .setIntermittentTime(500)
                     .setContinuousScanning(false)
                     .setConnectFailedRetryCount(3)
-                    .setConnectTimeout(2000)
+                    .setConnectTimeout(4000)
                     .setDatabaseSupport(true)
                     .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_LOW_POWER);
         } else {

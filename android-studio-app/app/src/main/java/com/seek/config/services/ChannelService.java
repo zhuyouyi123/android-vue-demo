@@ -4,6 +4,7 @@ import com.ble.blescansdk.batch.BeaconBatchConfigActuator;
 import com.seek.config.entity.dto.channel.BatchChannelConfigDTO;
 import com.seek.config.entity.dto.channel.ChannelConfigDTO;
 import com.seek.config.entity.response.RespVO;
+import com.seek.config.entity.vo.channel.BatchConfigRecordVO;
 
 import java.util.List;
 
@@ -21,7 +22,22 @@ public interface ChannelService {
      *
      * @param dto {@link BatchChannelConfigDTO}
      */
-    void beaconBatchConfigChannel(BatchChannelConfigDTO dto);
+    boolean beaconBatchConfigChannel(BatchChannelConfigDTO dto);
 
+    /**
+     * 批量配置秘钥
+     */
+    boolean beaconBatchConfigSecretKey(BatchChannelConfigDTO dto);
+
+    /**
+     * 获取批量配置结果列表
+     *
+     * @return 结果
+     */
     List<BeaconBatchConfigActuator.ExecutorResult> getBatchConfigList();
+
+    /**
+     * 查询批量配置失败列表
+     */
+    List<BatchConfigRecordVO> queryBatchConfigFailureRecord();
 }
