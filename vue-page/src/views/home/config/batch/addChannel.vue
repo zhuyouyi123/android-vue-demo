@@ -7,6 +7,8 @@
     </nav-bar>
 
     <div class="content">
+      <!-- v-show="operationType != 'edit'" -->
+
       <van-cell
         :title="i18nInfo.frameType"
         :value="frameType"
@@ -37,6 +39,7 @@
           frameType == 'URL' ||
           frameType == 'DeviceInfo' ||
           frameType == 'LINE' ||
+          frameType == 'Coreaiot' ||
           frameType == 'Quuppa'
         "
       >
@@ -47,6 +50,7 @@
 
         <div v-if="frameType == 'UID'">
           <van-field
+            clearable
             required
             label="NamespaceID"
             label-width="2.1rem"
@@ -57,6 +61,7 @@
             @input="inputFormat(0, true)"
           />
           <van-field
+            clearable
             required
             label="InstanceID"
             label-width="2.1rem"
@@ -86,6 +91,7 @@
             </el-dropdown-menu>
           </el-dropdown>
           <van-field
+            clearable
             required
             input-align="center"
             maxlength="16"
@@ -116,12 +122,13 @@
         <div v-else-if="frameType == 'DeviceInfo'">
           <!-- 设备名称 -->
           <van-field
+            clearable
             required
             label="DeviceName"
             label-width="2rem"
             input-align="right"
             maxlength="6"
-            placeholder="DeviceName"
+            :placeholder="i18nInfo.addChannel.deviceNameContent"
             v-model.trim="deviceName"
             @input="deviceNameInput"
           />
@@ -130,6 +137,7 @@
         <div v-else-if="frameType == 'LINE'">
           <!-- Hwid -->
           <van-field
+            clearable
             required
             label="Hwid"
             label-width="2rem"
@@ -141,6 +149,7 @@
           />
           <!-- Vendor_Key -->
           <van-field
+            clearable
             required
             label="Vendor_Key"
             label-width="2rem"
@@ -152,6 +161,7 @@
           />
           <!-- Lot_Key -->
           <van-field
+            clearable
             label="Lot_Key"
             required
             label-width="2rem"
@@ -162,8 +172,26 @@
             v-model.trim="iBeaconBroadcastData[1]"
           />
         </div>
+        <div v-else-if="frameType == 'Coreaiot'">
+          <van-cell :title="i18nInfo.addChannel.broadcastChannel">
+            <el-select
+              v-model="iBeaconBroadcastData[0]"
+              placeholder="channel"
+              size="mini"
+            >
+              <el-option
+                v-for="item in broadcastChannelOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              >
+              </el-option>
+            </el-select>
+          </van-cell>
+        </div>
         <div v-else-if="frameType == 'Quuppa'">
           <van-field
+            clearable
             label="Quuppa Tag"
             label-width="2rem"
             input-align="right"
@@ -311,7 +339,7 @@
       </van-cell-group>
 
       <div class="button-box-max">
-        <van-button class="canecl-max">{{
+        <van-button class="canecl-max" @click="goBack">{{
           $t("baseButton.cancel")
         }}</van-button>
         <van-button @click="saveChannel" class="sure-max">
@@ -362,6 +390,25 @@ export default {
       frameTypeShow: false,
       // 帧类型选项列表
       frameTypeActions: this.$storage.frameTypes,
+      // 通道选择列表
+      broadcastChannelOptions: [
+        {
+          label: "37",
+          value: 0,
+        },
+        {
+          label: "38",
+          value: 1,
+        },
+        {
+          label: "39",
+          value: 2,
+        },
+        {
+          label: "37、38、39",
+          value: 3,
+        },
+      ],
       // 设备名称
       deviceName: "",
       // response开关
@@ -374,8 +421,8 @@ export default {
       // 校准距离
       calibrationDistanceValue: -51,
       // 广播功率
-      broadcastPowerValue: -100,
-      broadcastPowerPageValue: 25,
+      broadcastPowerValue: 0,
+      broadcastPowerPageValue: null,
       // 触发器 默认关
       triggerSwitch: false,
 
@@ -391,8 +438,8 @@ export default {
       // 广播时间
       triggerBroadcastTimeValue: 1,
       // 广播功率
-      triggerBroadcastPowerValue: -100,
-      triggerBroadcastPowerPageValue: 25,
+      triggerBroadcastPowerValue: 0,
+      triggerBroadcastPowerPageValue: null,
 
       // 广播内容
       iBeaconBroadcastData: ["", "", ""],
@@ -407,9 +454,13 @@ export default {
         triggerBroadcastTime: 0,
         triggerBroadcastInterval: 0,
         triggerBroadcastPower: 0,
-        triggerCondition: 0,
+        triggerCondition: 1,
         broadcastDataJson: "",
       },
+
+      // 操作类型
+      operationType: "add",
+      editIndex: 0,
     };
   },
 
@@ -429,7 +480,7 @@ export default {
       } else if (n > 40 && n <= 50) {
         this.broadcastPowerValue = -50;
       } else if (n > 50 && n <= 60) {
-        this.broadcastPowerValue = -30;
+        this.broadcastPowerValue = -35;
       } else if (n > 60 && n <= 70) {
         this.broadcastPowerValue = -20;
       } else if (n > 70 && n <= 80) {
@@ -459,7 +510,7 @@ export default {
       } else if (n > 40 && n <= 50) {
         this.triggerBroadcastPowerValue = -50;
       } else if (n > 50 && n <= 60) {
-        this.triggerBroadcastPowerValue = -30;
+        this.triggerBroadcastPowerValue = -35;
       } else if (n > 60 && n <= 70) {
         this.triggerBroadcastPowerValue = -20;
       } else if (n > 70 && n <= 80) {
@@ -483,42 +534,56 @@ export default {
       window.addEventListener("popstate", this.fun, false);
     }
 
-    let data = this.$storage.toBeConfiguredChannelList;
-    this.frameTypeActions = JSON.parse(
-      JSON.stringify(this.$storage.frameTypes)
-    );
-    if (data && data.length > 0) {
-      for (let i = 0; i < data.length; i++) {
-        const channel = data[i];
-        if (channel.frameType == this.$storage.frameTypes[0].name) {
-          continue;
-        }
-        if (channel.frameType == this.$storage.frameTypes[1].name) {
-          continue;
-        }
-        if (channel.frameType == this.$storage.frameTypes[2].name) {
-          continue;
-        }
+    this.operationType = this.$route.query.type
+      ? this.$route.query.type
+      : "add";
 
-        // 其他帧类型删除对应的类型
-        for (let j = 0; j < this.frameTypeActions.length; j++) {
-          const e = this.frameTypeActions[j];
-          if (e.name == channel.frameType) {
-            this.frameTypeActions.splice(j, 1);
+    if (this.operationType == "edit") {
+      this.editIndex = this.$route.query.index;
+      let data = this.$storage.toBeConfiguredChannelList[this.editIndex];
+      this.loadingChannelInfo(JSON.parse(JSON.stringify(data)));
+    } else {
+      let data = this.$storage.toBeConfiguredChannelList;
+      this.frameTypeActions = JSON.parse(
+        JSON.stringify(this.$storage.frameTypes)
+      );
+      if (data && data.length > 0) {
+        for (let i = 0; i < data.length; i++) {
+          const channel = data[i];
+          if (channel.frameType == this.$storage.frameTypes[0].name) {
+            continue;
+          }
+          if (channel.frameType == this.$storage.frameTypes[1].name) {
+            continue;
+          }
+          if (channel.frameType == this.$storage.frameTypes[2].name) {
+            continue;
+          }
+
+          // 其他帧类型删除对应的类型
+          for (let j = 0; j < this.frameTypeActions.length; j++) {
+            const e = this.frameTypeActions[j];
+            if (e.name == channel.frameType) {
+              this.frameTypeActions.splice(j, 1);
+              break;
+            }
+          }
+        }
+      } else {
+        // 第一条不允许配置核心物联
+        for (let n = 0; n < this.frameTypeActions.length; n++) {
+          const e = this.frameTypeActions[n];
+          if (e.name == this.$storage.frameTypes[7].name) {
+            e.disabled = true;
+            this.$set(this.frameTypeActions, n, e);
             break;
           }
         }
       }
-    } else {
-      // 第一条不允许配置核心物联
-      for (let n = 0; n < this.frameTypeActions.length; n++) {
-        const e = this.frameTypeActions[n];
-        if (e.name == this.$storage.frameTypes[7].name) {
-          e.disabled = true;
-          this.$set(this.frameTypeActions, n, e);
-          break;
-        }
-      }
+
+      this.broadcastPowerPageValue = 85;
+      this.triggerBroadcastPowerPageValue = 85;
+      this.triggerCondition = this.$i18n.t("baseButton.doubleClick");
     }
   },
 
@@ -543,6 +608,8 @@ export default {
         this.iBeaconBroadcastData[0] = "http://www.";
         this.iBeaconBroadcastData[1] = "";
         this.iBeaconBroadcastData[2] = ".com";
+      } else if (this.frameType == "Coreaiot") {
+        this.iBeaconBroadcastData[0] = 0;
       } else {
         this.iBeaconBroadcastData = ["", "", "", ""];
       }
@@ -551,6 +618,47 @@ export default {
     // 触发类型选择
     triggerConditionOnSelect(e) {
       this.triggerCondition = e.name;
+    },
+
+    /**
+     * 加载通道信息
+     * @param {通道信息} data
+     */
+    loadingChannelInfo(data) {
+      // 设置帧类型
+      this.frameType = data.frameType;
+      this.alwaysBroadcastValue = data.alwaysBroadcast;
+      this.iBeaconBroadcastData = JSON.parse(data.broadcastDataJson);
+      // 广播间隔
+      this.broadcastSliderValue = data.broadcastInterval;
+      // 校准距离
+      this.calibrationDistanceValue = data.calibrationDistance;
+      this.broadcastPowerValue = data.broadcastPower * 10;
+      this.broadcastPowerPageValue = this.$storage.getBroadcastValue(
+        data.broadcastPower
+      );
+      this.deviceName = data.deviceName ? data.deviceName : "";
+      this.triggerSwitch = data.triggerSwitch;
+      if (this.triggerSwitch) {
+        this.triggerCondition =
+          this.$storage.triggerActions[
+            data.triggerCondition <= 0 ? 1 : data.triggerCondition - 1
+          ].name;
+      } else {
+        this.triggerCondition = this.$storage.triggerActions[0].name;
+      }
+      // 触发时间
+      this.triggerBroadcastTimeValue =
+        data.triggerTime == 0 ? 1 : data.triggerBroadcastTime;
+      // 广播功率
+      this.triggerBroadcastPowerValue = data.triggerBroadcastPower * 10;
+      this.triggerBroadcastPowerPageValue = this.$storage.getBroadcastValue(
+        data.triggerBroadcastPower
+      );
+      // 广播间隔
+      this.triggerBroadcastSliderValue = data.triggerBroadcastInterval
+        ? data.triggerBroadcastInterval
+        : 100;
     },
 
     /**
@@ -595,14 +703,18 @@ export default {
         this.saveForm.triggerBroadcastTime = 0;
         this.saveForm.triggerBroadcastInterval = 0;
         this.saveForm.triggerBroadcastPower = 0;
-        this.saveForm.triggerCondition = 0;
+        this.saveForm.triggerCondition = 1;
       }
 
       this.saveForm.broadcastDataJson = JSON.stringify(
         this.iBeaconBroadcastData
       );
 
-      this.$storage.addConfigurableChannel(this.saveForm);
+      if (this.operationType == "edit") {
+        this.$storage.saveConfigurableChannel(this.editIndex, this.saveForm);
+      } else {
+        this.$storage.addConfigurableChannel(this.saveForm);
+      }
       this.$router.replace("/home/batch-config/channel-home");
     },
     // 选择网址前缀

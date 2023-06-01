@@ -14,6 +14,7 @@ import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
 import com.ble.blescansdk.ble.entity.seek.StandardThoroughfareInfo;
 import com.ble.blescansdk.ble.enums.SortTypeEnum;
 import com.ble.blescansdk.ble.utils.BleLogUtil;
+import com.ble.blescansdk.ble.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,6 +64,7 @@ public class SeekStandardBeaconStorage extends AbstractStorage {
         isIntermittentScanning = BleSdkManager.getBleOptions().isIntermittentScanning();
         bleScanCallback = callback;
         deviceMap.clear();
+        clear();
         if (scheduledExecutorServicePool == null) {
             scheduledExecutorServicePool = new ScheduledThreadPoolExecutor(2, r -> new Thread(r, "executor-service-pool-" + r.hashCode()));
         } else {
@@ -156,6 +158,20 @@ public class SeekStandardBeaconStorage extends AbstractStorage {
 
         if (Objects.isNull(filterInfo)) {
             return true;
+        }
+
+        String filterInfoMac = filterInfo.getAddress();
+        if (StringUtils.isNotBlank(filterInfoMac)) {
+            String address = seekStandardDevice.getAddress().replaceAll(":", "");
+            if (!address.contains(filterInfoMac.toUpperCase().replaceAll(":", ""))) {
+                if (null == seekStandardDevice.getStandardThoroughfareInfo()) {
+                    return false;
+                }
+                final String deviceName = seekStandardDevice.getStandardThoroughfareInfo().getDeviceName();
+                if (StringUtils.isBlank(deviceName) || !deviceName.toUpperCase().contains(filterInfoMac.toUpperCase())) {
+                    return false;
+                }
+            }
         }
 
         if (filterInfo.isNormDevice()) {

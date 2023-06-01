@@ -587,6 +587,10 @@ public class BleRequestImpl<T extends BleDevice> {
                     ".setUuidService(替换成自己的service_uuid)必选\n" +
                     ".setUuidWriteCha(替换成自己的write_uuid)写入必选\n" +
                     ".setUuidReadCha(替换成自己的read_uuid)读取必选");
+            if (notifyWrapperCallback != null) {
+                notifyWrapperCallback.onNotifyFailed(getBleDeviceInternal(gatt.getDevice().getAddress()), ErrorStatusEnum.NOT_EXIST_UUID.getErrorCode());
+            }
+            return;
         }
         if (null != connectWrapperCallback) {
             connectWrapperCallback.onSuccess(getBleDeviceInternal(device.getAddress()));

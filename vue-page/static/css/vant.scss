@@ -272,6 +272,16 @@ body,
       background: #007fff;
     }
   }
+
+  .van-stepper--round .van-stepper__minus {
+    color: var(--van-white);
+    border: 0;
+  }
+
+  .van-stepper--round .van-stepper__plus {
+    color: var(--van-white);
+    background: var(--van-stepper-button-round-theme-color);
+  }
 }
 
 .van-overlay {
@@ -283,16 +293,21 @@ body,
   .wrapper {
     padding: 0.2rem 0.2rem;
     background: #ffffff;
-    height: 2.7rem;
-    width: 2.7rem;
+    height: 3.5rem;
+    width: 3rem;
     border-radius: 0.2rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    .van-circle {
+      margin-left: 0.15rem;
+    }
     .van-circle__text {
-      font-size: 11px;
-      width: 1.6rem;
-      margin-left: 0.55rem;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      // margin-left: 0.55rem;
     }
   }
 }

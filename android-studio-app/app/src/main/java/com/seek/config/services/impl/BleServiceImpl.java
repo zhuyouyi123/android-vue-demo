@@ -4,10 +4,12 @@ import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.callback.request.BleScanCallback;
 import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
 import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
+import com.ble.blescansdk.ble.enums.BleScanLevelEnum;
 import com.ble.blescansdk.ble.enums.SortTypeEnum;
 import com.ble.blescansdk.ble.holder.SeekStandardDeviceHolder;
 import com.ble.blescansdk.ble.proxy.Rproxy;
 import com.ble.blescansdk.ble.proxy.request.ConnectRequest;
+import com.ble.blescansdk.ble.utils.BleLogUtil;
 import com.ble.blescansdk.db.helper.SecretKeyDAOHelper;
 import com.seek.config.Config;
 import com.seek.config.entity.dto.ScanInitDTO;
@@ -48,7 +50,15 @@ public class BleServiceImpl implements BleService {
                         .setAddress(dto.getAddress())
                         .setNormDevice(!dto.getAllDevice())
                         .setRssi(dto.getRssiValue())
-                ).saveCacheConfig();
+                );
+        if (null != dto.getShutdownApp() && dto.getShutdownApp()) {
+            BleSdkManager.getBleOptions().setIntermittentScanning(true)
+                    .setIntermittentTime(500)
+                    .setContinuousScanning(true)
+                    .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_LOW_LATENCY)
+                    .setDeviceSurviveTime(5000);
+        }
+        BleSdkManager.getBleOptions().saveCacheConfig();
     }
 
     /**

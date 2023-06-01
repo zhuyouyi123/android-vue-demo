@@ -70,6 +70,16 @@ public enum BatchConfigFailureEnum {
     AT_LEAST_ONE_ALWAYS_BROADCAST(2013, R.string.at_least_one_always_broadcast),
 
     /**
+     * 广播内容错误
+     */
+    BROADCAST_CONTENT_REPEAT(2014, R.string.broadcast_content_repeat),
+
+    /**
+     * 设备不能只存在AOA协议
+     */
+    AT_LEAST_ONE_CHANNEL_EXISTS(2015, R.string.at_least_one_channel_exists),
+
+    /**
      * 未知错误
      */
     UNKNOWN_ERROR(-1, R.string.unknown_error),

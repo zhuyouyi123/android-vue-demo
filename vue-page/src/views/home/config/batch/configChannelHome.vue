@@ -39,7 +39,7 @@
               {{
                 i18nInfo.broadcastType +
                 "：" +
-                (item.triggerSwitch && item.alwaysBroadcast
+                (item.triggerSwitch && !item.alwaysBroadcast
                   ? batchI18nInfo.lable.triggerBroadcast
                   : batchI18nInfo.lable.alwaysBroadcast)
               }}
@@ -79,7 +79,13 @@
               <div class="basic-info">
                 <div>
                   {{ i18nInfo.common.triggerCondition }}:
-                  {{ item.triggerCondition }}
+                  {{
+                    item.triggerCondition == 1
+                      ? $storage.triggerActions[0].name
+                      : item.triggerCondition == 2
+                      ? $storage.triggerActions[1].name
+                      : $storage.triggerActions[2].name
+                  }}
                 </div>
                 <div>
                   {{ i18nInfo.common.broadcastTime }}:
@@ -102,6 +108,12 @@
           </div>
 
           <template #right>
+            <van-button
+              square
+              type="primary"
+              @click="updateChannel(index)"
+              :text="$t('baseButton.update')"
+            />
             <van-button
               @click="deleteChannel(index)"
               square
@@ -165,6 +177,7 @@
 </template>
 
 <script>
+import storage from "@/fetch/storage";
 import {
   Notify,
   Collapse,
@@ -279,7 +292,6 @@ export default {
             Notify({ type: "warning", message: "请退出当前页面，重新编辑" });
             return;
           }
-          this.secretKeyDialog = true;
 
           if (
             !this.toBeConfiguredChannelList ||
@@ -319,6 +331,7 @@ export default {
               return;
             }
           }
+          this.secretKeyDialog = true;
           break;
         default:
           break;
@@ -329,6 +342,16 @@ export default {
       this.$storage.toBeConfiguredChannelList.splice(e, 1);
     },
 
+    updateChannel(index) {
+      this.$router.replace({
+        path: "channel-home/add",
+        query: {
+          index: index,
+          type: "edit",
+        },
+      });
+    },
+
     secretKeyDialogBeforeClose(action, done) {
       if (action == "confirm") {
         if (!this.secretKey || this.secretKey.length != 6) {
@@ -337,31 +360,13 @@ export default {
             message: this.$i18n.t("notifyMessage.base.paramsError"),
           });
           done(false);
+          return;
         }
 
         this.$storage.batchConfigChannelInfo.batchConfigChannelFlag = true;
         this.$storage.batchConfigChannelInfo.secretKey = this.secretKey;
 
         this.$router.replace("/home");
-        // return;
-
-        // let params = {
-        //   secretKey: this.secretKey,
-        //   addressJson: JSON.stringify(this.$storage.toBeConfiguredList),
-        //   beaconListJson: JSON.stringify(
-        //     this.$storage.toBeConfiguredChannelList
-        //   ),
-        // };
-        // this.$androidApi
-        //   .batchConfigChannel(params)
-        //   .then(() => {
-        //     this.configOverlay = true;
-        //     this.alreadConfigNum = 0;
-        //     this.queryConfigResultList();
-        //   })
-        //   .catch((errorMsg) => {
-        //     Notify({ type: "warning", message: errorMsg });
-        //   });
       }
       done();
     },
@@ -432,6 +437,8 @@ export default {
 }
 
 .channel-list {
+  overflow: auto;
+  max-height: 72vh;
   .channel {
     background: #ffffff;
     box-shadow: 0rem 0.04rem 0.06rem 0.01rem rgba(0, 0, 0, 0.1);

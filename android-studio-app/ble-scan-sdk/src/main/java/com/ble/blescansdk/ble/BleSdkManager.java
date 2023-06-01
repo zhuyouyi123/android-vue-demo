@@ -42,6 +42,10 @@ public final class BleSdkManager<T extends BleDevice> {
     @SuppressLint("StaticFieldLeak")
     private static Context context = null;
 
+    private static final char KEY = 's';
+
+    private static boolean encryption = false;
+
     private RequestListener<T> request;
 
     private static BleOptions bleOptions;
@@ -156,6 +160,25 @@ public final class BleSdkManager<T extends BleDevice> {
 
     public void write(T device, String data, BleWriteCallback callback) {
         request.write(device, data, callback);
+    }
+
+    /**
+     * 加密写入
+     *
+     * @param device   设备
+     * @param data     数据
+     * @param callback BleWriteCallback
+     */
+    public void writeEncryption(T device, String data, BleWriteCallback callback) {
+        request.write(device, encryption(data), callback);
+    }
+
+    private String encryption(String data) {
+        char[] chars = data.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            chars[i] ^= KEY;
+        }
+        return String.valueOf(chars);
     }
 
     /**
@@ -279,4 +302,12 @@ public final class BleSdkManager<T extends BleDevice> {
         return ScanRequest.isScanning();
     }
 
+
+    public static boolean isEncryption() {
+        return encryption;
+    }
+
+    public static void setEncryption(boolean encryption) {
+        BleSdkManager.encryption = encryption;
+    }
 }

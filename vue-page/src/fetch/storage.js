@@ -1,5 +1,7 @@
 import i18n from "@/components/i18n";
 
+import Vue from "vue";
+
 export default {
   /**
    * 通道信息 通道列表里面赋值
@@ -104,6 +106,13 @@ export default {
     this.toBeConfiguredChannelList.push(item);
   },
 
+  saveConfigurableChannel(index, item) {
+    if (!item) {
+      return;
+    }
+    Vue.set(this.toBeConfiguredChannelList, index, item);
+  },
+
   /**
    * 根据通道号获取协议信息
    */
@@ -126,5 +135,33 @@ export default {
       }
     }
     return channel;
+  },
+
+  getBroadcastValue(n) {
+    if (n == -19.5) {
+      return 5;
+    } else if (n == -13.5) {
+      return 15;
+    } else if (n == -10) {
+      return 25;
+    } else if (n == -7) {
+      return 35;
+    } else if (n == -5) {
+      return 45;
+    } else if (n == -3.5) {
+      return 55;
+    } else if (n == -2) {
+      return 65;
+    } else if (n == -1) {
+      return 75;
+    } else if (n == 0) {
+      return 85;
+    } else if (n == 1) {
+      return 95;
+    } else if (n == 1.5) {
+      return 105;
+    } else if (n == 2.5) {
+      return 125;
+    }
   },
 };

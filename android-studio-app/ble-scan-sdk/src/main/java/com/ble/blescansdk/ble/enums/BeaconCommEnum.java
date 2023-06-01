@@ -10,7 +10,6 @@ import com.ble.blescansdk.ble.utils.BeaconCommUtil;
 import com.ble.blescansdk.ble.utils.CRC16Util;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.ble.blescansdk.ble.utils.StringUtils;
-import com.ble.blescansdk.db.SdkDatabase;
 import com.ble.blescansdk.db.helper.SecretKeyDAOHelper;
 
 public enum BeaconCommEnum {
@@ -20,7 +19,7 @@ public enum BeaconCommEnum {
      */
     CHECK_SECRET_REQUEST(1, 0, BeaconCommEnum.REQUEST_TYPE, "CHECK_SECRET_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
+        public RespVO handle(String[] strings) {
             return RespVO.success();
         }
     },
@@ -30,8 +29,7 @@ public enum BeaconCommEnum {
      */
     CHECK_SECRET_RESULT(1, 1, BeaconCommEnum.RESULT_TYPE, "CHECK_SECRET_RESULT") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 // 设置秘钥 SeekStandardDeviceHolder
@@ -49,7 +47,7 @@ public enum BeaconCommEnum {
      */
     RESTORE_FACTORY_SETTINGS_REQUEST(3, 0, BeaconCommEnum.REQUEST_TYPE, "RESTORE_FACTORY_SETTINGS_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
+        public RespVO handle(String[] strings) {
             return RespVO.success();
         }
     },
@@ -59,8 +57,8 @@ public enum BeaconCommEnum {
      */
     RESTORE_FACTORY_SETTINGS_RESPONSE(3, 1, BeaconCommEnum.RESPONSE_TYPE, "RESTORE_FACTORY_SETTINGS_RESPONSE") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
+
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 return RespVO.success();
@@ -74,8 +72,8 @@ public enum BeaconCommEnum {
      */
     RESTORE_FACTORY_SETTINGS_RESULT(3, 2, BeaconCommEnum.RESULT_TYPE, "RESTORE_FACTORY_SETTINGS_RESULT") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
+
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 return RespVO.success();
@@ -89,7 +87,7 @@ public enum BeaconCommEnum {
      */
     SHUTDOWN_REQUEST(4, 0, BeaconCommEnum.REQUEST_TYPE, "SHUTDOWN_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
+        public RespVO handle(String[] strings) {
             return RespVO.success();
         }
     },
@@ -99,8 +97,8 @@ public enum BeaconCommEnum {
      */
     SHUTDOWN_RESPONSE(4, 1, BeaconCommEnum.RESPONSE_TYPE, "SHUTDOWN_RESPONSE") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
+
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 return RespVO.success();
@@ -114,8 +112,8 @@ public enum BeaconCommEnum {
      */
     SHUTDOWN_RESULT(4, 2, BeaconCommEnum.RESULT_TYPE, "SHUTDOWN_RESULT") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
+
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 return RespVO.success();
@@ -129,7 +127,7 @@ public enum BeaconCommEnum {
      */
     REMOVE_SECRET_KEY_REQUEST(5, 0, BeaconCommEnum.REQUEST_TYPE, "REMOVE_SECRET_KEY_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
+        public RespVO handle(String[] strings) {
             return RespVO.success();
         }
     },
@@ -139,8 +137,7 @@ public enum BeaconCommEnum {
      */
     REMOVE_SECRET_KEY_RESULT(5, 1, BeaconCommEnum.RESULT_TYPE, "REMOVE_SECRET_KEY_RESULT") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 // 清除秘钥 SeekStandardDeviceHolder
@@ -155,7 +152,7 @@ public enum BeaconCommEnum {
      */
     UPDATE_SECRET_KEY_REQUEST(6, 0, BeaconCommEnum.REQUEST_TYPE, "UPDATE_SECRET_KEY_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
+        public RespVO handle(String[] strings) {
             return RespVO.success();
         }
     },
@@ -165,8 +162,7 @@ public enum BeaconCommEnum {
      */
     UPDATE_SECRET_KEY_RESULT(6, 1, BeaconCommEnum.RESULT_TYPE, "UPDATE_SECRET_KEY_RESULT") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
             // 1：成功 0：失败 2 秘钥错误
             int code = Integer.parseInt(strings[2]);
             if (code == 2) {
@@ -186,8 +182,7 @@ public enum BeaconCommEnum {
      */
     READ_FACTORY_VERSION_INFO_REQUEST(7, 0, BeaconCommEnum.REQUEST_TYPE, "READ_FACTORY_VERSION_INFO_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 return RespVO.success();
@@ -201,8 +196,7 @@ public enum BeaconCommEnum {
      */
     READ_FACTORY_VERSION_INFO_RESPONSE(7, 1, BeaconCommEnum.RESPONSE_TYPE, "READ_FACTORY_VERSION_INFO_RESPONSE") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 return RespVO.success();
@@ -216,8 +210,7 @@ public enum BeaconCommEnum {
      */
     READ_FACTORY_VERSION_INFO_RESULT(7, 2, BeaconCommEnum.RESULT_TYPE, "READ_FACTORY_VERSION_INFO_RESULT") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 SeekStandardDeviceHolder.getInstance().setFactoryVersionInfo(strings);
@@ -233,7 +226,7 @@ public enum BeaconCommEnum {
      */
     READ_FEATURE_INFO_REQUEST(8, 0, BeaconCommEnum.REQUEST_TYPE, "READ_FEATURE_INFO_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
+        public RespVO handle(String[] strings) {
             return RespVO.success();
         }
     },
@@ -243,8 +236,7 @@ public enum BeaconCommEnum {
      */
     READ_FEATURE_INFO_RESPONSE(8, 1, BeaconCommEnum.RESPONSE_TYPE, "READ_FEATURE_INFO_RESPONSE") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 return RespVO.success();
@@ -255,8 +247,7 @@ public enum BeaconCommEnum {
 
     READ_FEATURE_INFO_RESULT(8, 2, BeaconCommEnum.RESULT_TYPE, "READ_FEATURE_INFO_RESULT") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 SeekStandardDeviceHolder.getInstance().setFeatureInfo(strings);
@@ -268,15 +259,14 @@ public enum BeaconCommEnum {
 
     CHANNEL_CONFIG_BEACON_REQUEST(9, 0, BeaconCommEnum.REQUEST_TYPE, "CHANNEL_CONFIG_BEACON_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
+        public RespVO handle(String[] strings) {
             return RespVO.success();
         }
     },
 
     CHANNEL_CONFIG_BEACON_RESPONSE(9, 1, BeaconCommEnum.RESPONSE_TYPE, "CHANNEL_CONFIG_BEACON_RESPONSE") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 return RespVO.success();
@@ -287,8 +277,8 @@ public enum BeaconCommEnum {
 
     CHANNEL_CONFIG_BEACON_RESULT(9, 2, BeaconCommEnum.RESULT_TYPE, "CHANNEL_CONFIG_BEACON_RESULT") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
+
             // 1：成功 0：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 return RespVO.success();
@@ -299,15 +289,15 @@ public enum BeaconCommEnum {
 
     QUERY_CONFIG_AGREEMENT_REQUEST(10, 0, BeaconCommEnum.REQUEST_TYPE, "QUERY_CONFIG_AGREEMENT_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
+        public RespVO handle(String[] strings) {
             return RespVO.success();
         }
     },
     QUERY_CONFIG_AGREEMENT_RESULT(10, 1, BeaconCommEnum.RESULT_TYPE, "QUERY_CONFIG_AGREEMENT_RESULT") {
         @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
+
             SeekStandardDeviceHolder.getInstance().setAgreementInfo(strings);
             return RespVO.success(SeekStandardDeviceHolder.getInstance());
         }
@@ -318,7 +308,7 @@ public enum BeaconCommEnum {
      */
     NEED_SECRET_CONNECT_REQUEST(11, 0, BeaconCommEnum.REQUEST_TYPE, "NEED_SECRET_CONNECT_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
+        public RespVO handle(String[] strings) {
             return RespVO.success();
         }
     },
@@ -328,8 +318,8 @@ public enum BeaconCommEnum {
      */
     NEED_SECRET_CONNECT_RESULT(11, 1, BeaconCommEnum.RESULT_TYPE, "NEED_SECRET_CONNECT_RESULT") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
+
             // 1：需要密码 0：不需要密码 2秘钥错误
             if ("1".equals(strings[2]) || "2".equals(strings[2])) {
                 return RespVO.success(true);
@@ -340,15 +330,15 @@ public enum BeaconCommEnum {
 
     NOT_CONNECTABLE_CONFIG_REQUEST(12, 0, BeaconCommEnum.REQUEST_TYPE, "NOT_CONNECTABLE_CONFIG_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
+        public RespVO handle(String[] strings) {
             return RespVO.success();
         }
     },
 
     NOT_CONNECTABLE_CONFIG_RESULT(12, 1, BeaconCommEnum.RESULT_TYPE, "NOT_CONNECTABLE_CONFIG_RESULT") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
+
             // 0：成功 1：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 return RespVO.success();
@@ -362,15 +352,15 @@ public enum BeaconCommEnum {
      */
     TRIGGER_RESPONSE_TIME_CONFIG_REQUEST(13, 0, BeaconCommEnum.REQUEST_TYPE, "TRIGGER_RESPONSE_TIME_CONFIG_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
+        public RespVO handle(String[] strings) {
             return RespVO.success();
         }
     },
 
     TRIGGER_RESPONSE_TIME_CONFIG_RESULT(13, 1, BeaconCommEnum.RESULT_TYPE, "TRIGGER_RESPONSE_TIME_CONFIG_RESULT") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
+
             // 0：成功 1：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 return RespVO.success();
@@ -379,17 +369,17 @@ public enum BeaconCommEnum {
         }
     },
 
-    RESTART_BEACON_REQUEST(14,0,BeaconCommEnum.REQUEST_TYPE,"RESTART_BEACON_REQUEST"){
+    RESTART_BEACON_REQUEST(14, 0, BeaconCommEnum.REQUEST_TYPE, "RESTART_BEACON_REQUEST") {
         @Override
-        public RespVO handle(byte[] bytes) {
+        public RespVO handle(String[] strings) {
             return RespVO.success();
         }
     },
 
-    RESTART_BEACON_RESULT(14,1,BeaconCommEnum.RESULT_TYPE,"RESTART_BEACON_RESULT"){
+    RESTART_BEACON_RESULT(14, 1, BeaconCommEnum.RESULT_TYPE, "RESTART_BEACON_RESULT") {
         @Override
-        public RespVO handle(byte[] bytes) {
-            String[] strings = BeaconCommUtil.strToSplit(bytes);
+        public RespVO handle(String[] strings) {
+
             // 0：成功 1：失败
             if (BeaconCommEnum.SUCCESS.equals(strings[2])) {
                 return RespVO.success();
@@ -461,7 +451,7 @@ public enum BeaconCommEnum {
         return string;
     }
 
-    public abstract RespVO handle(byte[] bytes);
+    public abstract RespVO handle(String[] strings);
 
     public static BeaconCommEnum getByCode(int code, int childrenCode) {
         BeaconCommEnum beaconCommEnum = null;

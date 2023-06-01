@@ -46,6 +46,8 @@ public class SeekStandardCommunicationHelper {
 
     private static SeekStandardCommunicationHelper instance = null;
 
+    private static final char KEY = 's';
+
     /**
      * 重试map
      */
@@ -180,7 +182,11 @@ public class SeekStandardCommunicationHelper {
             }
             BleLogUtil.i(TAG, "写入指令：" + instructions);
             addRetryMap(bleDevice, instructions, commEnum);
-            BleSdkManager.getInstance().write(bleDevice, instructions, bleWriteCallback);
+            if (BleSdkManager.isEncryption()) {
+                BleSdkManager.getInstance().writeEncryption(bleDevice, instructions, bleWriteCallback);
+            } else {
+                BleSdkManager.getInstance().write(bleDevice, instructions, bleWriteCallback);
+            }
         }
     }
 
@@ -249,7 +255,11 @@ public class SeekStandardCommunicationHelper {
                 channelConfigRetryBO.setRetryCount(retryCount - 1);
                 retryMap.put(key, channelConfigRetryBO);
 
-                BleSdkManager.getInstance().write(channelConfigRetryBO.getDevice(), channelConfigRetryBO.getInstruct(), bleWriteCallback);
+                if (BleSdkManager.isEncryption()) {
+                    BleSdkManager.getInstance().writeEncryption(channelConfigRetryBO.getDevice(), channelConfigRetryBO.getInstruct(), bleWriteCallback);
+                } else {
+                    BleSdkManager.getInstance().write(channelConfigRetryBO.getDevice(), channelConfigRetryBO.getInstruct(), bleWriteCallback);
+                }
                 addRetryTask(key);
                 BleLogUtil.e("RETRY_HELPER", "retry write:" + key);
             }
@@ -265,6 +275,10 @@ public class SeekStandardCommunicationHelper {
             // 还在尝试重新连接
             int retryCountByAddress = RetryDispatcher.getInstance().getRetryCountByAddress(bleDevice.getAddress());
 
+            if (CollectionUtils.isNotEmpty(SeekStandardDeviceHolder.getInstance().getAgreementInfoList())) {
+                JsBridgeUtil.pushEvent(JsBridgeUtil.CONNECT_STATUS_CHANGE, JsBridgeUtil.success(0));
+                return;
+            }
             if (retryCountByAddress == -1 && bleDevice.getConnectState() == 0) {
                 JsBridgeUtil.pushEvent(JsBridgeUtil.CONNECT_STATUS_CHANGE, JsBridgeUtil.success(0));
             }
@@ -272,9 +286,6 @@ public class SeekStandardCommunicationHelper {
 
         @Override
         public void onConnectSuccess(SeekStandardDevice device) {
-//            if (device.isConnected()) {
-//                Toasty.success(Config.mainContext, I18nUtil.getMessage(I18nUtil.CONNECT_SUCCESS)).show();
-//            }
             JsBridgeUtil.pushEvent(JsBridgeUtil.CONNECT_STATUS_CHANGE, JsBridgeUtil.success(device.getConnectState()));
         }
 
@@ -294,7 +305,6 @@ public class SeekStandardCommunicationHelper {
                 Toasty.success(Config.mainContext, ErrorEnum.getFailMessage(errorCode)).show();
                 JsBridgeUtil.pushEvent(JsBridgeUtil.CONNECT_STATUS_CHANGE, JsBridgeUtil.success(1));
             }
-            Toasty.error(Config.mainContext, ErrorEnum.getFailMessage(errorCode)).show();
             JsBridgeUtil.pushEvent(JsBridgeUtil.CONNECT_STATUS_CHANGE, JsBridgeUtil.fail(bleDevice.getConnectState()));
         }
     };
@@ -306,73 +316,87 @@ public class SeekStandardCommunicationHelper {
         public void onChanged(SeekStandardDevice o, BluetoothGattCharacteristic bluetoothGattCharacteristic) {
             try {
                 byte[] characteristicValue = bluetoothGattCharacteristic.getValue();
+
                 String receiveMsg = AsciiUtil.convertHexToString(ProtocolUtil.byteArrToHexStr(characteristicValue));
+
+                if (BleSdkManager.isEncryption()) {
+                    char[] chars = receiveMsg.toCharArray();
+                    for (int i = 0; i < chars.length; i++) {
+                        chars[i] ^= KEY;
+                    }
+                    receiveMsg = String.valueOf(chars);
+                }
+
 
                 removeRetryMap(receiveMsg);
 
-                BeaconCommEnum commEnum = BeaconCommUtil.getCommType(characteristicValue);
+                BeaconCommEnum commEnum = BeaconCommUtil.getCommType(receiveMsg);
+
                 if (null == commEnum) {
                     return;
                 }
+
+                String[] split = BeaconCommUtil.replaceHeadAndTail(receiveMsg).split("_");
+
                 RespVO handle = null;
                 // 为了方便排查问题 不直接只使用commEnum调用 不然一句话就可以搞定 现使用Switch
                 switch (commEnum) {
                     case CHECK_SECRET_RESULT:
                         // 秘钥检验结果
-                        handle = BeaconCommEnum.CHECK_SECRET_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.CHECK_SECRET_RESULT.handle(split);
                         break;
                     case READ_FACTORY_VERSION_INFO_RESPONSE:
                         // 读取出厂信息应答
-                        handle = BeaconCommEnum.READ_FACTORY_VERSION_INFO_RESPONSE.handle(characteristicValue);
+                        handle = BeaconCommEnum.READ_FACTORY_VERSION_INFO_RESPONSE.handle(split);
                         break;
                     case READ_FACTORY_VERSION_INFO_RESULT:
                         // 读取出厂信息结果
-                        handle = BeaconCommEnum.READ_FACTORY_VERSION_INFO_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.READ_FACTORY_VERSION_INFO_RESULT.handle(split);
                         break;
                     case READ_FEATURE_INFO_RESPONSE:
                         // 读取特征信息应答
-                        handle = BeaconCommEnum.READ_FEATURE_INFO_RESPONSE.handle(characteristicValue);
+                        handle = BeaconCommEnum.READ_FEATURE_INFO_RESPONSE.handle(split);
                         break;
                     case READ_FEATURE_INFO_RESULT:
                         // 读取特征信息结果
-                        handle = BeaconCommEnum.READ_FEATURE_INFO_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.READ_FEATURE_INFO_RESULT.handle(split);
                         break;
                     case RESTORE_FACTORY_SETTINGS_RESPONSE:
                         // 恢复出厂设置应答
-                        handle = BeaconCommEnum.RESTORE_FACTORY_SETTINGS_RESPONSE.handle(characteristicValue);
+                        handle = BeaconCommEnum.RESTORE_FACTORY_SETTINGS_RESPONSE.handle(split);
                         break;
                     case RESTORE_FACTORY_SETTINGS_RESULT:
                         // 恢复出厂设置结果
-                        handle = BeaconCommEnum.RESTORE_FACTORY_SETTINGS_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.RESTORE_FACTORY_SETTINGS_RESULT.handle(split);
                         break;
                     case SHUTDOWN_RESULT:
                         // 关机
-                        handle = BeaconCommEnum.SHUTDOWN_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.SHUTDOWN_RESULT.handle(split);
                         break;
                     case REMOVE_SECRET_KEY_RESULT:
                         // 删除秘钥
-                        handle = BeaconCommEnum.REMOVE_SECRET_KEY_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.REMOVE_SECRET_KEY_RESULT.handle(split);
                         break;
                     case UPDATE_SECRET_KEY_RESULT:
                         // 修改秘钥
-                        handle = BeaconCommEnum.UPDATE_SECRET_KEY_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.UPDATE_SECRET_KEY_RESULT.handle(split);
                         break;
                     case CHANNEL_CONFIG_BEACON_RESPONSE:
-                        handle = BeaconCommEnum.CHANNEL_CONFIG_BEACON_RESPONSE.handle(characteristicValue);
+                        handle = BeaconCommEnum.CHANNEL_CONFIG_BEACON_RESPONSE.handle(split);
                         break;
                     case CHANNEL_CONFIG_BEACON_RESULT:
-                        handle = BeaconCommEnum.CHANNEL_CONFIG_BEACON_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.CHANNEL_CONFIG_BEACON_RESULT.handle(split);
                         break;
                     case NEED_SECRET_CONNECT_REQUEST:
                         // 秘钥
-                        handle = BeaconCommEnum.NEED_SECRET_CONNECT_REQUEST.handle(characteristicValue);
+                        handle = BeaconCommEnum.NEED_SECRET_CONNECT_REQUEST.handle(split);
                         break;
                     case NEED_SECRET_CONNECT_RESULT:
                         // 秘钥结果
-                        handle = BeaconCommEnum.NEED_SECRET_CONNECT_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.NEED_SECRET_CONNECT_RESULT.handle(split);
                         break;
                     case QUERY_CONFIG_AGREEMENT_RESULT:
-                        handle = BeaconCommEnum.QUERY_CONFIG_AGREEMENT_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.QUERY_CONFIG_AGREEMENT_RESULT.handle(split);
                         List<SeekStandardDeviceHolder.AgreementInfo> agreementInfoList = SeekStandardDeviceHolder.getInstance().getAgreementInfoList();
                         if (CollectionUtils.isEmpty(agreementInfoList) || agreementInfoList.size() != 6) {
                             BleLogUtil.i(TAG, "key：" + commEnum.getValue() + " type：" + commEnum.getType() + " received：" + receiveMsg + " result：" + GSON.toJson(handle));
@@ -380,13 +404,13 @@ public class SeekStandardCommunicationHelper {
                         }
                         break;
                     case NOT_CONNECTABLE_CONFIG_RESULT:
-                        handle = BeaconCommEnum.NOT_CONNECTABLE_CONFIG_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.NOT_CONNECTABLE_CONFIG_RESULT.handle(split);
                         break;
                     case TRIGGER_RESPONSE_TIME_CONFIG_RESULT:
-                        handle = BeaconCommEnum.TRIGGER_RESPONSE_TIME_CONFIG_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.TRIGGER_RESPONSE_TIME_CONFIG_RESULT.handle(split);
                         break;
                     case RESTART_BEACON_RESULT:
-                        handle = BeaconCommEnum.RESTART_BEACON_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.RESTART_BEACON_RESULT.handle(split);
                         break;
                     default:
                         break;

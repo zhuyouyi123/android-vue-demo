@@ -1,7 +1,14 @@
 import Vue from "vue";
 import Router from "vue-router";
 
+import index from "../../views/home/index.vue";
+import shutdownIndex from "../../views/home/batchShutdownIndex.vue";
+
+import androidApi from "@/api/android-api";
+
 Vue.use(Router);
+
+var APP_TYPE = "";
 
 export const constantRoutes = [
   {
@@ -11,7 +18,12 @@ export const constantRoutes = [
   {
     path: "/home",
     name: "home",
-    component: () => import("@/views/home/index.vue"),
+    component: index,
+  },
+  {
+    path: "/home1",
+    name: "home1",
+    component: shutdownIndex,
   },
   {
     path: "/config",
@@ -60,7 +72,20 @@ const createRouter = () =>
 const router = createRouter();
 
 router.beforeEach((to, form, next) => {
-  next();
+  if (!APP_TYPE) {
+    androidApi.shareGet({ key: "APP_TYPE" }).then((data) => {
+      if (data) {
+        APP_TYPE = data;
+        let path = data == "SHUTDOWN" ? "/home1" : "/home";
+        next({ path: path });
+      } else {
+        APP_TYPE = "CONFIG";
+        next({ path: "/home" });
+      }
+    });
+  } else {
+    next();
+  }
 });
 
 export function resetRouter() {

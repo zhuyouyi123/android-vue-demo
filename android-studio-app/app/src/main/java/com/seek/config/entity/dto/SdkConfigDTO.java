@@ -24,6 +24,8 @@ public class SdkConfigDTO {
      */
     private Long deviceSurviveTime ;
 
+    private Integer communicationEncryption;
+
     public Integer getScanLevel() {
         return scanLevel;
     }
@@ -62,5 +64,13 @@ public class SdkConfigDTO {
 
     public void setDeviceSurviveTime(Long deviceSurviveTime) {
         this.deviceSurviveTime = deviceSurviveTime;
+    }
+
+    public Integer getCommunicationEncryption() {
+        return communicationEncryption;
+    }
+
+    public void setCommunicationEncryption(Integer communicationEncryption) {
+        this.communicationEncryption = communicationEncryption;
     }
 }

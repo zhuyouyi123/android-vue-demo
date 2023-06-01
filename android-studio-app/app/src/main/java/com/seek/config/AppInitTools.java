@@ -80,18 +80,17 @@ public class AppInitTools extends AppCompatActivity {
     }
 
     private void initSdkConfig() {
-
         BleOptions<BleDevice> cacheConfig = BleSdkManager.getBleOptions().getCacheConfig(this);
         if (null == cacheConfig) {
             BleSdkManager.getBleOptions().setLogSwitch(true)
                     .setIntermittentScanning(true)
                     .setScanPeriod(10000)
-                    .setIntermittentTime(500)
+                    .setIntermittentTime(1000)
                     .setContinuousScanning(false)
-                    .setConnectFailedRetryCount(3)
-                    .setConnectTimeout(4000)
+                    .setConnectFailedRetryCount(2)
+                    .setConnectTimeout(5000)
                     .setDatabaseSupport(true)
-                    .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_LOW_POWER);
+                    .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_BALANCED);
         } else {
             BleSdkManager.setBleOptions(cacheConfig);
         }
@@ -203,13 +202,13 @@ public class AppInitTools extends AppCompatActivity {
                     android.Manifest.permission.BLUETOOTH_CONNECT,
                     android.Manifest.permission.ACCESS_COARSE_LOCATION,
                     android.Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     Manifest.permission.CAMERA
             };
         } else {
             requestPermissions = new String[]{
                     android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.CAMERA
             };

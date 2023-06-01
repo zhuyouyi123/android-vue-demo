@@ -185,6 +185,10 @@ body,
     border: 1px solid #d8dceb;
   }
 
+  .filtering-selected {
+    color: #007fff;
+  }
+
   .not-click {
     pointer-events: none;
     background: rgba(99, 98, 98, 0.213);

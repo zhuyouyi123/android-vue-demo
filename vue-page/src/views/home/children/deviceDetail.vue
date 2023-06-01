@@ -269,6 +269,8 @@
         <van-field
           label="响应时间(S)"
           type="digit"
+          maxlength="2"
+          @input="keyTiggeredResponseTimeInput"
           v-model="keyTiggeredResponseTime"
           :placeholder="i18nInfo.function.keyTiggeredResponseTime"
         />
@@ -359,7 +361,7 @@ export default deviceDetail;
       .name {
         margin-top: 0.1rem;
         height: 0.45rem;
-        font-size: 0.3rem;
+        font-size: 0.28rem;
         font-family: PingFang SC-Regular, PingFang SC;
         font-weight: 400;
         line-height: 0.39rem;

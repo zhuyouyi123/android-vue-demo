@@ -174,6 +174,14 @@ export default {
   saveFilterInfo(params) {
     return request("post", "sdk/filter-info", params);
   },
+
+  shareSet(params) {
+    request("post", "share/set", params);
+  },
+
+  shareGet(params) {
+    return request("get", "share/get", params);
+  },
 };
 
 /**

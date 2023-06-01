@@ -17,6 +17,7 @@ export default {
       operationError: "操作失败",
       notResponding: "未响应",
       bluetoothDisconnected: "蓝牙已断开",
+      retry: "重试",
     },
     connect: {
       connectSuccess: "连接成功",
@@ -51,6 +52,7 @@ export default {
       thisBrandDevice: "此品牌设备",
       refresh: "刷新",
       errorList: "失败明细",
+      selectAll: "全选",
     },
 
     tips: {
@@ -60,6 +62,8 @@ export default {
       secretDialogPlaceholder: "密钥为6个字符",
       configuration: "配置中",
       secretKeySameTips: "旧秘钥不能与新秘钥相同",
+      success: "成功：",
+      failed: "失败：",
     },
     broadcastInterval: "广播间隔",
     calibrationDistance: "校准距离",
@@ -70,15 +74,16 @@ export default {
       updateResult: "修改结果",
       batchRecord: "批量记录",
       secretKeySetting: "填写秘钥",
+      configurationQuantity: "配置数量：",
     },
 
     sort: {
       rssiRise: "Rssi升序",
       rssiFall: "Rssi降序",
-      macRise: "Mac降序",
-      macFall: "Mac升序",
-      batteryRise: "电量降序",
-      batteryFall: "电量升序",
+      macRise: "Mac升序",
+      macFall: "Mac降序",
+      batteryRise: "电量升序",
+      batteryFall: "电量降序",
       sorted: "排序",
     },
 
@@ -89,7 +94,7 @@ export default {
     },
     scannedCount: "扫描到设备数量：",
     individua: "个",
-    triggerConditions: "触发条件：",
+    triggerConditions: "已触发：",
     // 批量模式操作
     batchModelNotAllowedClick: "批量模式，无法使用",
 
@@ -118,7 +123,7 @@ export default {
 
         numberOfChannels: "通道数量",
         supportPower: "支持功率",
-        supportData: "支持数据",
+        supportData: "支持协议",
       },
       // 按钮
       button: {
@@ -198,16 +203,18 @@ export default {
       },
       addChannel: {
         alwaysBroadcast: "始终广播",
-        uuidContent: "长度32位,包含0-9/a-f/A-F",
-        namespaceContent: "长度20位,包含0-9/a-f/A-F",
-        instanceContent: "长度12位,包含0-9/a-f/A-F",
+        uuidContent: "长度32位,包含0-9/A-F",
+        namespaceContent: "长度20位,包含0-9/A-F",
+        instanceContent: "长度12位,包含0-9/A-F",
         hwidContent: "长度10位,包含0-9/a-f/A-F",
         vendorKeyContent: "长度8位,包含0-9/a-f/A-F",
+        deviceNameContent: "长度6位,包含0-9/a-f/A-F",
         lotKeyContent: "长度16位,包含0-9/a-f/A-F",
         urlContent: "请输入网址",
         trigger: "触发器",
         triggerConditions: "触发条件",
         broadcastTime: "广播时间",
+        broadcastChannel: "蓝牙广播通道",
       },
       tips: {
         uuidFormatError: "UUID格式错误",

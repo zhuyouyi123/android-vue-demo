@@ -27,22 +27,52 @@
                 {{ i18nInfo.button.sorted }}
               </span>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item command="rssi_rise">
+                <el-dropdown-item
+                  :class="{
+                    'filtering-selected': initParams.sortType == 'rssi_rise',
+                  }"
+                  command="rssi_rise"
+                >
                   {{ i18nInfo.sort.rssiRise }}
                 </el-dropdown-item>
-                <el-dropdown-item command="rssi_fall">
+                <el-dropdown-item
+                  command="rssi_fall"
+                  :class="{
+                    'filtering-selected': initParams.sortType == 'rssi_fall',
+                  }"
+                >
                   {{ i18nInfo.sort.rssiFall }}
                 </el-dropdown-item>
-                <el-dropdown-item command="mac_rise">
+                <el-dropdown-item
+                  command="mac_rise"
+                  :class="{
+                    'filtering-selected': initParams.sortType == 'mac_rise',
+                  }"
+                >
                   {{ i18nInfo.sort.macRise }}</el-dropdown-item
                 >
-                <el-dropdown-item command="mac_fall">{{
-                  i18nInfo.sort.macFall
-                }}</el-dropdown-item>
-                <el-dropdown-item command="battery_rise">
+                <el-dropdown-item
+                  command="mac_fall"
+                  :class="{
+                    'filtering-selected': initParams.sortType == 'mac_fall',
+                  }"
+                  >{{ i18nInfo.sort.macFall }}</el-dropdown-item
+                >
+                <el-dropdown-item
+                  command="battery_rise"
+                  :class="{
+                    'filtering-selected': initParams.sortType == 'battery_rise',
+                  }"
+                >
                   {{ i18nInfo.sort.batteryRise }}
                 </el-dropdown-item>
-                <el-dropdown-item command="battery_fall" class="unborder">
+                <el-dropdown-item
+                  command="battery_fall"
+                  class="unborder"
+                  :class="{
+                    'filtering-selected': initParams.sortType == 'battery_fall',
+                  }"
+                >
                   {{ i18nInfo.sort.batteryFall }}
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -68,12 +98,21 @@
           <div>
             {{ i18nInfo.scannedCount }}{{ count }}{{ i18nInfo.individua }}
           </div>
-          <div v-show="batchModel">
-            <el-checkbox
-              v-model="batchSelectAllCheck"
-              @change="batchSelectAllCheckChange"
-              >全选</el-checkbox
-            >
+          <div
+            class="select-all-box"
+            v-show="batchModel"
+            @click.stop="batchSelectAllBeacon()"
+          >
+            <div class="lable">{{ i18nInfo.button.selectAll }}</div>
+            <van-image
+              v-if="batchSelectAllCheck"
+              :src="require('@/assets/image/home/multiple-choice-selected.svg')"
+            />
+
+            <van-image
+              v-else-if="!batchSelectAllCheck"
+              :src="require('@/assets/image/home/multiple-choice-unselect.svg')"
+            />
           </div>
         </div>
       </div>
@@ -128,17 +167,14 @@
                 <div class="info-box">
                   <div>Mac: {{ item.address }}</div>
                   <!-- <div>电量: 100%</div> -->
-                  <div
-                    v-show="
-                      item.standardThoroughfareInfo &&
-                      item.standardThoroughfareInfo.battery > 0
-                    "
-                  >
+                  <div>
                     Battery:
                     {{
                       item.standardThoroughfareInfo &&
-                      item.standardThoroughfareInfo.battery
-                    }}%
+                      item.standardThoroughfareInfo.battery > 0
+                        ? item.standardThoroughfareInfo.battery + "%"
+                        : "-"
+                    }}
                   </div>
                 </div>
                 <div class="info-box">
@@ -298,7 +334,24 @@
                     <div class="detail-info">
                       <div>
                         {{ i18nInfo.triggerConditions }}
-                        {{ item.standardThoroughfareInfo.info.mac }}
+
+                        <span
+                          v-if="
+                            !item.standardThoroughfareInfo.info
+                              .triggerCondition ||
+                            item.standardThoroughfareInfo.info.triggerCondition
+                              .length == 0
+                          "
+                          >Empty</span
+                        >
+                        <span v-else>
+                          <span
+                            v-for="e in item.standardThoroughfareInfo.info
+                              .triggerCondition"
+                          >
+                            {{ $storage.triggerActions[e - 1].name + " " }}
+                          </span>
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -538,7 +591,7 @@
             :disabled="!channelRecordList.length"
             @click="batchConfigRetry('channel')"
           >
-            重试
+            {{ $t("notifyMessage.base.retry") }}
           </van-button>
 
           <van-button
@@ -546,7 +599,7 @@
             :disabled="!secretKeyRecordList.length"
             @click="batchConfigRetry('secret')"
           >
-            重试
+            {{ $t("notifyMessage.base.retry") }}
           </van-button>
         </div>
       </van-popup>
@@ -593,7 +646,7 @@ export default {
       scanState: true,
       // 国际化参数
       initParams: {
-        sortType: "",
+        sortType: "rssi_fall",
         address: "",
         rssiValue: 58,
         deviceType: "全部设备",
@@ -778,6 +831,7 @@ export default {
      */
     setBatchModel() {
       this.batchModel = !this.batchModel;
+      this.batchSelectAllCheck = false;
       if (this.batchModel) {
         // 停止扫描
         this.stopScan();
@@ -798,8 +852,9 @@ export default {
       }
     },
 
-    batchSelectAllCheckChange() {
+    batchSelectAllBeacon() {
       this.batchCount = 0;
+      this.batchSelectAllCheck = !this.batchSelectAllCheck;
       if (this.batchSelectAllCheck) {
         this.list.forEach((e) => {
           e.selected = true;
@@ -945,7 +1000,11 @@ export default {
         return;
       }
       this.deviceFilterDialog = true;
-      this.filterInfoParamsCache = JSON.parse(JSON.stringify(this.initParams));
+      setTimeout(() => {
+        this.filterInfoParamsCache = JSON.parse(
+          JSON.stringify(this.initParams)
+        );
+      }, 50);
     },
 
     openLanguageSettingDialog() {
@@ -1138,15 +1197,14 @@ export default {
               Dialog.confirm({
                 title: this.i18nInfo.title.updateResult,
                 message:
-                  "本次配置共" +
+                  this.i18nInfo.title.configurationQuantity +
                   this.batchCount +
-                  "个设备：<br>" +
-                  "成功：" +
+                  "<br>" +
+                  this.i18nInfo.tips.success +
                   successNum +
-                  "个" +
-                  "，失败：" +
-                  failNum +
-                  "个",
+                  "、 " +
+                  this.i18nInfo.tips.failed +
+                  failNum,
                 className: "warnDialogClass",
                 cancelButtonText: this.i18nInfo.button.errorList,
                 confirmButtonText: this.$i18n.t("baseButton.sure"),
@@ -1191,6 +1249,7 @@ export default {
      */
     stopScan() {
       this.$androidApi.stopScan();
+      this.scanState = false;
     },
 
     getList() {
@@ -1282,7 +1341,11 @@ export default {
             this.$i18n.locale = "en";
           }
           localStorage.setItem("lang", this.$i18n.locale);
-
+          this.$storage.triggerActions = [
+            { name: this.$i18n.t("baseButton.doubleClick"), code: 1 },
+            { name: this.$i18n.t("baseButton.tripleClick"), code: 2 },
+            { name: this.$i18n.t("baseButton.acceleration"), code: 3 },
+          ];
           Notify({ type: "success", message: "Success" });
         })
         .catch((errorMsg) => {
@@ -1332,6 +1395,7 @@ export default {
         align-items: center;
       }
     }
+
     .count {
       // width: 3.81rem;
       height: 0.8rem;
@@ -1343,11 +1407,21 @@ export default {
       align-items: center;
       justify-content: space-between;
       padding: 0 0.26rem;
+      .select-all-box {
+        display: flex;
+        align-items: center;
+        .lable {
+          margin-right: 0.1rem;
+        }
+        .van-image {
+          width: 0.45rem;
+          height: 0.45rem;
+        }
+      }
     }
   }
 
   // 搜索
-
   .van-search {
     width: 7.02rem;
     height: 0.72rem;
@@ -1588,6 +1662,25 @@ export default {
     }
   }
 
+  .scanning {
+    position: fixed;
+    border-radius: 50%;
+    background: var(--theme-color);
+
+    opacity: 0.9;
+    width: 1.1rem;
+    height: 1.1rem;
+    bottom: 0.8rem;
+    right: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .scan {
+      color: #ffffff;
+      font-size: 0.26rem;
+    }
+  }
   .batch-config {
     position: fixed;
     bottom: 0.32rem;
@@ -1613,25 +1706,6 @@ export default {
     .secret-key {
       background: #007fff;
       color: #ffffff;
-    }
-  }
-  .scanning {
-    position: fixed;
-    border-radius: 50%;
-    background: var(--theme-color);
-
-    opacity: 0.9;
-    width: 1.1rem;
-    height: 1.1rem;
-    bottom: 0.8rem;
-    right: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .scan {
-      color: #ffffff;
-      font-size: 0.26rem;
     }
   }
 

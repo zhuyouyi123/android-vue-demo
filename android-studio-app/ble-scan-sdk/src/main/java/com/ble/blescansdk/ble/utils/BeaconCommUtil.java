@@ -27,20 +27,16 @@ public class BeaconCommUtil {
         return ascii.split("_");
     }
 
-    public static BeaconCommEnum getCommType(String hex) {
-        return getCommType(ProtocolUtil.hexStrToBytes(hex));
-    }
+//    public static BeaconCommEnum getCommType(String hex) {
+//        return getCommType(ProtocolUtil.hexStrToBytes(hex));
+//    }
 
-    public static BeaconCommEnum getCommType(byte[] bytes) {
-        if (null == bytes || bytes.length < 4) {
-            return null;
-        }
-        String ascii = BeaconCommUtil.strToAscii(bytes);
-        String[] split = ascii.split("_");
+    public static BeaconCommEnum getCommType(String ascii) {
+        String[] split = BeaconCommUtil.replaceHeadAndTail(ascii).split("_");
         return BeaconCommEnum.getByCode(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
     }
 
-    private static String replaceHeadAndTail(String hex) {
+    public static String replaceHeadAndTail(String hex) {
         if (hex.contains("@_")) {
             hex = hex.replaceAll("@_", "");
         }

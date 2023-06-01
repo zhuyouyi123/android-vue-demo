@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.DisplayMetrics;
 
+import com.ble.blescansdk.ble.holder.SeekStandardDeviceHolder;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.ble.blescansdk.ble.utils.StringUtils;
 import com.seek.config.AppActivity;
@@ -41,6 +42,8 @@ public class SystemController {
                 Config.webView.clearHistory();
                 Config.webView.clearCache(true);
             });
+
+            SeekStandardDeviceHolder.release();
         } catch (Exception e) {
             e.printStackTrace();
         }

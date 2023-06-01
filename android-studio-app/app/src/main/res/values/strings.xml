@@ -49,5 +49,7 @@
     <string name="not_support_i_beacon">部分通道无法设置iBeacon协议</string>
     <string name="device_not_support_acc">当前设备不支持配置ACC协议</string>
     <string name="not_only_exist_coreaiot">设备不能只存在Coreaiot协议</string>
+    <string name="broadcast_content_repeat">广播内容重复</string>
+    <string name="at_least_one_channel_exists">至少存在一条通道</string>
     <string name="at_least_one_always_broadcast">至少有一条通道开启始终广播</string>
 </resources>

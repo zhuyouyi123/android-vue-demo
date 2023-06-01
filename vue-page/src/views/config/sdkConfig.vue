@@ -64,6 +64,18 @@
         </template>
       </van-field>
 
+      <van-field name="stepper" label="通信加密开关" input-align="right">
+        <template #input>
+          <van-stepper
+            input-width="1.2rem"
+            min="0"
+            max="1"
+            step="1"
+            v-model="filterInfo.communicationEncryption"
+          />
+        </template>
+      </van-field>
+
       <div style="margin: 16px">
         <van-button round block type="primary" native-type="submit">
           保存
@@ -97,6 +109,7 @@ export default {
         scanLevel: 2,
         scanPeriod: 10000,
         supportConnectable: false,
+        communicationEncryption: 0,
       },
     };
   },

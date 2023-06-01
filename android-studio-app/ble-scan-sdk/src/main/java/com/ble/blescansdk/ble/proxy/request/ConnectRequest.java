@@ -155,8 +155,12 @@ public class ConnectRequest<T extends BleDevice> implements IConnectWrapperCallb
 
     private void doConnectException(final T device, final int errorCode) {
         runOnUiThread(() -> {
-            if (connectCallback != null && ErrorStatusEnum.BLUETOOTH_ALREADY_CONNECTED.getErrorCode() == errorCode) {
-                connectCallback.onConnectFailed(device, errorCode);
+            if (connectCallback != null) {
+                if (ErrorStatusEnum.BLUETOOTH_ALREADY_CONNECTED.getErrorCode() == errorCode) {
+                    connectCallback.onConnectSuccess(device);
+                } else {
+                    connectCallback.onConnectFailed(device, errorCode);
+                }
             }
         });
         for (BleConnectCallback<T> callback : connectInnerCallbacks) {
@@ -209,8 +213,6 @@ public class ConnectRequest<T extends BleDevice> implements IConnectWrapperCallb
                 } else if (BleConnectStatusEnum.DISCONNECT.getStatus() == device.getConnectState()) {
 //                    SeekStandardDeviceHolder.getInstance().setAddress("");
                     int retryCountByAddress = RetryDispatcher.getInstance().getRetryCountByAddress(device.getAddress());
-
-                    BleLogUtil.d("BeaconConfigHelper", "当前重试次数" + retryCountByAddress);
 
                     if (retryCountByAddress == 0) {
                         connectCallback.onConnectFailed(device, ErrorStatusEnum.BLUETOOTH_CONNECT_ERROR.getErrorCode());

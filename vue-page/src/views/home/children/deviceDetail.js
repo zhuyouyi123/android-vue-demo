@@ -434,6 +434,7 @@ export default {
         }
       } else {
         if (this.secretKeyOperationType == "check") {
+          this.bluetoothConnectStatus = 2;
           this.exit();
         }
       }
@@ -446,6 +447,7 @@ export default {
           this.keyTiggeredResponseTime <= 0 ||
           this.keyTiggeredResponseTime > 10
         ) {
+          Notify({ type: "warning", message: "Response Time 1~10" });
           done(false);
           return;
         }
@@ -466,11 +468,16 @@ export default {
       done();
     },
 
+    keyTiggeredResponseTimeInput() {
+      if (this.keyTiggeredResponseTime > 60) {
+        this.keyTiggeredResponseTime = 60;
+      }
+    },
+
     /**
      * 读取通道信息
      */
     readFactoryInfo() {
-      this.text = "读取出厂信息...";
       this.rate = 55;
       let interval = setInterval(() => {
         this.rate = this.rate + 5;
@@ -543,7 +550,11 @@ export default {
             num.toString()
           );
           num++;
-          this.rate = this.rate + 3;
+          if (this.rate >= 90) {
+            this.rate = 90;
+          } else {
+            this.rate = this.rate + 3;
+          }
         } else {
           clearInterval(interval);
           interval = null;
@@ -667,6 +678,12 @@ export default {
           if (result.code == 0) {
             this.needSecretKey = true;
             this.$storage.needSecretKey = true;
+            // 获取秘钥
+            this.$androidApi.getConnectSecretKey().then((res) => {
+              if (res) {
+                this.secretKeyCache = res;
+              }
+            });
             this.operationResultTip(true);
           } else {
             this.operationResultTip(false);

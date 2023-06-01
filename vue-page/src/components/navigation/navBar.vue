@@ -4,7 +4,11 @@
     <van-nav-bar fixed z-index="5">
       <slot slot="left" name="left"></slot>
       <slot slot="title" name="title">
-        <van-image :src="require('@/assets/system/logo.png')" alt="" />
+        <van-image
+          @click="clg"
+          :src="require('@/assets/system/logo.png')"
+          alt=""
+        />
       </slot>
       <slot slot="right" name="right"></slot>
     </van-nav-bar>
@@ -12,10 +16,12 @@
 </template>
 
 <script >
-import { NavBar, Toast, Icon } from "vant";
+import { NavBar, Toast, Icon, Dialog, Notify } from "vant";
 export default {
   data() {
-    return {};
+    return {
+      num: 0,
+    };
   },
 
   components: {
@@ -26,7 +32,62 @@ export default {
 
   mounted() {},
 
-  methods: {},
+  methods: {
+    clg() {
+      this.num++;
+      if (this.num == 10) {
+        let params = {
+          key: "APP_TYPE",
+        };
+        this.$androidApi.shareGet(params).then((data) => {
+          let type = this.$config.appType;
+          let message = "";
+
+          let isConfig = true;
+          if (!data) {
+            if (type == "CONFIG") {
+              message = "确认将APP模式从配置模式切换成批量关机模式吗？";
+            } else {
+              isConfig = false;
+              message = "确认将APP模式从批量关机模式切换成配置模式吗？";
+            }
+          } else {
+            if (data == "CONFIG") {
+              message = "确认将APP模式从配置模式切换成批量关机模式吗？";
+            } else {
+              isConfig = false;
+              message = "确认将APP模式从批量关机模式切换成配置模式吗？";
+            }
+          }
+          Dialog.confirm({
+            title: "更换工具类型",
+            message: message,
+            messageAlign: "left",
+            showCancelButton: "true",
+          })
+            .then(() => {
+              this.num = 0;
+              if (isConfig) {
+                this.$androidApi.shareSet({
+                  key: "APP_TYPE",
+                  value: "SHUTDOWN",
+                });
+              } else {
+                this.$androidApi.shareSet({
+                  key: "APP_TYPE",
+                  value: "CONFIG",
+                });
+              }
+
+              Notify({ type: "danger", message: "请退出APP重新进入" });
+            })
+            .catch(() => {
+              this.num = 0;
+            });
+        });
+      }
+    },
+  },
 };
 </script>
 <style lang='scss' scoped>

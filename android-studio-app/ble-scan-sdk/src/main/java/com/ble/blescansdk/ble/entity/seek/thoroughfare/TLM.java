@@ -1,6 +1,6 @@
 package com.ble.blescansdk.ble.entity.seek.thoroughfare;
 
-public  class TLM {
+public class TLM {
     // 通道类型
     private final String type;
     private short voltage;
@@ -15,6 +15,10 @@ public  class TLM {
 
     public TLM(String type) {
         this.type = type;
+    }
+
+    public String getType() {
+        return type;
     }
 
 

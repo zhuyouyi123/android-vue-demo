@@ -13,6 +13,7 @@ import com.ble.blescansdk.ble.utils.ProtocolUtil;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -59,11 +60,19 @@ public class AnalysisSeekStandardBeaconHandle extends AbstractDeviceAnalysis<See
             return null;
         }
 
+        final int nextInt = new Random().nextInt(5);
+
+        if (nextInt == 3) {
+            thoroughfareInfo.checkChannel(seekStandardDevice.getAddress());
+        }
+
         thoroughfareInfo.setBeacons();
         thoroughfareInfo.setUids();
         thoroughfareInfo.setUrls();
 
         seekStandardDevice.setStandardThoroughfareInfo(thoroughfareInfo);
+
+        seekStandardDevice.setBattery(thoroughfareInfo.getBattery());
 
         return seekStandardDevice;
     }

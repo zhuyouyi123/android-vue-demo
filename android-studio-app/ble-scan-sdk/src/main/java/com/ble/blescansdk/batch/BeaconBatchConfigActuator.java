@@ -75,8 +75,8 @@ public class BeaconBatchConfigActuator {
             System.out.println("执行成功------");
             TO_BE_CINFIGURED_MAP.remove(address);
             EXECUTOR_RESULT_MAP.put(address, ExecutorResult.success());
-            BatchConfigRecordHelper.save(address,BatchConfigResultEnum.SUCCESS, BatchConfigTypeEnum.getByCode(CURR_OPERATION_TYPE), 0);
-
+            BatchConfigRecordHelper.save(address, BatchConfigResultEnum.SUCCESS, BatchConfigTypeEnum.getByCode(CURR_OPERATION_TYPE), 0);
+            BeaconConfigHelper.getInstance().restartBeacon();
             BeaconConfigHelper.getInstance().release();
         }
 
@@ -85,7 +85,8 @@ public class BeaconBatchConfigActuator {
             System.out.println("执行失败------" + code);
             TO_BE_CINFIGURED_MAP.remove(address);
             EXECUTOR_RESULT_MAP.put(address, ExecutorResult.fail(code));
-            BatchConfigRecordHelper.save(address,BatchConfigResultEnum.FAIL, BatchConfigTypeEnum.getByCode(CURR_OPERATION_TYPE), code);
+            BatchConfigRecordHelper.save(address, BatchConfigResultEnum.FAIL, BatchConfigTypeEnum.getByCode(CURR_OPERATION_TYPE), code);
+            BeaconConfigHelper.getInstance().restartBeacon();
             BeaconConfigHelper.getInstance().release();
         }
     };
@@ -204,6 +205,7 @@ public class BeaconBatchConfigActuator {
                     }
                     // 等待任务执行结束
                 } catch (InterruptedException e) {
+                    BeaconConfigHelper.getInstance().restartBeacon();
                     BeaconConfigHelper.getInstance().release();
                     throw new RuntimeException(e);
                 }

@@ -10,6 +10,8 @@ public class ScanInitDTO {
 
     private Integer rssiValue;
 
+    public Boolean shutdownApp;
+
     public String getSortType() {
         return sortType;
     }
@@ -42,6 +44,14 @@ public class ScanInitDTO {
             return -100;
         }
         return rssiValue;
+    }
+
+    public Boolean getShutdownApp() {
+        return shutdownApp;
+    }
+
+    public void setShutdownApp(Boolean shutdownApp) {
+        this.shutdownApp = shutdownApp;
     }
 
     public void setRssiValue(Integer rssiValue) {

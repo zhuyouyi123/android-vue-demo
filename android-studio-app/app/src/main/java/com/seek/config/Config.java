@@ -40,11 +40,6 @@ public class Config {
      */
     public static boolean showStatusBar = true;
 
-    /**
-     * 系统后退按钮，是否显示退出提示框
-     */
-    public static boolean isShowExitDialogByBackButton = false;
-
     public static boolean isNewApi = true;
 
     @SuppressLint("StaticFieldLeak")

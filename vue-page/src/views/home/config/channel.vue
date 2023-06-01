@@ -262,7 +262,6 @@ export default {
       deviceDetailHelper
         .getConnectDetail(this.address)
         .then((res) => {
-          console.log(res);
           this.channelInfo = [];
           let agreementInfoList = res.agreementInfoList;
           // 存储赋值storage
@@ -283,6 +282,9 @@ export default {
             };
             // 协议类型
             if (agreementInfo.agreementType != 0) {
+              if (this.configuredNumber == 0) {
+                channel.sh = true;
+              }
               this.configuredNumber++;
               channel.used = true;
               channel.broadcastType =
@@ -310,7 +312,9 @@ export default {
                   agreementInfo.triggerBroadcastPowerValue;
                 channel.triggerData.triggerCondition =
                   this.$storage.triggerActions[
-                    agreementInfo.triggerCondition - 1
+                    agreementInfo.triggerCondition <= 0
+                      ? 1
+                      : agreementInfo.triggerCondition - 1
                   ].name;
               } else {
                 channel.triggerData.triggerSwitch = false;
@@ -357,10 +361,29 @@ export default {
                         agreementInfo.agreementData[2]
                       : "";
                   break;
+                case "8":
+                  // 核心物联 通道
+                  channel.broadcastContentShow = true;
+                  let data = "broadcast channel：37";
+                  if (
+                    agreementInfo.agreementData &&
+                    agreementInfo.agreementData.length >= 1
+                  ) {
+                    if ("1" == agreementInfo.agreementData[0]) {
+                      data = "broadcast channel：38";
+                    } else if ("2" == agreementInfo.agreementData[0]) {
+                      data = "broadcast channel：39";
+                    } else if ("3" == agreementInfo.agreementData[0]) {
+                      data = "broadcast channel：37、38、39";
+                    }
+                  }
+                  channel.agreementData.data1 = data;
+                  break;
                 default:
                   break;
               }
             }
+
             this.channelInfo.push(channel);
           }
           this.overlayShow = false;

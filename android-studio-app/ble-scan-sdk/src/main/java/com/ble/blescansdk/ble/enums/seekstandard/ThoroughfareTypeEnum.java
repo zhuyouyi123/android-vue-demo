@@ -20,7 +20,9 @@ import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.ble.blescansdk.ble.utils.StringUtils;
 import com.ble.blescansdk.ble.utils.TimeUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public enum ThoroughfareTypeEnum {
@@ -35,7 +37,8 @@ public enum ThoroughfareTypeEnum {
             startByte = startByte + 2;
             int minor = ((scanBytes[startByte] & 0x00ff) << 8) + (scanBytes[startByte + 1] & 0x00ff);
             startByte = startByte + 2;
-            int measurePower = (scanBytes[startByte] & 0x00ff) - 0xFF - 1;
+            final int power = scanBytes[startByte] & 0x00ff;
+            int measurePower = power == 0 ? 0 : power - 0xFF - 1;
 
             String name = AsciiUtil.convertHexToString(ProtocolUtil.analysisByStartByte(scanBytes, scanBytes.length - 8, 6));
             if (StringUtils.isBlank(name.trim())) {
@@ -47,7 +50,7 @@ public enum ThoroughfareTypeEnum {
 
             return standardThoroughfareInfo.addBeacon(
                             new IBeacon(I_BEACON.getValue())
-                                    .setUuid(uuid)
+                                    .setUuid(uuid.toUpperCase())
                                     .setMajor(major)
                                     .setMinor(minor)
                                     .setMeasurePower(measurePower))
@@ -59,7 +62,8 @@ public enum ThoroughfareTypeEnum {
         @Override
         public StandardThoroughfareInfo analysis(byte[] scanBytes, StandardThoroughfareInfo standardThoroughfareInfo, boolean isConnectable) {
             int startByte = isConnectable ? 12 : 9;
-            int measurePower = (scanBytes[startByte] & 0x00ff) - 0xFF - 1;
+            final int power = scanBytes[startByte] & 0x00ff;
+            int measurePower = power == 0 ? 0 : power - 0xFF - 1;
             startByte = startByte + 1;
             String namespaceId = ProtocolUtil.analysisByStartByte(scanBytes, startByte, 10);
             startByte = startByte + 10;
@@ -76,16 +80,18 @@ public enum ThoroughfareTypeEnum {
         public StandardThoroughfareInfo analysis(byte[] scanBytes, StandardThoroughfareInfo standardThoroughfareInfo, boolean isConnectable) {
             int startByte = isConnectable ? 8 : 5;
             // 数据长度
-            int length = scanBytes[startByte] & 0xff;
+            int length = scanBytes[startByte - 1] & 0xff;
             startByte = startByte + 4;
-            int measurePower = (scanBytes[startByte] & 0x00ff) - 0xFF - 1;
+            final int power = scanBytes[startByte] & 0x00ff;
+            int measurePower = power == 0 ? 0 : power - 0xFF - 1;
             startByte++;
             String url = "";
             url += EddystoneUrlPrefixEnum.getByCode(ProtocolUtil.byteToHexStr(scanBytes[startByte]));
             startByte++;
             int diff = length - (startByte - 7);
             url += AsciiUtil.convertHexToString(ProtocolUtil.analysisByStartByte(scanBytes, startByte, diff)).trim();
-            url += EddystoneUrlSuffixEnum.getByCode(ProtocolUtil.byteToHexStr(scanBytes[length-3]));
+            startByte = startByte + diff;
+            url += EddystoneUrlSuffixEnum.getByCode(ProtocolUtil.byteToHexStr(scanBytes[startByte]));
             return standardThoroughfareInfo
                     .addUrl(new URL(EDDYSTONE_URL.getValue())
                             .setLink(url)
@@ -149,13 +155,23 @@ public enum ThoroughfareTypeEnum {
             int startByte = isConnectable ? 13 : 10;
             int battery = scanBytes[startByte] & 0xFF;
             startByte++;
-            String mac = ProtocolUtil.analysisByStartByte(scanBytes, startByte, 6).toUpperCase();
+//            String mac = ProtocolUtil.analysisByStartByte(scanBytes, startByte, 6).toUpperCase();
+            List<Integer> list = new ArrayList<>();
+            if (0x01 == scanBytes[startByte]) {
+                list.add(1);
+            }
+            if (0x01 == scanBytes[startByte + 1]) {
+                list.add(2);
+            }
+            if (0x01 == scanBytes[startByte + 2]) {
+                list.add(3);
+            }
             startByte = startByte + 8;
             String name = AsciiUtil.convertHexToString(ProtocolUtil.analysisByStartByte(scanBytes, startByte, 6));
 
             return standardThoroughfareInfo
                     .setInfo(new Info(INFO.getValue())
-                            .setMac(mac))
+                            .setTriggerCondition(list))
                     .setDeviceName(name)
                     .setBattery(battery);
         }
@@ -167,7 +183,8 @@ public enum ThoroughfareTypeEnum {
             int startByte = isConnectable ? 12 : 9;
             String hwid = ProtocolUtil.analysisByStartByte(scanBytes, startByte, 5);
             startByte = startByte + 5;
-            int measurePower = (scanBytes[startByte++] & 0xFF) - 0xFF - 1;
+            final int power = scanBytes[startByte++] & 0xFF;
+            int measurePower = power == 0 ? 0 : power - 0xFF - 1;
             String secureMessage = ProtocolUtil.analysisByStartByte(scanBytes, startByte, 4);
             startByte = startByte + 4;
             short timeStamp = ProtocolUtil.bytes2LenToShort(ProtocolUtil.copyBytes(scanBytes, startByte, 2));

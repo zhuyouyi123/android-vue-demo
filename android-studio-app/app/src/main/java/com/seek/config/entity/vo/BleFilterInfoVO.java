@@ -46,6 +46,8 @@ public class BleFilterInfoVO {
      */
     private boolean normDevice;
 
+    private Integer communicationEncryption;
+
     public String getFilterAddress() {
         return filterAddress;
     }
@@ -124,5 +126,13 @@ public class BleFilterInfoVO {
 
     public void setNormDevice(boolean normDevice) {
         this.normDevice = normDevice;
+    }
+
+    public Integer getCommunicationEncryption() {
+        return communicationEncryption;
+    }
+
+    public void setCommunicationEncryption(Integer communicationEncryption) {
+        this.communicationEncryption = communicationEncryption;
     }
 }

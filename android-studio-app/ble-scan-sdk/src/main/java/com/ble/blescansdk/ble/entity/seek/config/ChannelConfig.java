@@ -245,6 +245,13 @@ public class ChannelConfig {
                 stringBuilder.append(this.getBroadcastData().get(0)).append("_");
                 stringBuilder.append(this.getBroadcastData().get(1)).append("_");
                 stringBuilder.append(this.getBroadcastData().get(2));
+            } else if (Objects.equals(this.frameType, ThoroughfareTypeEnum.CORE_IOT_AOA.getType()) && this.getBroadcastData().size() > 0) {
+                stringBuilder.append("_");
+                if (CollectionUtils.isEmpty(this.getBroadcastData()) || StringUtils.isBlank(this.getBroadcastData().get(0))) {
+                    stringBuilder.append("0");
+                } else {
+                    stringBuilder.append(this.getBroadcastData().get(0));
+                }
             } else if (Objects.equals(this.frameType, ThoroughfareTypeEnum.QUUPPA_AOA.getType()) && this.getBroadcastData().size() > 0) {
                 stringBuilder.append("_");
                 // Quuppa Tag

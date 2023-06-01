@@ -14,6 +14,10 @@ public class Quuppa {
         return tagId;
     }
 
+    public String getType() {
+        return type;
+    }
+
     public Quuppa setTagId(String tagId) {
         this.tagId = tagId;
         return this;

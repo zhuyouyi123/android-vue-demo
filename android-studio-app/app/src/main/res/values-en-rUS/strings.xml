@@ -4,7 +4,7 @@
     <string name="welcome_title">BeaconFIT</string>
     <!--错误信息-->
     <string name="unknown_error">unknown error</string>
-    <string name="init_error_context_is_null">Initialization failed, sdk cannot be used</string>
+    <string name="init_error_context_is_null">Initialization failed, SDK cannot be used</string>
     <string name="ble_error_bluetooth_not_open">Bluetooth not turned on</string>
     <string name="device_not_exists">Device does not exist</string>
 
@@ -13,12 +13,12 @@
     <string name="bluetooth_connect_timeout">Bluetooth connection timeout</string>
     <string name="bluetooth_connect_error">Bluetooth connection error</string>
     <string name="bluetooth_adapter_not_available">Bluetooth adapter not available</string>
-    <string name="the_device_address_is_invalid">nvalid device address</string>
+    <string name="the_device_address_is_invalid">Invalid device address</string>
 
-    <string name="permission_error_access_coarse_location">No permission to get rough location</string>
+    <string name="permission_error_access_coarse_location">No permission to obtain rough location</string>
 
     <string name="location_info_switch_not_open">The position information switch is not turned on</string>
-    <string name="not_init_uuid">not init UUID</string>
+    <string name="not_init_uuid">Uninitialized UUID</string>
 
     <!--System-->
     <string name="tips">Tips</string>
@@ -34,7 +34,7 @@
     <string name="config_params_error">Configuration parameter error</string>
     <string name="request_error">Request error</string>
 
-    <string name="press_again_to_exit">press again to exit</string>
+    <string name="press_again_to_exit">Press again to exit</string>
     <!--批量配置错误-->
     <string name="command_execution_timeout">Command execution timeout</string>
     <string name="device_connecting_failed">Device connection failed</string>
@@ -48,6 +48,8 @@
     <string name="not_support_i_beacon">Some channels cannot set the iBeacon protocol</string>
     <string name="device_not_support_acc">The current device does not support configuring the ACC protocol</string>
     <string name="not_only_exist_coreaiot">The device cannot only have Coreaiot protocol</string>
+    <string name="broadcast_content_repeat">Repeated broadcast content</string>
+    <string name="at_least_one_channel_exists">At least one channel exists</string>
     <string name="at_least_one_always_broadcast">Always broadcast when at least one channel is open</string>
 
 </resources>

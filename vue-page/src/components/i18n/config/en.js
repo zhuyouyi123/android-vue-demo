@@ -17,6 +17,7 @@ export default {
       operationError: "Operation failed",
       notResponding: "Not responding",
       bluetoothDisconnected: "Bluetooth disconnected",
+      retry: "retry",
     },
     connect: {
       connectSuccess: "Successfully connected",
@@ -35,8 +36,8 @@ export default {
     sure: "Confirm",
     cancel: "Cancel",
     acceleration: "ACC",
-    doubleClick: "double click button",
-    tripleClick: "triple click button",
+    doubleClick: "Double click the button",
+    tripleClick: "Three click button",
   },
 
   home: {
@@ -51,15 +52,18 @@ export default {
       thisBrandDevice: "This brand of equipment",
       refresh: "Refresh",
       errorList: "Failure details",
+      selectAll: "select all",
     },
 
     tips: {
-      deviceCanNotConnect: "The current device cannot be connected",
+      deviceCanNotConnect: "The current device is not connectable",
       newSecretDialogPlaceholder: "New key is 6 characters long",
       oldSecretDialogPlaceholder: "Old key is 6 characters long",
       secretDialogPlaceholder: "key is 6 characters long",
       configuration: "configuration",
       secretKeySameTips: "keys cannot be the same",
+      success: "success：",
+      failed: "fail：",
     },
     broadcastInterval: "Broadcast interval",
     calibrationDistance: "Calibration distance",
@@ -67,9 +71,10 @@ export default {
 
     title: {
       batchConfigSecretKey: "Configure keys in batches",
-      updateResult: "modify the result",
-      batchRecord: "batch record",
+      updateResult: "Modify Results",
+      batchRecord: "Batch recording",
       secretKeySetting: "Fill in the secret key",
+      configurationQuantity: "Configuration Quantity：",
     },
 
     sort: {
@@ -85,11 +90,11 @@ export default {
     lable: {
       deviceFilter: "Equipment filtering",
       selectLanguage: "Select Language",
-      errorReason: "failure reason",
+      errorReason: "Reason for failure ",
     },
     scannedCount: "Number of devices scanned：",
     individua: " individua",
-    triggerConditions: "Trigger conditions：",
+    triggerConditions: "triggered：",
     // 批量模式操作
     batchModelNotAllowedClick: "Batch mode cannot be used",
 
@@ -107,7 +112,7 @@ export default {
         specialInformation: "Characteristic information",
         configureConnectable: "Configure connectable",
         // 恢复出厂设置
-        restoreFactorySettings: "reset",
+        restoreFactorySettings: "Restore factory settings",
       },
       // 标签
       lable: {
@@ -118,7 +123,7 @@ export default {
 
         numberOfChannels: "Number of channels",
         supportPower: "Support power",
-        supportData: "supporting data",
+        supportData: "supporting agreement",
       },
       // 按钮
       button: {
@@ -154,14 +159,14 @@ export default {
           "After removing the key, there will be no need to verify the tamper proof key during connection.",
         canConnectableTips:
           "After the connectable switch is turned off, the next connection needs to be activated by pressing the button to connect.",
-        resetTips: "Reset the device to factory settings？",
+        resetTips: "Restore the device to its factory settings? ",
         shutdownTips:
-          "Please make sure that the device has a button. After it is turned off, it needs to be pressed to turn it on again.",
-        readCharacteristicInformation: "characteristic information...",
-        readChannelInformation: "channel information...",
-        connecting: "connecting...",
-        connectionSucceeded: "connection succeeded",
-        readSecretKey: "read key",
+          "Please confirm that this device has a button and can only be turned on again after shutting down.",
+        readCharacteristicInformation: "Read feature information...",
+        readChannelInformation: "Read channel information...",
+        connecting: "Connecting...",
+        connectionSucceeded: "Successfully connected",
+        readSecretKey: "Read Secret Key",
       },
     },
     // 通道
@@ -174,7 +179,7 @@ export default {
       broadcastType: "Broadcast Type",
 
       title: {
-        deleteChannel: "delete channel",
+        deleteChannel: "Delete channel",
       },
 
       button: {
@@ -200,16 +205,18 @@ export default {
       },
       addChannel: {
         alwaysBroadcast: "Always broadcast",
-        uuidContent: "32 bits in length, including 0-9/a-f/A-F",
-        namespaceContent: "20 bits in length, including0-9/a-f/A-F",
-        instanceContent: "Length 12 bits, including 0-9/a-f/A-F",
+        uuidContent: "32 bits in length, including 0-9/A-F",
+        namespaceContent: "20 bits in length, including0-9/A-F",
+        instanceContent: "Length 12 bits, including 0-9/A-F",
         hwidContent: "10 digits in length, including 0-9/a-f/A-F",
         vendorKeyContent: "Length 8 bits, including 0-9/a-f/A-F",
+        deviceNameContent: "Length 6 bits, including 0-9/a-f/A-F",
         lotKeyContent: "16 bits in length, including 0-9/a-f/A-F",
         urlContent: "Please enter the website address",
         trigger: "trigger",
         triggerConditions: "Trigger conditions",
         broadcastTime: "Broadcast time",
+        broadcastChannel: "broadcast channel",
       },
       tips: {
         uuidFormatError: "UUID format error",
@@ -249,7 +256,8 @@ export default {
         configuration: "In configuration",
         addChannelFirst: "Please add a channel first",
         individua: "individual",
-        notOnlyExistCoreaiot: "The device cannot only have Coreaiot protocol",
+        notOnlyExistCoreaiot:
+          "The device cannot only have the Coreaiot protocol",
         atLeastOneAlwaysBroadcast:
           "Always broadcast when at least one channel is open",
         secretKeySetting: "Fill in the secret key",

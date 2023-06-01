@@ -318,8 +318,8 @@ public class SeekStandardDeviceHolder {
             info.setHardwareVersion(StringUtils.convertString(split));
             byte[] bytes = ProtocolUtil.hexStrToBytes(split);
             if (null != bytes) {
-                info.setModel("02".equals(ProtocolUtil.byteToHexStr(bytes[bytes.length - 1])) ? "C8" : "L8");
-                byte[] toBitBytes = ProtocolUtil.byteToBit(bytes[3]);
+                info.setModel("02".equals(ProtocolUtil.byteToHexStr(bytes[0])) ? "C8" : "L8");
+                byte[] toBitBytes = ProtocolUtil.byteToBit(bytes[2]);
                 setSupportACC(toBitBytes[toBitBytes.length - 1] == 0x01);
             }
         }

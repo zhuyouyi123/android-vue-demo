@@ -199,7 +199,7 @@ public class ChannelConfigDTO {
 
     public void selfCheck() {
         if (null == this.alwaysBroadcast) {
-            setAlwaysBroadcast(false);
+            setAlwaysBroadcast(true);
         }
 
         if (null == this.triggerSwitch) {

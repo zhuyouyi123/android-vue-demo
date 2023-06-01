@@ -24,6 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import com.seek.config.entity.dto.channel.BatchChannelConfigDTO;
 import com.seek.config.entity.dto.channel.ChannelConfigDTO;
 import com.seek.config.entity.enums.BatchConfigFailureEnum;
+import com.seek.config.entity.enums.ErrorEnum;
 import com.seek.config.entity.response.RespVO;
 import com.seek.config.entity.vo.channel.BatchConfigRecordVO;
 import com.seek.config.services.ChannelService;
@@ -58,39 +59,70 @@ public class ChannelServiceImpl implements ChannelService {
 
         Boolean supportACC = SeekStandardDeviceHolder.getInstance().getSupportACC();
         if ((null == supportACC || !supportACC) && ThoroughfareTypeEnum.ACC.getValue().equals(dto.getFrameType())) {
-            return RespVO.failure("此设备不支持ACC协议");
+            return RespVO.failure(I18nUtil.getMessage(BatchConfigFailureEnum.DEVICE_NOT_SUPPORT_ACC.getCode()));
         }
 
         if (CollectionUtils.isEmpty(agreementInfoList)) {
-            return RespVO.failure("通道不存在，配置失败");
+            return RespVO.failure(I18nUtil.getMessage(BatchConfigFailureEnum.CHANNEL_CONFIGURATION_FAILED.getCode()));
         }
-
-        // 找到通道不为空的通道
-        agreementInfoList = agreementInfoList.stream().filter(e -> !Objects.equals(e.getAgreementType(), ThoroughfareTypeEnum.EMPTY.getType())).collect(Collectors.toList());
 
         // 页面配置的通道类型
+        final List<SeekStandardDeviceHolder.AgreementInfo> filterAgreementInfoList = agreementInfoList
+                .stream()
+                .filter(e -> !Objects.equals(e.getAgreementType(), ThoroughfareTypeEnum.EMPTY.getType()))
+                .filter(e -> e.getChannelNumber() != dto.getChannelNumber()).collect(Collectors.toList());
+
         ThoroughfareTypeEnum thoroughfareTypeEnum = ThoroughfareTypeEnum.getByValue(dto.getFrameType());
+
+        if (ThoroughfareTypeEnum.EMPTY != thoroughfareTypeEnum) {
+            SeekStandardDeviceHolder.AgreementInfo agreementInfo = new SeekStandardDeviceHolder.AgreementInfo();
+
+            agreementInfo.setChannelNumber(dto.getChannelNumber());
+            agreementInfo.setAgreementType(dto.getFrameType());
+            agreementInfo.setAlwaysBroadcast(dto.getAlwaysBroadcast());
+            filterAgreementInfoList.add(agreementInfo);
+        }
+
+
         // 只有一个通道
-        if (agreementInfoList.size() == 1) {
-            SeekStandardDeviceHolder.AgreementInfo info = agreementInfoList.get(0);
+        if (CollectionUtils.isEmpty(filterAgreementInfoList)) {
+            return RespVO.failure(I18nUtil.getMessage(BatchConfigFailureEnum.AT_LEAST_ONE_CHANNEL_EXISTS.getCode()));
+        }
+
+        if (filterAgreementInfoList.size() == 1) {
             // 如果配置的是空的
-            if (info.getChannelNumber() == dto.getChannelNumber()) {
-                if (thoroughfareTypeEnum == ThoroughfareTypeEnum.EMPTY) {
-                    return RespVO.failure("信标需要至少支持一条通道");
-                }
-                if (thoroughfareTypeEnum == ThoroughfareTypeEnum.CORE_IOT_AOA) {
-                    return RespVO.failure("仅有一条通道不支持配置此协议");
-                }
-                if (!dto.getAlwaysBroadcast()) {
-                    return RespVO.failure("仅有一条通道必须开启始终广播");
-                }
+            if (thoroughfareTypeEnum == ThoroughfareTypeEnum.CORE_IOT_AOA) {
+                return RespVO.failure(I18nUtil.getMessage(BatchConfigFailureEnum.NOT_ONLY_EXIST_COREAIOT.getCode()));
             }
         } else {
-            if (agreementInfoList.stream().noneMatch(SeekStandardDeviceHolder.AgreementInfo::getAlwaysBroadcast)) {
-                return RespVO.failure("至少有一条通道需要开启始终广播");
+            String key = null, infoKey;
+            int code = 0;
+            if (ThoroughfareTypeEnum.I_BEACON == thoroughfareTypeEnum && dto.getBroadcastData().size() >= 3) {
+                key = dto.getBroadcastData().get(0) + dto.getBroadcastData().get(1) + dto.getBroadcastData().get(2);
+                code = 3;
+            }
+            if (code == 3) {
+                for (SeekStandardDeviceHolder.AgreementInfo agreementInfo : filterAgreementInfoList) {
+                    if (agreementInfo.getChannelNumber() == dto.getChannelNumber()) {
+                        continue;
+                    }
+                    if (!agreementInfo.getAgreementType().equals(thoroughfareTypeEnum.getType())) {
+                        continue;
+                    }
+                    final List<String> agreementData = agreementInfo.getAgreementData();
+
+                    infoKey = agreementData.get(0) + agreementData.get(1) + agreementData.get(2);
+
+                    if (key.equals(infoKey)) {
+                        return RespVO.failure(I18nUtil.getMessage(BatchConfigFailureEnum.BROADCAST_CONTENT_REPEAT.getCode()));
+                    }
+                }
             }
         }
 
+        if (CollectionUtils.isNotEmpty(filterAgreementInfoList) && filterAgreementInfoList.stream().noneMatch(SeekStandardDeviceHolder.AgreementInfo::getAlwaysBroadcast)) {
+            return RespVO.failure(I18nUtil.getMessage(BatchConfigFailureEnum.AT_LEAST_ONE_ALWAYS_BROADCAST.getCode()));
+        }
         return RespVO.success();
     }
 

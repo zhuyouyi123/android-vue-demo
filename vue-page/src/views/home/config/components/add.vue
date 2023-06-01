@@ -39,6 +39,7 @@
             frameType == 'URL' ||
             frameType == 'DeviceInfo' ||
             frameType == 'LINE' ||
+            frameType == 'Coreaiot' ||
             frameType == 'Quuppa'
           "
         >
@@ -48,6 +49,7 @@
           />
           <div v-if="frameType == 'iBeacon'" class="beacon-info-box">
             <van-field
+              clearable
               required
               class="uuid-box"
               label="UUID"
@@ -59,6 +61,7 @@
               @input="uuidInput"
             />
             <van-field
+              clearable
               required
               label="Major"
               type="number"
@@ -70,6 +73,7 @@
               @input="majorInput"
             />
             <van-field
+              clearable
               required
               label="Minor"
               type="number"
@@ -88,13 +92,14 @@
             </van-cell>
             <!-- 设备名称 -->
             <van-field
+              clearable
               required
               v-if="responseSwitch"
               label="DeviceName"
               label-width="2rem"
               input-align="right"
               maxlength="6"
-              placeholder="DeviceName"
+              :placeholder="i18nInfo.addChannel.deviceNameContent"
               v-model.trim="deviceName"
               @input="deviceNameInput"
             />
@@ -102,6 +107,7 @@
 
           <div v-else-if="frameType == 'UID'">
             <van-field
+              clearable
               required
               label="NamespaceID"
               label-width="2.1rem"
@@ -112,6 +118,7 @@
               @input="inputFormat(0, true)"
             />
             <van-field
+              clearable
               required
               label="InstanceID"
               label-width="2.1rem"
@@ -143,6 +150,7 @@
               </el-dropdown-menu>
             </el-dropdown>
             <van-field
+              clearable
               required
               input-align="center"
               maxlength="16"
@@ -175,12 +183,13 @@
           <div v-else-if="frameType == 'DeviceInfo'">
             <!-- 设备名称 -->
             <van-field
+              clearable
               required
               label="DeviceName"
               label-width="2rem"
               input-align="right"
               maxlength="6"
-              placeholder="DeviceName"
+              :placeholder="i18nInfo.addChannel.deviceNameContent"
               v-model.trim="deviceName"
             />
           </div>
@@ -188,6 +197,7 @@
           <div v-else-if="frameType == 'LINE'">
             <!-- Hwid -->
             <van-field
+              clearable
               required
               label="Hwid"
               label-width="2rem"
@@ -199,6 +209,7 @@
             />
             <!-- Vendor_Key -->
             <van-field
+              clearable
               required
               label="Vendor_Key"
               label-width="2rem"
@@ -210,6 +221,7 @@
             />
             <!-- Lot_Key -->
             <van-field
+              clearable
               label="Lot_Key"
               required
               label-width="2rem"
@@ -220,8 +232,26 @@
               v-model.trim="iBeaconBroadcastData[1]"
             />
           </div>
+          <div v-else-if="frameType == 'Coreaiot'">
+            <van-cell :title="i18nInfo.addChannel.broadcastChannel">
+              <el-select
+                v-model="iBeaconBroadcastData[0]"
+                placeholder="channel"
+                size="mini"
+              >
+                <el-option
+                  v-for="item in broadcastChannelOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                >
+                </el-option>
+              </el-select>
+            </van-cell>
+          </div>
           <div v-else-if="frameType == 'Quuppa'">
             <van-field
+              clearable
               label="Quuppa Tag"
               label-width="2rem"
               input-align="right"
@@ -404,13 +434,14 @@
 </template>
 
 <script>
-import { ActionSheet, Notify, Slider } from "vant";
+import { ActionSheet, Notify, Slider, Stepper } from "vant";
 import deviceDetailHelper from "../../hepler/deviceDetailHelper";
 import instruct from "@/fetch/instruct";
 export default {
   components: {
     [ActionSheet.name]: ActionSheet,
     [Slider.name]: Slider,
+    [Stepper.name]: Stepper,
     navBar: () => import("@/components/navigation/navBar.vue"),
   },
 
@@ -427,6 +458,25 @@ export default {
       frameTypeShow: false,
       // 帧类型选项列表
       frameTypeActions: [],
+      // 通道选择列表
+      broadcastChannelOptions: [
+        {
+          label: "37",
+          value: 0,
+        },
+        {
+          label: "38",
+          value: 1,
+        },
+        {
+          label: "39",
+          value: 2,
+        },
+        {
+          label: "37、38、39",
+          value: 3,
+        },
+      ],
       // 设备名称
       deviceName: "",
       // response开关
@@ -439,7 +489,7 @@ export default {
       // 校准距离
       calibrationDistanceValue: -51,
       // 广播功率
-      broadcastPowerValue: -100,
+      broadcastPowerValue: 0,
       broadcastPowerPageValue: null,
       // 广播内容
       iBeaconBroadcastData: ["", "", ""],
@@ -466,7 +516,7 @@ export default {
       // 广播时间
       triggerBroadcastTimeValue: 1,
       // 广播功率
-      triggerBroadcastPowerValue: -100,
+      triggerBroadcastPowerValue: 0,
       triggerBroadcastPowerPageValue: null,
 
       saveForm: {
@@ -480,7 +530,7 @@ export default {
         triggerBroadcastTime: 0,
         triggerBroadcastInterval: 0,
         triggerBroadcastPower: 0,
-        triggerCondition: 0,
+        triggerCondition: 1,
       },
     };
   },
@@ -502,7 +552,7 @@ export default {
       } else if (n > 40 && n <= 50) {
         this.broadcastPowerValue = -50;
       } else if (n > 50 && n <= 60) {
-        this.broadcastPowerValue = -30;
+        this.broadcastPowerValue = -35;
       } else if (n > 60 && n <= 70) {
         this.broadcastPowerValue = -20;
       } else if (n > 70 && n <= 80) {
@@ -532,7 +582,7 @@ export default {
       } else if (n > 40 && n <= 50) {
         this.triggerBroadcastPowerValue = -50;
       } else if (n > 50 && n <= 60) {
-        this.triggerBroadcastPowerValue = -30;
+        this.triggerBroadcastPowerValue = -35;
       } else if (n > 60 && n <= 70) {
         this.triggerBroadcastPowerValue = -20;
       } else if (n > 70 && n <= 80) {
@@ -554,8 +604,8 @@ export default {
       history.pushState(null, null, document.URL);
       //false阻止默认事件
       window.addEventListener("popstate", this.fun, false);
-      window.addEventListener("commonAndroidEvent", this.callJs);
     }
+    window.addEventListener("commonAndroidEvent", this.callJs);
     this.init();
   },
 
@@ -604,13 +654,14 @@ export default {
         params.currentFrameType = channelInfo.agreementName;
         // 备份帧类型
         this.broadcastDataBak.frameType = this.frameType;
-        if (
+        if (this.frameType == "Coreaiot") {
+          this.iBeaconBroadcastData[0] = parseInt(channelInfo.agreementData[0]);
+        } else if (
           this.frameType == "UID" ||
           this.frameType == "URL" ||
           this.frameType == "LINE" ||
           this.frameType == "Quuppa"
         ) {
-          console.log(JSON.stringify(channelInfo.agreementData));
           this.iBeaconBroadcastData = channelInfo.agreementData;
         } else if (this.frameType == "iBeacon") {
           this.iBeaconBroadcastData = channelInfo.agreementData;
@@ -640,19 +691,23 @@ export default {
         this.broadcastSliderValue = channelInfo.broadcastInterval;
         // 校准距离
         this.calibrationDistanceValue =
-          channelInfo.calibrationDistance - 0xff - 1;
+          channelInfo.calibrationDistance == 0
+            ? 0
+            : channelInfo.calibrationDistance - 0xff - 1;
         // 广播功率
-        console.log(11111122);
-        console.log(channelInfo.broadcastPowerValue);
         this.broadcastPowerValue = channelInfo.broadcastPowerValue * 10;
-        this.broadcastPowerPageValue = this.getBroadcastValue(
+        this.broadcastPowerPageValue = this.$storage.getBroadcastValue(
           channelInfo.broadcastPowerValue
         );
         // 触发器开关
         this.triggerSwitch = channelInfo.triggerSwitch;
         if (this.triggerSwitch) {
           this.triggerCondition =
-            this.triggerActions[channelInfo.triggerCondition - 1].name;
+            this.triggerActions[
+              channelInfo.triggerCondition <= 0
+                ? 1
+                : channelInfo.triggerCondition - 1
+            ].name;
         } else {
           this.triggerCondition = this.triggerActions[0].name;
         }
@@ -663,7 +718,7 @@ export default {
         // 广播功率
         this.triggerBroadcastPowerValue =
           channelInfo.triggerBroadcastPowerValue * 10;
-        this.triggerBroadcastPowerPageValue = this.getBroadcastValue(
+        this.triggerBroadcastPowerPageValue = this.$storage.getBroadcastValue(
           channelInfo.triggerBroadcastPowerValue
         );
         // 广播间隔
@@ -671,8 +726,9 @@ export default {
           ? channelInfo.txInterval
           : 100;
       } else {
-        this.broadcastPowerPageValue = 25;
-        this.triggerBroadcastPowerPageValue = 25;
+        this.broadcastPowerPageValue = 85;
+        this.triggerBroadcastPowerPageValue = 85;
+        this.triggerCondition = this.$i18n.t("baseButton.doubleClick");
       }
 
       // 通知下拉框
@@ -684,7 +740,12 @@ export default {
     callJs(e) {
       let result = e.data;
       let content = result.data;
-      if (result.eventName == instruct.NOTIFY_STATUS_CHANGE) {
+      if (result.eventName == "CONNECT_STATUS_CHANGE") {
+        Notify({
+          type: "danger",
+          message: this.$i18n.t("notifyMessage.base.bluetoothDisconnected"),
+        });
+      } else if (result.eventName == instruct.NOTIFY_STATUS_CHANGE) {
         if (content.type) {
           let notifyData = content.data;
           console.log(JSON.stringify(notifyData));
@@ -733,6 +794,8 @@ export default {
         this.iBeaconBroadcastData[0] = "http://www.";
         this.iBeaconBroadcastData[1] = "";
         this.iBeaconBroadcastData[2] = ".com";
+      } else if (this.frameType == "Coreaiot") {
+        this.iBeaconBroadcastData[0] = 0;
       } else {
         this.iBeaconBroadcastData = ["", "", "", ""];
       }
@@ -801,7 +864,7 @@ export default {
         this.saveForm.triggerBroadcastTime = 0;
         this.saveForm.triggerBroadcastInterval = 0;
         this.saveForm.triggerBroadcastPower = 0;
-        this.saveForm.triggerCondition = 0;
+        this.saveForm.triggerCondition = 1;
       }
 
       this.$androidApi.saveChannelConfig(this.saveForm).catch((errorMsg) => {
@@ -1039,57 +1102,6 @@ export default {
         str = str.toUpperCase();
       }
       this.iBeaconBroadcastData[index] = str;
-    },
-
-    getBroadcastValue(n) {
-      if (n == -19.5) {
-        return 5;
-      } else if (n == -13.5) {
-        return 15;
-      } else if (n == -10) {
-        return 25;
-      } else if (n == -7) {
-        return 35;
-      } else if (n == -5) {
-        return 45;
-      } else if (n == -3) {
-        return 55;
-      } else if (n == -2) {
-        return 65;
-      } else if (n == -1) {
-        return 75;
-      } else if (n == 0) {
-        return 85;
-      } else if (n == 1) {
-        return 95;
-      } else if (n == 1.5) {
-        return 105;
-      } else if (n == 2.5) {
-        return 115;
-      }
-      // else if (n > 10 && n <= 20) {
-      //   this.broadcastPowerValue = -135;
-      // } else if (n > 20 && n <= 30) {
-      //   this.broadcastPowerValue = -100;
-      // } else if (n > 30 && n <= 40) {
-      //   this.broadcastPowerValue = -70;
-      // } else if (n > 40 && n <= 50) {
-      //   this.broadcastPowerValue = -50;
-      // } else if (n > 50 && n <= 60) {
-      //   this.broadcastPowerValue = -30;
-      // } else if (n > 60 && n <= 70) {
-      //   this.broadcastPowerValue = -20;
-      // } else if (n > 70 && n <= 80) {
-      //   this.broadcastPowerValue = -10;
-      // } else if (n > 80 && n <= 90) {
-      //   this.broadcastPowerValue = 0;
-      // } else if (n > 90 && n <= 100) {
-      //   this.broadcastPowerValue = 10;
-      // } else if (n > 100 && n <= 110) {
-      //   this.broadcastPowerValue = 15;
-      // } else if (n > 110) {
-      //   this.broadcastPowerValue = 25;
-      // }
     },
   },
 };

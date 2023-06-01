@@ -1,27 +1,33 @@
 package com.ble.blescansdk.ble.entity.seek.thoroughfare;
 
-public class Info {
-    private String type;
+import java.util.List;
 
-    private String mac;
+public class Info {
+    private final String type;
+
+    private List<Integer> triggerCondition;
 
     public Info(String type) {
         this.type = type;
     }
 
-    public String getMac() {
-        return mac;
+    public List<Integer> getTriggerCondition() {
+        return triggerCondition;
     }
 
-    public Info setMac(String mac) {
-        this.mac = mac;
+    public String getType() {
+        return type;
+    }
+
+    public Info setTriggerCondition(List<Integer> triggerCondition) {
+        this.triggerCondition = triggerCondition;
         return this;
     }
 
     @Override
     public String toString() {
         return "Info{" +
-                "mac='" + mac + '\'' +
+                "mac='" + triggerCondition + '\'' +
                 '}';
     }
 }

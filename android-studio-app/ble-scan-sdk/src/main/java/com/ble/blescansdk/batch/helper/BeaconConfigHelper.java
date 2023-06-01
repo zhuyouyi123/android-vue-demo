@@ -24,6 +24,7 @@ import com.ble.blescansdk.ble.enums.seekstandard.ThoroughfareTypeEnum;
 import com.ble.blescansdk.ble.holder.SeekStandardDeviceHolder;
 import com.ble.blescansdk.ble.proxy.Rproxy;
 import com.ble.blescansdk.ble.proxy.request.ConnectRequest;
+import com.ble.blescansdk.ble.queue.retry.RetryDispatcher;
 import com.ble.blescansdk.ble.utils.AsciiUtil;
 import com.ble.blescansdk.ble.utils.BeaconCommUtil;
 import com.ble.blescansdk.ble.utils.BleLogUtil;
@@ -51,6 +52,8 @@ import java.util.concurrent.TimeUnit;
 
 public class BeaconConfigHelper {
     private static final String TAG = BeaconConfigHelper.class.getSimpleName();
+
+    private static final char KEY = 's';
 
     /**
      * 执行中
@@ -189,6 +192,13 @@ public class BeaconConfigHelper {
         @Override
         public void onConnectChange(SeekStandardDevice device, int status) {
             Log.i(TAG, "onConnectChange: " + status);
+            // 还在尝试重新连接
+            int retryCountByAddress = RetryDispatcher.getInstance().getRetryCountByAddress(device.getAddress());
+
+            if (retryCountByAddress == -1 && device.getConnectState() == 0) {
+                result = Result.fail(BatchConfigErrorEnum.DEVICE_CONNECTING_FAILED.getErrorCode());
+            }
+
         }
 
         @Override
@@ -220,12 +230,25 @@ public class BeaconConfigHelper {
         public void onChanged(SeekStandardDevice device, BluetoothGattCharacteristic characteristic) {
             byte[] characteristicValue = characteristic.getValue();
 
-            removeTimeoutMap(AsciiUtil.convertHexToString(ProtocolUtil.byteArrToHexStr(characteristicValue)));
+            String receiveMsg = AsciiUtil.convertHexToString(ProtocolUtil.byteArrToHexStr(characteristicValue));
 
-            BeaconCommEnum commEnum = BeaconCommUtil.getCommType(characteristicValue);
+            if (BleSdkManager.isEncryption()) {
+                char[] chars = receiveMsg.toCharArray();
+                for (int i = 0; i < chars.length; i++) {
+                    chars[i] ^= KEY;
+                }
+                receiveMsg = String.valueOf(chars);
+            }
+
+
+            removeTimeoutMap(receiveMsg);
+
+            BeaconCommEnum commEnum = BeaconCommUtil.getCommType(receiveMsg);
             if (null == commEnum) {
                 return;
             }
+
+            String[] split = BeaconCommUtil.replaceHeadAndTail(receiveMsg).split("_");
 
             RespVO handle = null;
 
@@ -233,7 +256,7 @@ public class BeaconConfigHelper {
                 switch (commEnum) {
                     case CHECK_SECRET_RESULT:
                         // 秘钥检验结果
-                        handle = BeaconCommEnum.CHECK_SECRET_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.CHECK_SECRET_RESULT.handle(split);
                         boolean isBatchConfigSecretKey = BeaconBatchConfigActuator.CURR_OPERATION_TYPE == BeaconBatchConfigActuator.BATCH_CONFIG_SECRET_KEY;
                         if (handle.getCode() == 0) {
                             if (StringUtils.isNotBlank(DATABASE_SECRET_KEY) && !"NULL".equals(DATABASE_SECRET_KEY)) {
@@ -262,14 +285,14 @@ public class BeaconConfigHelper {
                         break;
                     case READ_FACTORY_VERSION_INFO_RESPONSE:
                         // 读取出厂信息应答
-                        handle = BeaconCommEnum.READ_FACTORY_VERSION_INFO_RESPONSE.handle(characteristicValue);
+                        handle = BeaconCommEnum.READ_FACTORY_VERSION_INFO_RESPONSE.handle(split);
                         if (handle.getCode() != 0) {
                             result = Result.fail(BatchConfigErrorEnum.FACTORY_INFORMATION_READING_FAILED.getErrorCode());
                         }
                         break;
                     case READ_FACTORY_VERSION_INFO_RESULT:
                         // 读取出厂信息结果
-                        handle = BeaconCommEnum.READ_FACTORY_VERSION_INFO_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.READ_FACTORY_VERSION_INFO_RESULT.handle(split);
                         if (handle.getCode() != 0) {
                             result = Result.fail(BatchConfigErrorEnum.FACTORY_INFORMATION_READING_FAILED.getErrorCode());
                         } else {
@@ -316,24 +339,22 @@ public class BeaconConfigHelper {
                         break;
                     case UPDATE_SECRET_KEY_RESULT:
                         // 修改秘钥
-                        handle = BeaconCommEnum.UPDATE_SECRET_KEY_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.UPDATE_SECRET_KEY_RESULT.handle(split);
                         if (handle.getCode() == 0) {
-                            write(BeaconCommEnum.RESTART_BEACON_REQUEST, SECRET_KEY);
                             result = Result.success();
                         } else {
                             result = Result.fail(BatchConfigErrorEnum.KEY_CONFIGURATION_FAILED.getErrorCode());
                         }
                         break;
                     case CHANNEL_CONFIG_BEACON_RESPONSE:
-                        handle = BeaconCommEnum.CHANNEL_CONFIG_BEACON_RESPONSE.handle(characteristicValue);
+                        handle = BeaconCommEnum.CHANNEL_CONFIG_BEACON_RESPONSE.handle(split);
                         break;
                     case CHANNEL_CONFIG_BEACON_RESULT:
-                        handle = BeaconCommEnum.CHANNEL_CONFIG_BEACON_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.CHANNEL_CONFIG_BEACON_RESULT.handle(split);
                         if (handle.getCode() == 0) {
                             CONFIG_CHANNEL_NUM--;
                             Log.i(TAG, "onChanged: CONFIG_CHANNEL_NUM" + CONFIG_CHANNEL_NUM);
                             if (CONFIG_CHANNEL_NUM <= 0) {
-                                write(BeaconCommEnum.RESTART_BEACON_REQUEST, SECRET_KEY);
                                 result = Result.success();
                             }
                         } else {
@@ -342,11 +363,11 @@ public class BeaconConfigHelper {
                         break;
                     case NEED_SECRET_CONNECT_REQUEST:
                         // 秘钥
-                        handle = BeaconCommEnum.NEED_SECRET_CONNECT_REQUEST.handle(characteristicValue);
+                        handle = BeaconCommEnum.NEED_SECRET_CONNECT_REQUEST.handle(split);
                         break;
                     case NEED_SECRET_CONNECT_RESULT:
                         // 秘钥结果
-                        handle = BeaconCommEnum.NEED_SECRET_CONNECT_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.NEED_SECRET_CONNECT_RESULT.handle(split);
                         if (handle.getCode() == 0 && (boolean) handle.getData()) {
                             // 需要秘钥 校验秘
                             if ("NULL".equals(DATABASE_SECRET_KEY)) {
@@ -369,7 +390,7 @@ public class BeaconConfigHelper {
                         }
                         break;
                     case QUERY_CONFIG_AGREEMENT_RESULT:
-                        handle = BeaconCommEnum.QUERY_CONFIG_AGREEMENT_RESULT.handle(characteristicValue);
+                        handle = BeaconCommEnum.QUERY_CONFIG_AGREEMENT_RESULT.handle(split);
                         List<SeekStandardDeviceHolder.AgreementInfo> agreementInfoList = SeekStandardDeviceHolder.getInstance().getAgreementInfoList();
                         if (CollectionUtils.isNotEmpty(agreementInfoList) && agreementInfoList.size() == 6) {
                             // 通道信息读取完毕
@@ -480,7 +501,12 @@ public class BeaconConfigHelper {
             TIME_OUT_MAP.put(key, System.currentTimeMillis());
             BleLogUtil.i("TIME_OUT_MAP_ADD:" + key);
 
-            BleSdkManager.getInstance().write(bleDevice, instructions, bleWriteCallback);
+            if (BleSdkManager.isEncryption()) {
+                BleSdkManager.getInstance().writeEncryption(bleDevice, instructions, bleWriteCallback);
+            } else {
+                BleSdkManager.getInstance().write(bleDevice, instructions, bleWriteCallback);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             result = Result.fail(BatchConfigErrorEnum.DEVICE_WRITING_DATA_ERROR.getErrorCode());
@@ -540,8 +566,13 @@ public class BeaconConfigHelper {
                     return false;
                 }
             }
-            BleLogUtil.i(new Gson().toJson(beaconConfig));
-            BleLogUtil.i("2222222222");
+
+            // 触发方式是否支持ACC
+            if (beaconConfig.getTriggerSwitch() && beaconConfig.getTriggerCondition() == 3 && !SeekStandardDeviceHolder.getInstance().getSupportACC()) {
+                result = Result.fail(BatchConfigErrorEnum.DEVICE_NOT_SUPPORT_ACC.getErrorCode());
+                return false;
+            }
+
             if (beaconConfig.getAlwaysBroadcast()) {
                 existAlwaysBroadcast = true;
             }
@@ -603,9 +634,12 @@ public class BeaconConfigHelper {
                         continue;
                     } else if (ThoroughfareTypeEnum.I_BEACON == thoroughfareTypeEnum) {
                         if (null != info) {
-                            config.setResponseSwitch(info.getAgreementData().get(3).equals("1"));
+                            final boolean responseSwitch = info.getAgreementData().get(3).equals("1");
+                            config.setResponseSwitch(responseSwitch);
+                            if (responseSwitch && info.getAgreementData().size() > 4) {
+                                config.setDeviceName(info.getAgreementData().get(4));
+                            }
                             config.setBroadcastData(info.getAgreementData());
-                            config.setDeviceName(info.getAgreementData().get(4));
                         }
                     } else {
                         config.setBroadcastData(beaconConfig.getBroadcastDataList());
@@ -635,5 +669,19 @@ public class BeaconConfigHelper {
         }).start();
 
 
+    }
+
+    public void restartBeacon() {
+        try {
+            ConnectRequest<SeekStandardDevice> request = Rproxy.getRequest(ConnectRequest.class);
+            SeekStandardDevice bleDevice = request.getBleDevice(device.getAddress());
+
+            if (null != bleDevice && bleDevice.isConnected()) {
+                write(BeaconCommEnum.RESTART_BEACON_REQUEST, SECRET_KEY);
+                BleLogUtil.i("重启设备命令发送成功");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
