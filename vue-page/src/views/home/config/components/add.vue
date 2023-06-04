@@ -191,6 +191,7 @@
               maxlength="6"
               :placeholder="i18nInfo.addChannel.deviceNameContent"
               v-model.trim="deviceName"
+              @input="deviceNameInput"
             />
           </div>
 

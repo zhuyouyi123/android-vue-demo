@@ -154,17 +154,21 @@ public class ConnectRequest<T extends BleDevice> implements IConnectWrapperCallb
     }
 
     private void doConnectException(final T device, final int errorCode) {
-        runOnUiThread(() -> {
-            if (connectCallback != null) {
-                if (ErrorStatusEnum.BLUETOOTH_ALREADY_CONNECTED.getErrorCode() == errorCode) {
-                    connectCallback.onConnectSuccess(device);
-                } else {
-                    connectCallback.onConnectFailed(device, errorCode);
+        try {
+            runOnUiThread(() -> {
+                if (connectCallback != null) {
+                    if (ErrorStatusEnum.BLUETOOTH_ALREADY_CONNECTED.getErrorCode() == errorCode) {
+                        connectCallback.onConnectSuccess(device);
+                    } else {
+                        connectCallback.onConnectFailed(device, errorCode);
+                    }
                 }
+            });
+            for (BleConnectCallback<T> callback : connectInnerCallbacks) {
+                callback.onConnectFailed(device, errorCode);
             }
-        });
-        for (BleConnectCallback<T> callback : connectInnerCallbacks) {
-            callback.onConnectFailed(device, errorCode);
+        } catch (Exception e) {
+            BleLogUtil.e("连接异常：doConnectException():" + e.getMessage());
         }
     }
 
@@ -180,49 +184,48 @@ public class ConnectRequest<T extends BleDevice> implements IConnectWrapperCallb
         return connectedDevices.get(address);
     }
 
+    public void cancelConnectCallback() {
+        connectCallback = null;
+    }
+
     @Override
     public void onChange(T device) {
-        if (device == null) return;
-        String address = device.getAddress();
-        int status = device.getConnectState();
-        if (status == BleConnectStatusEnum.CONNECTING.getStatus()) {
-            connectedDevices.put(address, device);
-            devices.put(address, device);
-        } else if (device.getConnectState() == BleConnectStatusEnum.CONNECTED.getStatus()) {
-            device.setConnectState(BleConnectStatusEnum.CONNECTED.getStatus());
-            connectedDevices.put(address, device);
-            devices.put(address, device);
-            status = BleConnectStatusEnum.CONNECTED.getStatus();
-            BleLogUtil.d("onChange connect success");
-        } else if (device.getConnectState() == BleConnectStatusEnum.DISCONNECT.getStatus()) {
-            connectedDevices.remove(address);
-            devices.remove(address);
-            BleLogUtil.d("onChange connect error");
-        }
+        try {
+            if (device == null) return;
+            String address = device.getAddress();
+            int status = device.getConnectState();
+            if (status == BleConnectStatusEnum.CONNECTING.getStatus()) {
+                connectedDevices.put(address, device);
+                devices.put(address, device);
+            } else if (device.getConnectState() == BleConnectStatusEnum.CONNECTED.getStatus()) {
+                device.setConnectState(BleConnectStatusEnum.CONNECTED.getStatus());
+                connectedDevices.put(address, device);
+                devices.put(address, device);
+                status = BleConnectStatusEnum.CONNECTED.getStatus();
+                BleLogUtil.d("onChange connect success");
+                BleLogUtil.d("当前剩余重试次数：连接成功");
+            } else if (device.getConnectState() == BleConnectStatusEnum.DISCONNECT.getStatus()) {
+                connectedDevices.remove(address);
+                devices.remove(address);
+                BleLogUtil.d("onChange connect error");
+            }
 
-        int finalStatus = status;
-        runOnUiThread(() -> {
             if (connectCallback != null) {
                 SeekStandardDeviceHolder.getInstance().setConnectState(device.isConnected());
                 SeekStandardDeviceHolder.getInstance().setConnectable(device.isConnectable());
 
                 if (device.isConnected()) {
                     SeekStandardDeviceHolder.getInstance().setAddress(device.getAddress());
-//                    RetryDispatcher.getInstance().onConnectSuccess(device);
                     connectCallback.onConnectSuccess(device);
-                } else if (BleConnectStatusEnum.DISCONNECT.getStatus() == device.getConnectState()) {
-//                    SeekStandardDeviceHolder.getInstance().setAddress("");
-                    int retryCountByAddress = RetryDispatcher.getInstance().getRetryCountByAddress(device.getAddress());
-
-                    if (retryCountByAddress == 0) {
-                        connectCallback.onConnectFailed(device, ErrorStatusEnum.BLUETOOTH_CONNECT_ERROR.getErrorCode());
-                        return;
-                    }
+                    RetryDispatcher.getInstance().onConnectSuccess(device);
                 }
-//                RetryDispatcher.getInstance().onConnectChange(device, finalStatus);
-                connectCallback.onConnectChange(device, finalStatus);
+
+                connectCallback.onConnectChange(device, status);
+                RetryDispatcher.getInstance().onConnectChange(device, status);
             }
-        });
+        } catch (Exception e) {
+            BleLogUtil.e("连接异常：onChange():" + e.getMessage());
+        }
     }
 
     @Override

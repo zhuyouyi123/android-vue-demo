@@ -196,7 +196,7 @@ export default {
     },
 
     /**
-     * 处理连接状态
+     * 处理连接状态/
      */
     handleConnectState(status) {
       // 设置蓝牙连接状态
@@ -214,9 +214,8 @@ export default {
         }
       } else {
         if (this.notificationSwitch && !this.checkConnectStatus()) {
-          return;
+          this.bluetoothConnectStatus = 2;
         }
-        console.log("连接失败，退出页面");
         this.loading = false;
         this.exit();
       }
@@ -772,13 +771,13 @@ export default {
     exit() {
       console.log("执行退出页面============>");
       this.$router.replace("/home");
-      setTimeout(() => {
-        // 取消连接设备
-        deviceDetailHelper.cancelConnectDevice(this.address);
-      }, 1000);
       if (this.bluetoothConnectStatus == 2) {
         this.restartDevice();
       }
+      // 取消连接设备
+      setTimeout(() => {
+        deviceDetailHelper.cancelConnectDevice(this.address);
+      }, 20);
     },
 
     restartDevice() {

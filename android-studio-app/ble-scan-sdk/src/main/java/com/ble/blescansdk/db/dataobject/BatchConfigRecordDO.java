@@ -13,6 +13,9 @@ public class BatchConfigRecordDO {
 
     private Integer type;
 
+    /**
+     * {@link com.ble.blescansdk.db.enums.BatchConfigResultEnum}
+     */
     private Integer result;
 
     private String address;

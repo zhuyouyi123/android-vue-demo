@@ -6,6 +6,8 @@ public enum BatchConfigTypeEnum {
 
     SECRET_KEY(1, "SECRET_KEY"),
 
+    SHUTDOWN(2, "SHUTDOWN"),
+
     ;
 
     private final int code;

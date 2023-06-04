@@ -55,7 +55,13 @@ public class StandardThoroughfareInfo {
     }
 
     public StandardThoroughfareInfo setBattery(int battery) {
-        this.battery = Math.min(battery, 100);
+        if (battery > 100) {
+            this.battery = 100;
+        } else if (battery == 0) {
+            this.battery = 1;
+        } else {
+            this.battery = battery;
+        }
         return this;
     }
 

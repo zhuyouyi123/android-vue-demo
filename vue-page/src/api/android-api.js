@@ -154,8 +154,35 @@ export default {
     return request("post", "channel/batch/save/secret-key", params);
   },
 
+  batchShutdown(params) {
+    if (config.developmentMode) {
+      return newPromise(true);
+    }
+    return request("post", "channel/batch/shutdown", params);
+  },
+
   batchConfigChannelList(params) {
+    if (config.developmentMode) {
+      return newPromise();
+    }
     return request("get", "channel/batch/config/list", params);
+  },
+
+  /**
+   * 查询批量配置记录
+   * @param {查询类型} params
+   * @returns
+   */
+  queryBatchConfigRecord(params) {
+    if (config.developmentMode) {
+      return newPromise([
+        {
+          address: "19:18:FC:25:0C:01",
+          result: 0,
+        },
+      ]);
+    }
+    return request("get", "channel/batch/records", params);
   },
 
   /**

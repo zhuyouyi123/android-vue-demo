@@ -651,7 +651,7 @@ export default {
       line-height: 0.43rem;
 
       .basic-info {
-        height: 0.53rem;
+        min-height: 0.53rem;
         display: flex;
         justify-content: space-between;
       }

@@ -31,7 +31,6 @@ import com.google.gson.Gson;
 import com.seek.config.Config;
 import com.seek.config.entity.bo.ChannelConfigRetryBO;
 import com.seek.config.entity.enums.ErrorEnum;
-import com.seek.config.utils.I18nUtil;
 import com.seek.config.utils.JsBridgeUtil;
 
 import java.util.List;
@@ -103,10 +102,14 @@ public class SeekStandardCommunicationHelper {
         ConnectRequest<SeekStandardDevice> request = Rproxy.getRequest(ConnectRequest.class);
         SeekStandardDevice bleDevice = request.getConnectedDevice(address);
 
-        // 设备已连接
-        if (Objects.nonNull(bleDevice) && bleDevice.isConnected()) {
-            JsBridgeUtil.pushEvent(JsBridgeUtil.CONNECT_STATUS_CHANGE, JsBridgeUtil.success(bleDevice.getConnectState()));
-            return;
+        if (Objects.nonNull(bleDevice)) {
+            if (BleConnectStatusEnum.CONNECTING.getStatus() == bleDevice.getConnectState()) {
+                BleSdkManager.getInstance().cancelConnecting(bleDevice);
+            } else if (bleDevice.isConnected()) {
+                BleSdkManager.getInstance().disconnect(bleDevice);
+
+            }
+            BleSdkManager.getInstance().cancelCallback();
         }
 
         SeekStandardDevice scanDevice = SeekStandardBeaconStorage.getInstance().getScanDevice(address);
@@ -130,13 +133,15 @@ public class SeekStandardCommunicationHelper {
             return;
         }
 
-        if (bleDevice.isConnected()) {
+        if (BleConnectStatusEnum.CONNECTING.getStatus() == bleDevice.getConnectState()) {
+            BleSdkManager.getInstance().cancelConnecting(bleDevice);
+            BleLogUtil.i("蓝牙连接：执行取消操作");
+        } else {
             BleSdkManager.getInstance().disconnect(bleDevice);
+            BleLogUtil.i("蓝牙连接：执行断开操作");
         }
 
-        BleSdkManager.getInstance().cancelConnecting(bleDevice);
-
-        BleSdkManager.getInstance().releaseGatts();
+        BleSdkManager.getInstance().cancelCallback();
     }
 
     /**
@@ -295,16 +300,19 @@ public class SeekStandardCommunicationHelper {
                 JsBridgeUtil.pushEvent(JsBridgeUtil.CONNECT_STATUS_CHANGE, JsBridgeUtil.success(bleDevice.getConnectState()));
                 return;
             }
-            if (ErrorStatusEnum.BLUETOOTH_CONNECT_ERROR.getErrorCode() == errorCode) {
-                int retryCountByAddress = RetryDispatcher.getInstance().getRetryCountByAddress(bleDevice.getAddress());
+            int retryCountByAddress = RetryDispatcher.getInstance().getRetryCountByAddress(bleDevice.getAddress());
+
+            BleLogUtil.i("当前剩余重试次数：" + retryCountByAddress);
+            if (ErrorStatusEnum.BLUETOOTH_CONNECT_ERROR.getErrorCode() == errorCode || ErrorStatusEnum.BLUETOOTH_CONNECT_TIMEOUT.getErrorCode() == errorCode) {
                 if (retryCountByAddress > 0) {
-                    RetryDispatcher.getInstance().onConnectFailed(bleDevice, errorCode);
+//                    RetryDispatcher.getInstance().onConnectFailed(bleDevice, errorCode);
                     return;
                 }
             } else if (ErrorStatusEnum.BLUETOOTH_ALREADY_CONNECTED.getErrorCode() == errorCode) {
-                Toasty.success(Config.mainContext, ErrorEnum.getFailMessage(errorCode)).show();
                 JsBridgeUtil.pushEvent(JsBridgeUtil.CONNECT_STATUS_CHANGE, JsBridgeUtil.success(1));
+                return;
             }
+
             JsBridgeUtil.pushEvent(JsBridgeUtil.CONNECT_STATUS_CHANGE, JsBridgeUtil.fail(bleDevice.getConnectState()));
         }
     };
@@ -455,7 +463,6 @@ public class SeekStandardCommunicationHelper {
         @Override
         public void onWriteFailed(SeekStandardDevice bleDevice, int code) {
             BleLogUtil.i("Write Failed");
-            Toasty.error(Config.mainContext, ErrorEnum.getFailMessage(code)).show();
             JsBridgeUtil.pushEvent(JsBridgeUtil.WRITE_REPLY_RESULT, JsBridgeUtil.ERROR);
         }
     };

@@ -22,6 +22,8 @@ public class BatchChannelConfigDTO {
 
     private Boolean retry;
 
+    private Boolean clearHistory;
+
     public List<BeaconConfig> getChannelInfo() {
         if (StringUtils.isEmpty(beaconListJson)) {
             return new ArrayList<>();
@@ -62,5 +64,16 @@ public class BatchChannelConfigDTO {
             return false;
         }
         return retry;
+    }
+
+    public Boolean getClearHistory() {
+        if (null == clearHistory) {
+            return false;
+        }
+        return clearHistory;
+    }
+
+    public void setClearHistory(Boolean clearHistory) {
+        this.clearHistory = clearHistory;
     }
 }

@@ -208,7 +208,7 @@ export default {
         instanceContent: "长度12位,包含0-9/A-F",
         hwidContent: "长度10位,包含0-9/a-f/A-F",
         vendorKeyContent: "长度8位,包含0-9/a-f/A-F",
-        deviceNameContent: "长度6位,包含0-9/a-f/A-F",
+        deviceNameContent: "长度6位,包含0-9/a-z/A-Z",
         lotKeyContent: "长度16位,包含0-9/a-f/A-F",
         urlContent: "请输入网址",
         trigger: "触发器",

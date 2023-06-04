@@ -36,8 +36,8 @@ export default {
     sure: "Confirm",
     cancel: "Cancel",
     acceleration: "ACC",
-    doubleClick: "Double click the button",
-    tripleClick: "Three click button",
+    doubleClick: "Double click",
+    tripleClick: "Triple click",
   },
 
   home: {
@@ -46,13 +46,13 @@ export default {
       filter: "Filtering",
       language: "Language",
       batch: "Bulk",
-      batchConfigChannel: "Batch configuration channels",
-      batchConfigSecretKey: "Batch configuration key",
+      batchConfigChannel: "Batch config channels",
+      batchConfigSecretKey: "Batch config key",
       allDevice: "All devices",
       thisBrandDevice: "This brand of equipment",
       refresh: "Refresh",
       errorList: "Failure details",
-      selectAll: "select all",
+      selectAll: "ALL",
     },
 
     tips: {
@@ -93,7 +93,7 @@ export default {
       errorReason: "Reason for failure ",
     },
     scannedCount: "Number of devices scanned：",
-    individua: " individua",
+    individua: " pcs",
     triggerConditions: "triggered：",
     // 批量模式操作
     batchModelNotAllowedClick: "Batch mode cannot be used",
@@ -132,15 +132,15 @@ export default {
         open: "open",
         close: "close",
         // 恢复出厂设置
-        restoreFactorySettings: "Restore factory settings",
+        restoreFactorySettings: "Reset",
         // 关机
         shutdown: "Shutdown",
         // 配置通道
-        configureChannel: "Configure Channels",
+        configureChannel: "Config Channels",
         // 移除秘钥
         removeSecretKey: "Remove Key",
         // 修改秘钥
-        updateSecretKey: "Modify Secret Key",
+        updateSecretKey: "Modify Key",
         // 添加秘钥
         addSecretKey: "Add Secret Key",
         // 修改设备名称
@@ -244,9 +244,9 @@ export default {
         expand: "open",
       },
       lable: {
-        addChannel: "Add Channel",
-        cancelConfig: "Cancel configuration",
-        configCahnnel: "Configure Channels",
+        addChannel: "Add",
+        cancelConfig: "Cancel",
+        configCahnnel: "Config",
         configResult: "Configuration Results",
         triggerBroadcast: "Trigger broadcast",
         alwaysBroadcast: "Always broadcast",
@@ -255,7 +255,7 @@ export default {
       message: {
         configuration: "In configuration",
         addChannelFirst: "Please add a channel first",
-        individua: "individual",
+        individua: "pcs",
         notOnlyExistCoreaiot:
           "The device cannot only have the Coreaiot protocol",
         atLeastOneAlwaysBroadcast:

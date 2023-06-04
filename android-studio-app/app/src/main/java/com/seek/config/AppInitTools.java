@@ -7,6 +7,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
@@ -84,11 +85,11 @@ public class AppInitTools extends AppCompatActivity {
         if (null == cacheConfig) {
             BleSdkManager.getBleOptions().setLogSwitch(true)
                     .setIntermittentScanning(true)
-                    .setScanPeriod(10000)
+                    .setScanPeriod(20000)
                     .setIntermittentTime(1000)
                     .setContinuousScanning(false)
-                    .setConnectFailedRetryCount(2)
-                    .setConnectTimeout(5000)
+                    .setConnectFailedRetryCount(1)
+                    .setConnectTimeout(10_000)
                     .setDatabaseSupport(true)
                     .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_BALANCED);
         } else {

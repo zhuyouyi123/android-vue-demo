@@ -53,7 +53,7 @@ public class RetryDispatcher<T extends BleDevice> extends BleConnectCallback<T> 
 
     @Override
     public void onConnectChange(BleDevice device, int status) {
-        if (device.getConnectState() == BleConnectStatusEnum.CONNECTED.getStatus()) {
+        if (device.isConnected()) {
             String key = device.getAddress();
             deviceRetryMap.remove(key);
             BleLogUtil.i("当前剩余重试次数,已连接清空");
@@ -62,7 +62,7 @@ public class RetryDispatcher<T extends BleDevice> extends BleConnectCallback<T> 
 
     @Override
     public void onConnectSuccess(T device) {
-        if (device.getConnectState() == BleConnectStatusEnum.CONNECTED.getStatus()) {
+        if (device.isConnected()) {
             String key = device.getAddress();
             deviceRetryMap.remove(key);
             BleLogUtil.i("当前剩余重试次数,已连接清空");
@@ -75,10 +75,10 @@ public class RetryDispatcher<T extends BleDevice> extends BleConnectCallback<T> 
             String key = device.getAddress();
             int connectFailedRetryCount = BleSdkManager.getBleOptions().getConnectFailedRetryCount();
             if (connectFailedRetryCount <= 0) return;
-            Integer retryCount = connectFailedRetryCount;
-            if (deviceRetryMap.containsKey(key)) {
-                retryCount = deviceRetryMap.get(key);
+            if (!deviceRetryMap.containsKey(key)) {
+                return;
             }
+            Integer retryCount = deviceRetryMap.get(key);
 
             if (retryCount == null || retryCount <= 0) {
                 deviceRetryMap.remove(key);
@@ -87,6 +87,8 @@ public class RetryDispatcher<T extends BleDevice> extends BleConnectCallback<T> 
             BleLogUtil.i("尝试重新连接" + retryCount);
 
             deviceRetryMap.put(key, retryCount - 1);
+
+
             retry(device);
         }
     }

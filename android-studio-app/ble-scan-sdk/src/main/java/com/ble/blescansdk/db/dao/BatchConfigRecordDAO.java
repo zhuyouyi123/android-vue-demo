@@ -21,8 +21,14 @@ public interface BatchConfigRecordDAO {
     @Query("SELECT * FROM BATCH_CONFIG_RECORD")
     List<BatchConfigRecordDO> list();
 
+    @Query("SELECT * FROM BATCH_CONFIG_RECORD WHERE address=:address")
+    BatchConfigRecordDO queryOne(String address);
+
     @Query("SELECT * FROM BATCH_CONFIG_RECORD WHERE result=:resultCode")
     List<BatchConfigRecordDO> listByResult(int resultCode);
+
+    @Query("SELECT * FROM BATCH_CONFIG_RECORD WHERE type=:typeCode")
+    List<BatchConfigRecordDO> listByType(int typeCode);
 
     @Query("DELETE FROM BATCH_CONFIG_RECORD ")
     void deleteAll();

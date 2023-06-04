@@ -72,14 +72,14 @@ export default {
                   key: "APP_TYPE",
                   value: "SHUTDOWN",
                 });
+                this.$router.replace("/home1");
               } else {
                 this.$androidApi.shareSet({
                   key: "APP_TYPE",
                   value: "CONFIG",
                 });
+                this.$router.replace("/home");
               }
-
-              Notify({ type: "danger", message: "请退出APP重新进入" });
             })
             .catch(() => {
               this.num = 0;

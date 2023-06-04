@@ -2,6 +2,7 @@ package com.seek.config.services;
 
 import com.ble.blescansdk.batch.BeaconBatchConfigActuator;
 import com.seek.config.entity.dto.channel.BatchChannelConfigDTO;
+import com.seek.config.entity.dto.channel.BatchConfigListQueryDTO;
 import com.seek.config.entity.dto.channel.ChannelConfigDTO;
 import com.seek.config.entity.response.RespVO;
 import com.seek.config.entity.vo.channel.BatchConfigRecordVO;
@@ -30,11 +31,23 @@ public interface ChannelService {
     boolean beaconBatchConfigSecretKey(BatchChannelConfigDTO dto);
 
     /**
+     * 批量关机
+     */
+    boolean beaconBatchShutdown(BatchChannelConfigDTO dto);
+
+    /**
      * 获取批量配置结果列表
      *
      * @return 结果
      */
     List<BeaconBatchConfigActuator.ExecutorResult> getBatchConfigList();
+
+    /**
+     * 查询批量记录
+     *
+     * @return 结果
+     */
+    List<BatchConfigRecordVO> queryBatchRecord(BatchConfigListQueryDTO dto);
 
     /**
      * 查询批量配置失败列表

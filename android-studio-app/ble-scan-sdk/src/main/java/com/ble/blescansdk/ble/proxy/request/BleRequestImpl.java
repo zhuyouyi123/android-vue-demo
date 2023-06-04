@@ -123,20 +123,19 @@ public class BleRequestImpl<T extends BleDevice> {
             return false;
         }
 
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (bleDevice.getConnectState()==BleConnectStatusEnum.DISCONNECT.getStatus()){
-                    connectWrapperCallback.onFailed(bleDevice, ErrorStatusEnum.BLUETOOTH_CONNECT_TIMEOUT.getErrorCode());
-                }
+        handler.postDelayed(() -> {
+            if (bleDevice.getConnectState() == BleConnectStatusEnum.DISCONNECT.getStatus() || bleDevice.getConnectState() == BleConnectStatusEnum.CONNECTING.getStatus()) {
+                connectWrapperCallback.onFailed(bleDevice, ErrorStatusEnum.BLUETOOTH_CONNECT_TIMEOUT.getErrorCode());
+                close(address);
             }
         }, options.getConnectTimeout());
-//        HandlerCompat.postDelayed(handler, () -> ), device.getAddress(), options.getConnectTimeout());
         bleDevice.setConnectState(BleConnectStatusEnum.CONNECTING.getStatus());
         bleDevice.setName(device.getName());
         connectWrapperCallback.onChange(bleDevice);
         // 我们想直接连接到设备，所以我们将autoConnect参数设置为false
         BluetoothGatt bluetoothGatt;
+
+        BleLogUtil.i("当前剩余重试次数:开始进行连接");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && device.getType() == BluetoothDevice.DEVICE_TYPE_DUAL) {
             bluetoothGatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE);
         } else {
@@ -184,14 +183,17 @@ public class BleRequestImpl<T extends BleDevice> {
      * @param address 蓝牙地址
      */
     public void disconnect(String address) {
-        BluetoothGatt gatt = getBluetoothGatt(address);
-        if (gatt != null) {
-            gatt.disconnect();
+        try {
+            BluetoothGatt gatt = getBluetoothGatt(address);
+            if (gatt != null) {
+                gatt.disconnect();
+            }
+            notifyCharacteristics.clear();
+            writeCharacteristicMap.remove(address);
+            readCharacteristicMap.remove(address);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        //notifyIndex = 0;
-        notifyCharacteristics.clear();
-        writeCharacteristicMap.remove(address);
-        readCharacteristicMap.remove(address);
     }
 
 
@@ -223,16 +225,6 @@ public class BleRequestImpl<T extends BleDevice> {
         return false;
     }
 
-    public boolean readCharacteristicByUuid(String address, UUID serviceUUID, UUID characteristicUUID) {
-        BluetoothGatt bluetoothGatt = getBluetoothGatt(address);
-        BluetoothGattCharacteristic gattCharacteristic = gattCharacteristic(bluetoothGatt, serviceUUID, characteristicUUID);
-        if (gattCharacteristic != null) {
-            boolean result = bluetoothGatt.readCharacteristic(gattCharacteristic);
-            BleLogUtil.d(TAG, address + " -- read result:" + result);
-            return result;
-        }
-        return false;
-    }
     // ############################### read end##################################
 
 
@@ -315,6 +307,14 @@ public class BleRequestImpl<T extends BleDevice> {
             }
             return;
         }
+
+        if (null == gatt) {
+            if (notifyWrapperCallback != null) {
+                notifyWrapperCallback.onNotifyFailed(null, ErrorStatusEnum.NOT_EXIST_UUID.getErrorCode());
+            }
+            return;
+        }
+
         gatt.setCharacteristicNotification(characteristic, enabled);
         //If the number of descriptors in the eigenvalue of the notification is greater than zero
         List<BluetoothGattDescriptor> descriptors = characteristic.getDescriptors();

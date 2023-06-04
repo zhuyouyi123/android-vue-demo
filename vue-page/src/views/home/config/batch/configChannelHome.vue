@@ -370,58 +370,6 @@ export default {
       }
       done();
     },
-
-    queryConfigResultList() {
-      if (this.interval) {
-        clearInterval(this.interval);
-      }
-      this.interval = setInterval(() => {
-        this.$androidApi.batchConfigChannelList().then((res) => {
-          console.log(res);
-          let num = 0;
-          let successNum = 0;
-          let failNum = 0;
-          if (res && res.length > 0) {
-            res.forEach((e) => {
-              if (e.state != 1) {
-                num++;
-                if (e.state == 0) {
-                  successNum++;
-                } else {
-                  failNum++;
-                }
-              }
-            });
-            this.alreadConfigNum = num;
-            if (num == this.allConfigNum) {
-              this.executable = false;
-              clearInterval(this.interval);
-              this.configOverlay = false;
-              Dialog.confirm({
-                title: this.batchI18nInfo.lable.configResult,
-                message:
-                  "本次配置共" +
-                  this.allConfigNum +
-                  "个设备：<br>" +
-                  "成功：" +
-                  successNum +
-                  this.batchI18nInfo.message.individua +
-                  "，失败：" +
-                  failNum +
-                  this.batchI18nInfo.message.individua,
-                className: "warnDialogClass",
-                cancelButtonText: this.batchI18nInfo.button.errorList,
-                confirmButtonText: this.$i18n.t("baseButton.sure"),
-                theme: "round-button",
-                messageAlign: "left",
-              })
-                .then(() => {})
-                .catch(() => {});
-            }
-          }
-        });
-      }, 1500);
-    },
   },
 };
 </script>

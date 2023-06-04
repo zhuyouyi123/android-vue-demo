@@ -65,28 +65,25 @@ public class BeaconBatchConfigActuator {
 
     public static int CURR_OPERATION_TYPE = BatchConfigTypeEnum.CHANNEL.getCode();
 
-    public static final int BATCH_CONFIG_CHANNEL = BatchConfigTypeEnum.CHANNEL.getCode();
-    public static final int BATCH_CONFIG_SECRET_KEY = BatchConfigTypeEnum.SECRET_KEY.getCode();
-
 
     public static final BeaconConfigCallback CALLBACK = new BeaconConfigCallback() {
         @Override
         public void success(String address) {
-            System.out.println("执行成功------");
             TO_BE_CINFIGURED_MAP.remove(address);
             EXECUTOR_RESULT_MAP.put(address, ExecutorResult.success());
             BatchConfigRecordHelper.save(address, BatchConfigResultEnum.SUCCESS, BatchConfigTypeEnum.getByCode(CURR_OPERATION_TYPE), 0);
             BeaconConfigHelper.getInstance().restartBeacon();
+            BeaconConfigHelper.getInstance().disconnect();
             BeaconConfigHelper.getInstance().release();
         }
 
         @Override
         public void fail(String address, int code) {
-            System.out.println("执行失败------" + code);
             TO_BE_CINFIGURED_MAP.remove(address);
             EXECUTOR_RESULT_MAP.put(address, ExecutorResult.fail(code));
             BatchConfigRecordHelper.save(address, BatchConfigResultEnum.FAIL, BatchConfigTypeEnum.getByCode(CURR_OPERATION_TYPE), code);
             BeaconConfigHelper.getInstance().restartBeacon();
+            BeaconConfigHelper.getInstance().disconnect();
             BeaconConfigHelper.getInstance().release();
         }
     };
@@ -104,20 +101,47 @@ public class BeaconBatchConfigActuator {
             return false;
         }
 
+        if (CollectionUtils.isEmpty(addressList)) {
+            return false;
+        }
+
+        if (StringUtils.isBlank(secret)) {
+            return false;
+        }
+
+
         beaconConfigList = new ArrayList<>(configs);
-        CURR_OPERATION_TYPE = BATCH_CONFIG_CHANNEL;
+        CURR_OPERATION_TYPE = BatchConfigTypeEnum.CHANNEL.getCode();
         return initParams(addressList, secret);
     }
 
     public boolean secretKeyConfigInit(List<String> addressList, String oldSecret, String newSecret) {
+        if (CollectionUtils.isEmpty(addressList)) {
+            return false;
+        }
+
         if (StringUtils.isBlank(oldSecret) || StringUtils.isBlank(newSecret)) {
             return false;
         }
 
         oldSecretKey = oldSecret;
-        CURR_OPERATION_TYPE = BATCH_CONFIG_SECRET_KEY;
+        CURR_OPERATION_TYPE = BatchConfigTypeEnum.SECRET_KEY.getCode();
 
         return initParams(addressList, newSecret);
+    }
+
+    public boolean shutdownInit(List<String> addressList, String secretKey) {
+        if (CollectionUtils.isEmpty(addressList)) {
+            return false;
+        }
+
+        if (StringUtils.isBlank(secretKey)) {
+            return false;
+        }
+
+        CURR_OPERATION_TYPE = BatchConfigTypeEnum.SHUTDOWN.getCode();
+
+        return initParams(addressList, secretKey);
     }
 
 
@@ -185,10 +209,12 @@ public class BeaconBatchConfigActuator {
             SeekStandardDevice device = new SeekStandardDevice();
             device.setAddress(address);
 
-            if (CURR_OPERATION_TYPE == BATCH_CONFIG_CHANNEL) {
+            if (BatchConfigTypeEnum.CHANNEL.getCode() == CURR_OPERATION_TYPE) {
                 BeaconConfigHelper.getInstance().init(device, beaconConfigList, secretKey, "");
-            } else {
+            } else if (BatchConfigTypeEnum.SECRET_KEY.getCode() == CURR_OPERATION_TYPE) {
                 BeaconConfigHelper.getInstance().init(device, new ArrayList<>(), secretKey, oldSecretKey);
+            } else {
+                BeaconConfigHelper.getInstance().init(device, new ArrayList<>(), secretKey, "");
             }
 
             BeaconConfigHelper.getInstance().execute();
@@ -206,6 +232,7 @@ public class BeaconBatchConfigActuator {
                     // 等待任务执行结束
                 } catch (InterruptedException e) {
                     BeaconConfigHelper.getInstance().restartBeacon();
+                    BeaconConfigHelper.getInstance().disconnect();
                     BeaconConfigHelper.getInstance().release();
                     throw new RuntimeException(e);
                 }

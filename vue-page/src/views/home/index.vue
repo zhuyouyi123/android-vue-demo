@@ -95,7 +95,7 @@
         </div>
         <div class="division-line"></div>
         <div class="count">
-          <div>
+          <div class="scan-info">
             {{ i18nInfo.scannedCount }}{{ count }}{{ i18nInfo.individua }}
           </div>
           <div
@@ -777,36 +777,55 @@ export default {
     },
 
     handleBatchScanResult(data) {
-      let scanDataSplit = data.split("_");
+      data = data.trim().replace(/:/g, "");
       let map = new Map();
-      // 19:18:FC:09:DA:EC_19:18:FC:09:DA:ED
-      let startMac, endMac;
-      if (scanDataSplit.length == 2) {
-        startMac = parseInt(scanDataSplit[0], 16);
-        endMac = parseInt(scanDataSplit[1], 16);
-      }
-      // 19:18:FC:09:DA:EC_1918FC80-B111-3441-A9AC-B1001C2FE510_20001_18851
-      else if (scanDataSplit.length == 4) {
-        startMac = parseInt(scanDataSplit[0], 16);
-        endMac = startMac;
-      }
-      // 19:18:FC:09:DA:EC_1918FC80-B111-3441-A9AC-B1001C2FE510_20001_18851_16
-      else if (scanDataSplit.length == 5) {
-        startMac = parseInt(scanDataSplit[0], 16);
-        endMac = startMac + parseInt(scanDataSplit[4]) - 1;
-      }
-
-      for (let i = 0; i <= endMac - startMac; i++) {
-        map.set((startMac + i).toString(16).toUpperCase(), startMac + i);
-      }
-
-      if (map.size > 0) {
-        this.list.forEach((e) => {
-          let mac = e.address.replace(/:/g, "");
-          if (map.has(mac)) {
-            e.selected = true;
+      if (this.macReg(data)) {
+        map.set(data.toUpperCase(), data);
+      } else {
+        let scanDataSplit = data.split("-");
+        let startMac, endMac;
+        if (scanDataSplit.length == 2) {
+          startMac = parseInt(scanDataSplit[0], 16);
+          endMac = parseInt(scanDataSplit[1], 16);
+          for (let i = 0; i <= endMac - startMac; i++) {
+            map.set((startMac + i).toString(16).toUpperCase(), startMac + i);
           }
-        });
+        } else {
+          scanDataSplit = data.split("_");
+          // 19:18:FC:09:DA:EC_19:18:FC:09:DA:ED
+          if (scanDataSplit.length == 2) {
+            startMac = parseInt(scanDataSplit[0], 16);
+            endMac = parseInt(scanDataSplit[1], 16);
+          }
+          // 19:18:FC:09:DA:EC_1918FC80-B111-3441-A9AC-B1001C2FE510_20001_18851
+          else if (scanDataSplit.length == 4) {
+            startMac = parseInt(scanDataSplit[0], 16);
+            endMac = startMac;
+          }
+          // 19:18:FC:09:DA:EC_1918FC80-B111-3441-A9AC-B1001C2FE510_20001_18851_16
+          else if (scanDataSplit.length == 5) {
+            startMac = parseInt(scanDataSplit[0], 16);
+            endMac = startMac + parseInt(scanDataSplit[4]) - 1;
+          }
+
+          for (let i = 0; i <= endMac - startMac; i++) {
+            map.set((startMac + i).toString(16).toUpperCase(), startMac + i);
+          }
+        }
+      }
+      if (map.size > 0) {
+        for (let i = 0; i < this.list.length; i++) {
+          const device = this.list[i];
+          let mac = device.address.replace(/:/g, "");
+          if (map.has(mac)) {
+            device.selected = true;
+            this.$set(this.list, i, device);
+          }
+        }
+        let unselectList = this.list.filter((e) => !e.selected);
+        if (unselectList.length == 0) {
+          this.batchSelectAllCheck = true;
+        }
       }
     },
 
@@ -951,9 +970,9 @@ export default {
     },
 
     scanQrCode() {
-      if (!this.checkBatchModel()) {
-        return;
-      }
+      // if (!this.checkBatchModel()) {
+      //   return;
+      // }
       this.$androidApi.scanQrCode();
     },
 
@@ -1219,7 +1238,7 @@ export default {
             }
           }
         });
-      }, 1000);
+      }, 1500);
     },
 
     /**
@@ -1356,6 +1375,11 @@ export default {
     languageCancel(e) {
       console.log(e);
     },
+
+    macReg(value) {
+      let reg = /^[0-9a-fA-F]{12}$/;
+      return reg.test(value);
+    },
   },
 };
 </script>
@@ -1398,7 +1422,7 @@ export default {
 
     .count {
       // width: 3.81rem;
-      height: 0.8rem;
+      height: 0.82rem;
       font-size: 0.32rem;
       font-family: Source Han Sans CN-Regular, Source Han Sans CN;
       font-weight: 400;
@@ -1407,6 +1431,9 @@ export default {
       align-items: center;
       justify-content: space-between;
       padding: 0 0.26rem;
+      .scan-info {
+        font-size: 0.26rem;
+      }
       .select-all-box {
         display: flex;
         align-items: center;
@@ -1414,8 +1441,8 @@ export default {
           margin-right: 0.1rem;
         }
         .van-image {
-          width: 0.45rem;
-          height: 0.45rem;
+          width: 0.42rem;
+          height: 0.42rem;
         }
       }
     }
@@ -1690,10 +1717,10 @@ export default {
     width: 7rem;
 
     .van-button {
-      width: 3.2rem;
+      width: 3.4rem;
       height: 0.88rem;
       border-radius: 0.44rem 0.44rem 0.44rem 0.44rem;
-      font-size: 0.31rem;
+      font-size: 0.26rem;
       font-family: PingFang SC-Regular, PingFang SC;
       font-weight: 400;
       line-height: 0.29rem;

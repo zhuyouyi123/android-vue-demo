@@ -20,10 +20,10 @@ import java.util.concurrent.Executors;
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 public class ThreadUtils {
 
-    private static ExecutorService executorService = Executors.newCachedThreadPool();
+    private static final ExecutorService executorService = Executors.newCachedThreadPool();
     private static Executor mParallelExecutor = AsyncTask.THREAD_POOL_EXECUTOR;//最多为5个线程  可以并发执行(也就是说最多只有5个线程同时运行，超过5个的就要等待)  异步线程池
     private static Executor mSerialExecutor = AsyncTask.SERIAL_EXECUTOR;//按照顺序执行  同步线程池(系统默认使用的)
-    private static Handler sHandler = new Handler(Looper.getMainLooper());
+    private static final Handler sHandler = new Handler(Looper.getMainLooper());
 
     private ThreadUtils() {
         mParallelExecutor = THREAD_POOL_EXECUTOR;

@@ -132,7 +132,6 @@ public final class BleSdkManager<T extends BleDevice> {
     public void cancelConnecting(T device) {
         synchronized (locker) {
             request.cancelConnecting(device);
-
         }
     }
 
@@ -202,6 +201,11 @@ public final class BleSdkManager<T extends BleDevice> {
     }
 
 
+    public void cancelCallback() {
+        ConnectRequest<T> request = Rproxy.getRequest(ConnectRequest.class);
+        request.cancelConnectCallback();
+    }
+
     /**
      * Release Empty all resources
      */
@@ -226,7 +230,7 @@ public final class BleSdkManager<T extends BleDevice> {
     public boolean batchConfigChannel(List<String> addressList, List<BeaconConfig> configs, String secretKey) {
         if (BeaconBatchConfigActuator.getInstance().channelConfigInit(addressList, configs, secretKey)) {
             BatchConfigRecordHelper.deleteByType(BatchConfigTypeEnum.CHANNEL);
-
+            BleLogUtil.i("批量配置通道：删除数据类型为通道的数据");
             SharePreferenceUtil.getInstance().shareSet(SharePreferenceUtil.BATCH_CONFIG_CHANNEL_LIST_KEY, new Gson().toJson(configs));
             BeaconBatchConfigActuator.getInstance().start();
             return true;
@@ -237,6 +241,17 @@ public final class BleSdkManager<T extends BleDevice> {
     public boolean batchConfigSecretKey(List<String> addressList, String secretKey, String oldSecretKey) {
         if (BeaconBatchConfigActuator.getInstance().secretKeyConfigInit(addressList, oldSecretKey, secretKey)) {
             BatchConfigRecordHelper.deleteByType(BatchConfigTypeEnum.SECRET_KEY);
+            BeaconBatchConfigActuator.getInstance().start();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean batchShutdown(List<String> addressList, String secretKey, boolean clearHistory) {
+        if (BeaconBatchConfigActuator.getInstance().shutdownInit(addressList, secretKey)) {
+            if (clearHistory) {
+                BatchConfigRecordHelper.deleteByType(BatchConfigTypeEnum.SHUTDOWN);
+            }
             BeaconBatchConfigActuator.getInstance().start();
             return true;
         }

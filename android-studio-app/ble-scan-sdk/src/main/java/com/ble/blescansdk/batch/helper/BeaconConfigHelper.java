@@ -18,6 +18,7 @@ import com.ble.blescansdk.ble.entity.RespVO;
 import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
 import com.ble.blescansdk.ble.entity.seek.config.ChannelConfig;
 import com.ble.blescansdk.ble.enums.BeaconCommEnum;
+import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
 import com.ble.blescansdk.ble.enums.BroadcastPowerEnum;
 import com.ble.blescansdk.ble.enums.batch.BatchConfigErrorEnum;
 import com.ble.blescansdk.ble.enums.seekstandard.ThoroughfareTypeEnum;
@@ -34,6 +35,7 @@ import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.ble.blescansdk.ble.utils.StringUtils;
 import com.ble.blescansdk.db.SdkDatabase;
 import com.ble.blescansdk.db.dataobject.SecretKeyDO;
+import com.ble.blescansdk.db.enums.BatchConfigTypeEnum;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -91,6 +93,8 @@ public class BeaconConfigHelper {
 
     private static final ConcurrentMap<String, Long> TIME_OUT_MAP = new ConcurrentHashMap<>();
 
+    private static boolean notifyOpen = false;
+
     /**
      * 读取通道信息序号 范围0-5
      */
@@ -107,13 +111,16 @@ public class BeaconConfigHelper {
         device = seekStandardDevice;
         beaconConfigList = beaconConfigs;
 
-        for (int i = 0; i < beaconConfigList.size(); i++) {
-            beaconConfigList.get(i).setChannelNumber(i);
+        if (CollectionUtils.isNotEmpty(beaconConfigs)) {
+            for (int i = 0; i < beaconConfigList.size(); i++) {
+                beaconConfigList.get(i).setChannelNumber(i);
+            }
         }
 
         READ_CHANNEL_INFO_INDEX = 0;
         CONFIG_CHANNEL_NUM = 0;
         SECRET_KEY = secretKey;
+        notifyOpen = false;
         if (StringUtils.isNotBlank(oldSecretKey)) {
             OLD_SECRET_KEY = oldSecretKey;
         }
@@ -156,6 +163,7 @@ public class BeaconConfigHelper {
         SECRET_KEY = "CDEFGH";
         OLD_SECRET_KEY = "";
         DATABASE_SECRET_KEY = "";
+        notifyOpen = false;
         if (null != scheduledExecutorService && !scheduledExecutorService.isShutdown()) {
             scheduledExecutorService.shutdown();
         }
@@ -173,6 +181,9 @@ public class BeaconConfigHelper {
             for (Map.Entry<String, Long> longEntry : TIME_OUT_MAP.entrySet()) {
                 if (System.currentTimeMillis() - longEntry.getValue() > 5000) {
                     BleLogUtil.i("TIME_OUT_MAP_TIMEOUT:" + longEntry.getKey());
+                    if (null != checkSelfScheduledExecutorService && !checkSelfScheduledExecutorService.isShutdown()) {
+                        checkSelfScheduledExecutorService.shutdown();
+                    }
                     result = Result.fail(BatchConfigErrorEnum.COMMAND_EXECUTION_TIMEOUT.getErrorCode());
                 }
             }
@@ -206,6 +217,13 @@ public class BeaconConfigHelper {
             Log.i(TAG, "onConnectSuccess: 准备开启通知");
             // 连接成功开启通道
             handle.postDelayed(() -> BleSdkManager.getInstance().startNotify(device, bleNotifyCallback), 1200);
+
+            // 五秒后校验下通知是否打开了
+            handle.postDelayed(() -> {
+                if (!notifyOpen) {
+                    result = Result.fail(BatchConfigErrorEnum.NOTIFICATION_OPENING_FAILED.getErrorCode());
+                }
+            }, 5000);
         }
 
         /**
@@ -257,7 +275,7 @@ public class BeaconConfigHelper {
                     case CHECK_SECRET_RESULT:
                         // 秘钥检验结果
                         handle = BeaconCommEnum.CHECK_SECRET_RESULT.handle(split);
-                        boolean isBatchConfigSecretKey = BeaconBatchConfigActuator.CURR_OPERATION_TYPE == BeaconBatchConfigActuator.BATCH_CONFIG_SECRET_KEY;
+                        boolean isBatchConfigSecretKey = BeaconBatchConfigActuator.CURR_OPERATION_TYPE == BatchConfigTypeEnum.SECRET_KEY.getCode();
                         if (handle.getCode() == 0) {
                             if (StringUtils.isNotBlank(DATABASE_SECRET_KEY) && !"NULL".equals(DATABASE_SECRET_KEY)) {
                                 if (isBatchConfigSecretKey) {
@@ -268,6 +286,8 @@ public class BeaconConfigHelper {
                             }
                             if (isBatchConfigSecretKey) {
                                 write(BeaconCommEnum.UPDATE_SECRET_KEY_REQUEST, OLD_SECRET_KEY, SECRET_KEY);
+                            } else if (BatchConfigTypeEnum.SHUTDOWN.getCode() == BeaconBatchConfigActuator.CURR_OPERATION_TYPE) {
+                                write(BeaconCommEnum.SHUTDOWN_REQUEST, "");
                             } else {
                                 // 读取出厂信息
                                 write(BeaconCommEnum.READ_FACTORY_VERSION_INFO_REQUEST, "");
@@ -361,10 +381,6 @@ public class BeaconConfigHelper {
                             result = Result.fail(BatchConfigErrorEnum.CHANNEL_CONFIGURATION_FAILED.getErrorCode());
                         }
                         break;
-                    case NEED_SECRET_CONNECT_REQUEST:
-                        // 秘钥
-                        handle = BeaconCommEnum.NEED_SECRET_CONNECT_REQUEST.handle(split);
-                        break;
                     case NEED_SECRET_CONNECT_RESULT:
                         // 秘钥结果
                         handle = BeaconCommEnum.NEED_SECRET_CONNECT_RESULT.handle(split);
@@ -372,21 +388,33 @@ public class BeaconConfigHelper {
                             // 需要秘钥 校验秘
                             if ("NULL".equals(DATABASE_SECRET_KEY)) {
                                 DATABASE_SECRET_KEY = "";
-                                if (BeaconBatchConfigActuator.CURR_OPERATION_TYPE == BeaconBatchConfigActuator.BATCH_CONFIG_SECRET_KEY && StringUtils.isNotBlank(OLD_SECRET_KEY)) {
+                                if (BeaconBatchConfigActuator.CURR_OPERATION_TYPE == BatchConfigTypeEnum.SECRET_KEY.getCode() && StringUtils.isNotBlank(OLD_SECRET_KEY)) {
                                     write(BeaconCommEnum.CHECK_SECRET_REQUEST, OLD_SECRET_KEY, OLD_SECRET_KEY);
                                 } else {
+                                    // 批量配置通道 或者 批量关机
                                     write(BeaconCommEnum.CHECK_SECRET_REQUEST, SECRET_KEY, SECRET_KEY);
                                 }
                             } else {
                                 write(BeaconCommEnum.CHECK_SECRET_REQUEST, DATABASE_SECRET_KEY, DATABASE_SECRET_KEY);
                             }
                         } else {
-                            if (BeaconBatchConfigActuator.CURR_OPERATION_TYPE == BeaconBatchConfigActuator.BATCH_CONFIG_SECRET_KEY) {
+                            if (BeaconBatchConfigActuator.CURR_OPERATION_TYPE == BatchConfigTypeEnum.SECRET_KEY.getCode()) {
                                 write(BeaconCommEnum.UPDATE_SECRET_KEY_REQUEST, SECRET_KEY, SECRET_KEY);
+                            } else if (BatchConfigTypeEnum.SHUTDOWN.getCode() == BeaconBatchConfigActuator.CURR_OPERATION_TYPE) {
+                                write(BeaconCommEnum.SHUTDOWN_REQUEST, "");
                             } else {
                                 // 读取出厂信息
                                 write(BeaconCommEnum.READ_FACTORY_VERSION_INFO_REQUEST, "");
                             }
+                        }
+                        break;
+                    case SHUTDOWN_RESULT:
+                        // 关机
+                        handle = BeaconCommEnum.SHUTDOWN_RESULT.handle(split);
+                        if (handle.getCode() == 0) {
+                            result = Result.success();
+                        } else {
+                            result = Result.fail(BatchConfigErrorEnum.CHANNEL_CONFIGURATION_FAILED.getErrorCode());
                         }
                         break;
                     case QUERY_CONFIG_AGREEMENT_RESULT:
@@ -414,6 +442,7 @@ public class BeaconConfigHelper {
             Log.i(TAG, "onNotifySuccess: 通知开启成功");
             // 获取是否需要秘钥
             write(BeaconCommEnum.NEED_SECRET_CONNECT_REQUEST, "");
+            notifyOpen = true;
         }
 
         @Override
@@ -438,6 +467,7 @@ public class BeaconConfigHelper {
         @Override
         public void onWriteFailed(SeekStandardDevice bleDevice, int code) {
             BleLogUtil.i("Write Failed");
+            result = Result.fail(BatchConfigErrorEnum.DEVICE_WRITING_DATA_ERROR.getErrorCode());
         }
     };
 
@@ -478,6 +508,10 @@ public class BeaconConfigHelper {
     private static void write(BeaconCommEnum beaconCommEnum, String secretKey, String data) {
         try {
             ConnectRequest<SeekStandardDevice> request = Rproxy.getRequest(ConnectRequest.class);
+            if (null == device || StringUtils.isBlank(device.getAddress())) {
+                result = Result.fail(BatchConfigErrorEnum.DEVICE_WRITING_DATA_ERROR.getErrorCode());
+                return;
+            }
             SeekStandardDevice bleDevice = request.getBleDevice(device.getAddress());
             if (null == bleDevice) {
                 result = Result.fail(BatchConfigErrorEnum.DEVICE_WRITING_DATA_ERROR.getErrorCode());
@@ -631,6 +665,11 @@ public class BeaconConfigHelper {
                     config.setChannelNumber(beaconConfig.getChannelNumber());
                     if (thoroughfareTypeEnum == ThoroughfareTypeEnum.EMPTY) {
                         write(BeaconCommEnum.CHANNEL_CONFIG_BEACON_REQUEST, config.getSendMessage());
+                        try {
+                            TimeUnit.MILLISECONDS.sleep(300);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         continue;
                     } else if (ThoroughfareTypeEnum.I_BEACON == thoroughfareTypeEnum) {
                         if (null != info) {
@@ -659,7 +698,7 @@ public class BeaconConfigHelper {
                     write(BeaconCommEnum.CHANNEL_CONFIG_BEACON_REQUEST, config.getSendMessage());
 
                     try {
-                        TimeUnit.MILLISECONDS.sleep(200);
+                        TimeUnit.MILLISECONDS.sleep(300);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -680,6 +719,25 @@ public class BeaconConfigHelper {
                 write(BeaconCommEnum.RESTART_BEACON_REQUEST, SECRET_KEY);
                 BleLogUtil.i("重启设备命令发送成功");
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void disconnect() {
+        try {
+            ConnectRequest<SeekStandardDevice> request = Rproxy.getRequest(ConnectRequest.class);
+            SeekStandardDevice bleDevice = request.getBleDevice(device.getAddress());
+
+            if (null == bleDevice) {
+                return;
+            }
+            if (BleConnectStatusEnum.CONNECTING.getStatus() == bleDevice.getConnectState()) {
+                BleSdkManager.getInstance().cancelConnecting(bleDevice);
+            } else {
+                BleSdkManager.getInstance().disconnect(bleDevice);
+            }
+            BleSdkManager.getInstance().cancelCallback();
         } catch (Exception e) {
             e.printStackTrace();
         }

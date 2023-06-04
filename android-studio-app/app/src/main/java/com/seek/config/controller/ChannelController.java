@@ -11,6 +11,7 @@ import com.seek.config.annotation.AppController;
 import com.seek.config.annotation.AppRequestMapper;
 import com.seek.config.annotation.AppRequestMethod;
 import com.seek.config.entity.dto.channel.BatchChannelConfigDTO;
+import com.seek.config.entity.dto.channel.BatchConfigListQueryDTO;
 import com.seek.config.entity.dto.channel.ChannelConfigDTO;
 import com.seek.config.entity.dto.channel.FrameTypeDropdownDTO;
 import com.seek.config.entity.response.RespVO;
@@ -76,9 +77,22 @@ public class ChannelController {
         return RespVO.failure(I18nUtil.getMessage(I18nUtil.REQUEST_ERROR));
     }
 
+    @AppRequestMapper(path = "/batch/shutdown", method = AppRequestMethod.POST)
+    public RespVO<Boolean> beaconBatchShutdown(BatchChannelConfigDTO dto) {
+        if (channelService.beaconBatchShutdown(dto)) {
+            return RespVO.success();
+        }
+        return RespVO.failure(I18nUtil.getMessage(I18nUtil.REQUEST_ERROR));
+    }
+
     @AppRequestMapper(path = "/batch/config/list")
     public RespVO<List<BeaconBatchConfigActuator.ExecutorResult>> beaconBatchConfigResult() {
         return RespVO.success(channelService.getBatchConfigList());
+    }
+
+    @AppRequestMapper(path = "/batch/records")
+    public RespVO<List<BatchConfigRecordVO>> queryBatchRecord(BatchConfigListQueryDTO dto) {
+        return RespVO.success(channelService.queryBatchRecord(dto));
     }
 
     @AppRequestMapper(path = "/batch/failure-list")
