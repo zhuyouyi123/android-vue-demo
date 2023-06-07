@@ -656,7 +656,9 @@ export default {
         // 备份帧类型
         this.broadcastDataBak.frameType = this.frameType;
         if (this.frameType == "Coreaiot") {
-          this.iBeaconBroadcastData[0] = parseInt(channelInfo.agreementData[0]);
+          this.iBeaconBroadcastData[0] = channelInfo.agreementData[0]
+            ? parseInt(channelInfo.agreementData[0])
+            : 37;
         } else if (
           this.frameType == "UID" ||
           this.frameType == "URL" ||

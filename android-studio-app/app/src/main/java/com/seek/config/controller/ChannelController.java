@@ -5,8 +5,8 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
-import com.ble.blescansdk.batch.BeaconBatchConfigActuator;
 import com.ble.blescansdk.ble.holder.SeekStandardDeviceHolder;
+import com.ble.blescansdk.config.BeaconBatchConfigActuator;
 import com.seek.config.annotation.AppController;
 import com.seek.config.annotation.AppRequestMapper;
 import com.seek.config.annotation.AppRequestMethod;
@@ -53,9 +53,6 @@ public class ChannelController {
     @RequiresApi(api = Build.VERSION_CODES.N)
     @AppRequestMapper(path = "/save", method = AppRequestMethod.POST)
     public RespVO<Void> beaconConfigChannel(ChannelConfigDTO dto) {
-
-        dto.selfCheck();
-
         return channelService.configBeaconChannel(dto);
     }
 

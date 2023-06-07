@@ -1,6 +1,6 @@
 package com.seek.config.services;
 
-import com.ble.blescansdk.batch.BeaconBatchConfigActuator;
+import com.ble.blescansdk.config.BeaconBatchConfigActuator;
 import com.seek.config.entity.dto.channel.BatchChannelConfigDTO;
 import com.seek.config.entity.dto.channel.BatchConfigListQueryDTO;
 import com.seek.config.entity.dto.channel.ChannelConfigDTO;

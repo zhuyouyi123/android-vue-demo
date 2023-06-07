@@ -50,13 +50,14 @@ export default {
       batchConfigSecretKey: "批量配置秘钥",
       allDevice: "全部设备",
       thisBrandDevice: "此品牌设备",
-      refresh: "刷新",
+      refresh: "扫描",
       errorList: "失败明细",
       selectAll: "全选",
     },
 
     tips: {
       deviceCanNotConnect: "当前设备不可连接",
+      protocolContentError: "协议内容错误",
       newSecretDialogPlaceholder: "新密钥为6个字符",
       oldSecretDialogPlaceholder: "旧密钥为6个字符",
       secretDialogPlaceholder: "密钥为6个字符",

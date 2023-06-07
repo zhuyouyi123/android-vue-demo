@@ -22,7 +22,7 @@ public class Config {
      * 2.使用 npm run build 打包vue文件
      * 3.使用android-studio 打包成apk文件
      */
-    public static Boolean APK = false;
+    public static Boolean APK = true;
 
     /**
      * ble_scan_sdk_V0.0.1.jar
@@ -84,8 +84,8 @@ public class Config {
         if (APK) {
             return "file:///android_asset/ui/index.html";
         }
-        return "http://192.168.2.104:8888";
-//        return "http://172.16.31.189:8888";
+//        return "http://192.168.2.104:8888";
+        return "http://172.16.31.189:8888";
     }
 
 

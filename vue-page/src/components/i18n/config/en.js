@@ -50,13 +50,14 @@ export default {
       batchConfigSecretKey: "Batch config key",
       allDevice: "All devices",
       thisBrandDevice: "This brand of equipment",
-      refresh: "Refresh",
+      refresh: "Scan",
       errorList: "Failure details",
       selectAll: "ALL",
     },
 
     tips: {
       deviceCanNotConnect: "The current device is not connectable",
+      protocolContentError: "Protocol content error",
       newSecretDialogPlaceholder: "New key is 6 characters long",
       oldSecretDialogPlaceholder: "Old key is 6 characters long",
       secretDialogPlaceholder: "key is 6 characters long",

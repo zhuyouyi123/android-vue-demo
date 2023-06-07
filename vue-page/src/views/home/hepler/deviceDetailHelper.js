@@ -1,10 +1,6 @@
 import androidApi from "@/api/android-api";
 import { Notify } from "vant";
 
-import router from "@/components/router";
-
-import config from "@/fetch/config";
-
 export default {
   /**
    * 调用Android获取连接详情

@@ -70,6 +70,7 @@ public class BleServiceImpl implements BleService {
         if (BleSdkManager.isScanning()) {
             stopScan();
         }
+
         BleSdkManager.getInstance().startScan(new BleScanCallback<SeekStandardDevice>() {
             @Override
             public void onStatusChange(boolean turnOn) {

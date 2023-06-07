@@ -819,6 +819,7 @@ export default {
           let mac = device.address.replace(/:/g, "");
           if (map.has(mac)) {
             device.selected = true;
+            this.batchCount++;
             this.$set(this.list, i, device);
           }
         }
@@ -1316,6 +1317,19 @@ export default {
         Notify({
           type: "danger",
           message: this.i18nInfo.tips.deviceCanNotConnect,
+        });
+        return;
+      }
+
+      // error协议
+      if (
+        item &&
+        item.standardThoroughfareInfo &&
+        "error" == item.standardThoroughfareInfo.deviceName
+      ) {
+        Notify({
+          type: "danger",
+          message: this.i18nInfo.tips.protocolContentError,
         });
         return;
       }

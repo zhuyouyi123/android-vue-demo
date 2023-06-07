@@ -30,7 +30,7 @@ public class SdkController {
         filterInfoVO.setSupportConnectable(bleOptions.getFilterInfo().isSupportConnectable());
         filterInfoVO.setNormDevice(bleOptions.getFilterInfo().isNormDevice());
 
-        filterInfoVO.setCommunicationEncryption(BleSdkManager.isEncryption() ? 1 : 0);
+        filterInfoVO.setCommunicationEncryption(bleOptions.isEncryption() ? 1 : 0);
 
         return RespVO.success(filterInfoVO);
     }
@@ -42,9 +42,10 @@ public class SdkController {
         bleOptions.setDeviceSurviveTime(dto.getDeviceSurviveTime());
         bleOptions.setContinuousScanning(1 == dto.getContinuousScanning());
         bleOptions.setIntermittentTime(dto.getIntermittentTime());
+        bleOptions.setEncryption(dto.getCommunicationEncryption() == 1);
+
         bleOptions.saveCacheConfig();
 
-        BleSdkManager.setEncryption(dto.getCommunicationEncryption() == 1);
         return RespVO.success();
     }
 }

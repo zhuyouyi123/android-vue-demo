@@ -21,25 +21,6 @@ public class JsBridgeUtil {
     public static final String ERROR = "ERROR";
 
 
-    /**
-     * 连接状态改变
-     */
-    public static final String CONNECT_STATUS_CHANGE = "CONNECT_STATUS_CHANGE";
-    /**
-     * 通知状态改变
-     */
-    public static final String NOTIFY_STATUS_CHANGE = "NOTIFY_STATUS_CHANGE";
-
-    /**
-     * 通知状态改变
-     */
-    public static final String START_NOTIFY_RESULT = "START_NOTIFY_RESULT";
-
-    /**
-     * 写入回复
-     */
-    public static final String WRITE_REPLY_RESULT = "WRITE_REPLY_RESULT";
-
 
     public static void pushEvent(String eventName, Object message) {
         try {

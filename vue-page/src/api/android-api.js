@@ -226,8 +226,6 @@ function request(type, path, params) {
     } else {
       res = androidVue.postRequest(path, params);
     }
-    console.log(path);
-    console.log(JSON.stringify(res));
     if (!res) {
       resolve();
       return;

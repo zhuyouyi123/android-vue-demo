@@ -1,6 +1,7 @@
 package com.seek.config.entity.dto.channel;
 
-import com.ble.blescansdk.batch.entity.BeaconConfig;
+import com.ble.blescansdk.ble.utils.StringUtils;
+import com.ble.blescansdk.config.entity.BeaconConfig;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
@@ -8,7 +9,6 @@ import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.utils.common.StringUtils;
 
 public class BatchChannelConfigDTO {
 
@@ -25,7 +25,7 @@ public class BatchChannelConfigDTO {
     private Boolean clearHistory;
 
     public List<BeaconConfig> getChannelInfo() {
-        if (StringUtils.isEmpty(beaconListJson)) {
+        if (StringUtils.isBlank(beaconListJson)) {
             return new ArrayList<>();
         }
 
@@ -39,7 +39,7 @@ public class BatchChannelConfigDTO {
     }
 
     public List<String> getAddressList() {
-        if (StringUtils.isEmpty(addressJson)) {
+        if (StringUtils.isBlank(addressJson)) {
             return new ArrayList<>();
         }
 

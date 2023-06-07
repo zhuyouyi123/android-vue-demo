@@ -7,7 +7,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
@@ -27,6 +26,7 @@ import com.ble.blescansdk.ble.BleOptions;
 import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.entity.BleDevice;
 import com.ble.blescansdk.ble.enums.BleScanLevelEnum;
+import com.ble.blescansdk.ble.enums.SortTypeEnum;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 
 import java.util.Locale;
@@ -83,15 +83,34 @@ public class AppInitTools extends AppCompatActivity {
     private void initSdkConfig() {
         BleOptions<BleDevice> cacheConfig = BleSdkManager.getBleOptions().getCacheConfig(this);
         if (null == cacheConfig) {
-            BleSdkManager.getBleOptions().setLogSwitch(true)
+            BleSdkManager.getBleOptions()
+                    // 日志开关
+                    .setLogSwitch(true)
+                    // 间歇性扫描开关
                     .setIntermittentScanning(true)
-                    .setScanPeriod(20000)
+                    // 间歇时间
                     .setIntermittentTime(1000)
+                    // 扫描间隔
+                    .setScanPeriod(20000)
+                    // 持续扫描开关
                     .setContinuousScanning(false)
-                    .setConnectFailedRetryCount(1)
-                    .setConnectTimeout(10_000)
+                    // 连接失败重试次数
+                    .setConnectFailedRetryCount(5)
+                    // 连接超时时间
+                    .setConnectTimeout(3_000)
+                    // 数据库支持
                     .setDatabaseSupport(true)
-                    .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_BALANCED);
+                    // 蓝牙扫描等级
+                    .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_BALANCED)
+                    // 设备存活时间
+                    .setDeviceSurviveTime(10_000)
+                    // 忽略重复设备
+                    .setIgnoreRepeat(false)
+                    // 扫描过滤条件
+                    .setFilterInfo(new BleOptions.FilterInfo())
+                    // 排序规则
+                    .setSortType(SortTypeEnum.RSSI_FALL)
+                    .saveCacheConfig();
         } else {
             BleSdkManager.setBleOptions(cacheConfig);
         }

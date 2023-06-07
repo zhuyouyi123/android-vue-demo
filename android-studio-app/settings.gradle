@@ -24,7 +24,7 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Android-vue"
 include ':app'
-include ':ble-scan-sdk'
+//include ':ble-scan-sdk'
 
 
 //buildscript {

@@ -5,13 +5,10 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
-import com.ble.blescansdk.ble.BleOptions;
-import com.ble.blescansdk.ble.BleSdkManager;
-import com.ble.blescansdk.ble.entity.BleDevice;
 import com.ble.blescansdk.ble.holder.SeekStandardDeviceHolder;
 import com.ble.blescansdk.ble.utils.StringUtils;
-import com.ble.blescansdk.db.SdkDatabase;
-import com.ble.blescansdk.db.dataobject.SecretKeyDO;
+import com.ble.blescansdk.config.callback.BeaconBleCallback;
+import com.ble.blescansdk.config.helper.BeaconSingleConfigHelper;
 import com.seek.config.annotation.AppController;
 import com.seek.config.annotation.AppRequestMapper;
 import com.seek.config.annotation.AppRequestMethod;
@@ -23,8 +20,8 @@ import com.seek.config.entity.vo.ScanDataVO;
 import com.seek.config.services.BleService;
 import com.seek.config.services.impl.BleServiceImpl;
 import com.seek.config.utils.I18nUtil;
+import com.seek.config.utils.JsBridgeUtil;
 import com.seek.config.utils.RegexUtil;
-import com.seek.config.utils.helper.SeekStandardCommunicationHelper;
 
 import java.util.Objects;
 
@@ -34,6 +31,8 @@ public class BleController {
     private static final String TAG = BleController.class.getSimpleName();
 
     private static final BleService bleService = BleServiceImpl.getInstance();
+
+    private static final BeaconBleCallback callback = JsBridgeUtil::pushEvent;
 
     @AppRequestMapper(path = "/init")
     public RespVO<Void> init(ScanInitDTO dto) {
@@ -66,7 +65,7 @@ public class BleController {
             return RespVO.failure(I18nUtil.getMessage(I18nUtil.DEVICE_ADDRESS_FORMAT_ERROR));
         }
 
-        SeekStandardCommunicationHelper.getInstance().connect(dto.getAddress());
+        BeaconSingleConfigHelper.getInstance().connect(dto.getAddress(), callback);
         return RespVO.success();
     }
 
@@ -76,7 +75,7 @@ public class BleController {
             return RespVO.failure(I18nUtil.getMessage(I18nUtil.DEVICE_ADDRESS_FORMAT_ERROR));
         }
 
-        SeekStandardCommunicationHelper.getInstance().cancelConnect(dto.getAddress());
+        BeaconSingleConfigHelper.getInstance().cancelConnect(dto.getAddress());
         return RespVO.success();
     }
 
@@ -92,7 +91,7 @@ public class BleController {
     @RequiresApi(api = Build.VERSION_CODES.N)
     @AppRequestMapper(path = "/write", method = AppRequestMethod.POST)
     public RespVO<Void> write(BleWriteDTO dto) {
-        SeekStandardCommunicationHelper.getInstance().write(dto.getKey(), dto.getData());
+        BeaconSingleConfigHelper.getInstance().write(dto.getKey(), dto.getData());
         return RespVO.success();
     }
 
@@ -129,7 +128,7 @@ public class BleController {
             return RespVO.failure(I18nUtil.getMessage(I18nUtil.DEVICE_ADDRESS_FORMAT_ERROR));
         }
 
-        SeekStandardCommunicationHelper.getInstance().startNotify(dto.getAddress());
+        BeaconSingleConfigHelper.getInstance().startNotify(dto.getAddress());
 
         return RespVO.success();
     }

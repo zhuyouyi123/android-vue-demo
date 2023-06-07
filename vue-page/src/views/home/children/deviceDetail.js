@@ -769,15 +769,17 @@ export default {
     },
 
     exit() {
-      console.log("执行退出页面============>");
-      this.$router.replace("/home");
       if (this.bluetoothConnectStatus == 2) {
         this.restartDevice();
       }
       // 取消连接设备
       setTimeout(() => {
         deviceDetailHelper.cancelConnectDevice(this.address);
-      }, 20);
+      }, 10);
+
+      setTimeout(() => {
+        this.$router.replace("/home");
+      }, 15);
     },
 
     restartDevice() {

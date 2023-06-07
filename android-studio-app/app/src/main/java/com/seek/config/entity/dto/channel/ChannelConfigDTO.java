@@ -110,6 +110,10 @@ public class ChannelConfigDTO {
         return list;
     }
 
+    public String getBroadcastDataString() {
+        return broadcastData;
+    }
+
     public void setBroadcastData(String broadcastData) {
         this.broadcastData = broadcastData;
     }

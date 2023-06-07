@@ -649,7 +649,9 @@ export default {
       }
       // 触发时间
       this.triggerBroadcastTimeValue =
-        data.triggerTime == 0 ? 1 : data.triggerBroadcastTime;
+        !data.triggerBroadcastTime || data.triggerBroadcastTime == 0
+          ? 1
+          : data.triggerBroadcastTime;
       // 广播功率
       this.triggerBroadcastPowerValue = data.triggerBroadcastPower * 10;
       this.triggerBroadcastPowerPageValue = this.$storage.getBroadcastValue(

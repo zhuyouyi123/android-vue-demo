@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.DisplayMetrics;
 
+import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.holder.SeekStandardDeviceHolder;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.ble.blescansdk.ble.utils.StringUtils;
@@ -44,6 +45,13 @@ public class SystemController {
             });
 
             SeekStandardDeviceHolder.release();
+
+            final String address = SharePreferenceUtil.getInstance().shareGet(SharePreferenceUtil.LAST_CONNECT_DEVICE_ADDRESS);
+            if (StringUtils.isNotBlank(address)) {
+                BleSdkManager.getInstance().disconnect(address);
+                SharePreferenceUtil.getInstance().shareRemove(SharePreferenceUtil.LAST_CONNECT_DEVICE_ADDRESS);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }

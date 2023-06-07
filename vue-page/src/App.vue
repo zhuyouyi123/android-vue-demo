@@ -78,7 +78,6 @@ export default {
         this.commonAndroidEvent.data = JSON.parse(returnJson);
         window.dispatchEvent(this.commonAndroidEvent);
       } catch (error) {
-        console.log(returnJson);
         console.error("commonAndroidCallBack error");
       }
     },
