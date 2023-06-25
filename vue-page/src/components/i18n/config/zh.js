@@ -85,7 +85,7 @@ export default {
       secretKey: "秘钥",
       channel:"通道",
       secretKeyUpdate:"秘钥修改",
-      secretKeyRemove:"通道",
+      secretKeyRemove:"删除秘钥",
       connectable:"可连接",
       triggerResponseTime:"触发响应时间",
     },

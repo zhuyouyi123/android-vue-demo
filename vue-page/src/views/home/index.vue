@@ -1864,7 +1864,7 @@ export default {
   }
 
   .scanning-animation {
-    animation: rotate-move 2s ease-in-out infinite;
+    animation: rotate-move 4s ease-in-out infinite;
     .loading {
       position: absolute;
       bottom: 0.58rem;
@@ -1884,17 +1884,17 @@ export default {
     }
     .dot-3 {
       background-color: #f74d75;
-      animation: dot-3-move 2s ease infinite;
+      animation: dot-3-move 4s ease infinite;
     }
 
     .dot-2 {
       background-color: #10beae;
-      animation: dot-2-move 2s ease infinite;
+      animation: dot-2-move 4s ease infinite;
     }
 
     .dot-1 {
-      background-color: blue;
-      animation: dot-1-move 2s ease infinite;
+      background-color: rgb(231, 146, 67);
+      animation: dot-1-move 4s ease infinite;
     }
 
     @keyframes dot-3-move {

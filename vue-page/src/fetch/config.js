@@ -9,5 +9,5 @@ export default {
    * SCAN 扫描工具
    * 类型
    */
-  appType: "SCAN",
+  appType: "CONFIG",
 };
