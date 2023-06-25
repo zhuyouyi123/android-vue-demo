@@ -12,7 +12,7 @@
       <van-icon
         :name="require('../../assets/image/batch/batch-record.svg')"
         slot="right"
-        @click="openBatchConfigRecordPopup"
+        @click="openBatchConfigRecordPopup(0)"
         v-show="batchModel"
       />
     </nav-bar>
@@ -145,7 +145,6 @@
                     }}
                   </b>
                 </div>
-                <!-- <el-checkbox :key="item.selected" /> -->
                 <van-image
                   v-if="item.selected && batchModel"
                   @click.stop="batchSelectBeacon(index)"
@@ -166,7 +165,6 @@
               <div class="info">
                 <div class="info-box">
                   <div>Mac: {{ item.address }}</div>
-                  <!-- <div>电量: 100%</div> -->
                   <div>
                     Battery:
                     {{
@@ -357,7 +355,6 @@
                   </div>
                 </div>
 
-                <!-- <div v-show="thoroughfare.type == 'Coreaiot'"></div>-->
                 <div v-if="item.standardThoroughfareInfo.quuppa">
                   <div class="name">
                     {{ item.standardThoroughfareInfo.quuppa.type }}
@@ -381,18 +378,91 @@
       <div class="batch-config" v-show="batchModel">
         <van-button
           class="channel"
-          @click="enterBatchConfigPage('channel-home')"
+          @click="openBatchConfigSettingPopupShow"
           :disabled="batchCount == 0"
         >
-          {{ i18nInfo.button.batchConfigChannel }}
+          {{ i18nInfo.button.batchConfigSetting }}
         </van-button>
-        <van-button
-          class="secret-key"
-          @click="enterBatchConfigPage('secret-key')"
-          :disabled="batchCount == 0"
+      </div>
+
+      <div class="batch-config-setting-popup">
+        <van-popup
+          v-model="batchConfigSettingPopupShow"
+          position="bottom"
+          :close-on-click-overlay="false"
+          round
+          closeable
+          :style="{ height: '75vh' }"
         >
-          {{ i18nInfo.button.batchConfigSecretKey }}
-        </van-button>
+          <van-radio-group v-model="batchTypeChecked" direction="horizontal">
+            <van-radio name="1">{{ i18nInfo.title.channel }}</van-radio>
+            <van-radio name="2">{{ i18nInfo.title.secretKeyUpdate }}</van-radio>
+            <van-radio name="3">{{ i18nInfo.title.secretKeyRemove }}</van-radio>
+            <van-radio name="4">{{ i18nInfo.title.connectable }}</van-radio>
+            <van-radio name="5">
+              {{ i18nInfo.title.triggerResponseTime }}
+            </van-radio>
+          </van-radio-group>
+
+          <div class="other-config">
+            <van-cell-group inset>
+              <van-field
+                v-if="batchTypeChecked == '2'"
+                v-model="secretKey.oldSecretKey"
+                :label="i18nInfo.lable.oldSecretKey"
+                maxlength="6"
+                clearable
+                required
+                input-align="right"
+                @input="secretKeyInput(secretKey.oldSecretKey, 'old')"
+                :placeholder="i18nInfo.tips.oldSecretDialogPlaceholder"
+              />
+              <van-field
+                v-if="batchTypeChecked == '2'"
+                v-model="secretKey.newSecretKey"
+                :label="i18nInfo.lable.newSecretKey"
+                maxlength="6"
+                clearable
+                required
+                input-align="right"
+                @input="secretKeyInput(secretKey.newSecretKey, 'new')"
+                :placeholder="i18nInfo.tips.newSecretDialogPlaceholder"
+              />
+              <van-field
+                v-if="batchTypeChecked > '2'"
+                v-model="channelSecretKey"
+                :label="i18nInfo.title.secretKey"
+                maxlength="6"
+                clearable
+                required
+                input-align="right"
+                :placeholder="i18nInfo.tips.secretDialogPlaceholder"
+              />
+              <van-field
+                v-if="batchTypeChecked == '5'"
+                label-width="2.6rem"
+                v-model="triggerResponseTime"
+                type="digit"
+                maxlength="2"
+                :label="
+                  $i18n.t('device.detail.button.triggerResponseTime') + '(S)'
+                "
+                clearable
+                required
+                input-align="right"
+                :placeholder="
+                  $i18n.t('device.detail.function.keyTiggeredResponseTime')
+                "
+                @input="keyTiggeredResponseTimeInput"
+              />
+            </van-cell-group>
+          </div>
+          <div class="config-button">
+            <van-button round class="channel" @click="batchConfig">
+              {{ i18nInfo.button.batchConfig }}
+            </van-button>
+          </div>
+        </van-popup>
       </div>
 
       <!-- 加载 -->
@@ -501,7 +571,7 @@
       <!-- 弹窗 -->
       <van-dialog
         v-model="secretKeyDialog"
-        :title="i18nInfo.title.secretKeySetting"
+        :title="i18nInfo.title.batchConfig"
         show-cancel-button
         :cancel-button-text="$t('baseButton.cancel')"
         :confirm-button-text="$t('baseButton.sure')"
@@ -512,6 +582,18 @@
           maxlength="6"
           v-model.trim="channelSecretKey"
           :placeholder="i18nInfo.tips.secretDialogPlaceholder"
+          clearable
+        />
+        <van-field
+          v-if="batchInfo.type == 'trigger_response_time'"
+          maxlength="2"
+          type="digit"
+          v-model.trim="triggerResponseTime"
+          :placeholder="
+            $i18n.t('device.detail.function.keyTiggeredResponseTime')
+          "
+          clearable
+          @input="keyTiggeredResponseTimeInput"
         />
       </van-dialog>
 
@@ -541,10 +623,18 @@
         closeable
       >
         <div class="title">{{ i18nInfo.title.batchRecord }}</div>
-        <van-tabs v-model:active="batchConfigPopupActive">
-          <van-tab title="Channel">
+        <van-tabs
+          :active="batchConfigPopupActive"
+          :ellipsis="false"
+          swipeable
+          animated
+        >
+          <van-tab
+            :title="tab.type"
+            v-for="(tab, index) in batchConfigRecordData"
+          >
             <div class="list">
-              <div class="item" v-for="(item, index) in channelRecordList">
+              <div class="item" v-for="(item, index) in tab.list">
                 <div class="item-box">
                   <div class="index">{{ index + 1 }}</div>
 
@@ -562,46 +652,17 @@
                 </div>
               </div>
             </div>
+
+            <div class="retry-button">
+              <van-button
+                :disabled="tab.count <= 0"
+                @click="batchConfigRetry(tab.key, true)"
+              >
+                {{ $t("notifyMessage.base.retry") }}
+              </van-button>
+            </div>
           </van-tab>
-          <van-tab title="SecretKey">
-            <div class="list">
-              <div class="item" v-for="(item, index) in secretKeyRecordList">
-                <div class="item-box">
-                  <div class="index">{{ index + 1 }}</div>
-
-                  <div class="address">
-                    <div>Mac</div>
-                    <div>{{ item.address }}</div>
-                  </div>
-                  <div class="division-line2"></div>
-
-                  <div class="error-reason">
-                    <div>{{ i18nInfo.lable.errorReason }}</div>
-
-                    <div class="failure-reason">{{ item.failReason }}</div>
-                  </div>
-                </div>
-              </div>
-            </div></van-tab
-          >
         </van-tabs>
-        <div class="retry-button">
-          <van-button
-            v-if="batchConfigPopupActive == 0"
-            :disabled="!channelRecordList.length"
-            @click="batchConfigRetry('channel')"
-          >
-            {{ $t("notifyMessage.base.retry") }}
-          </van-button>
-
-          <van-button
-            v-else
-            :disabled="!secretKeyRecordList.length"
-            @click="batchConfigRetry('secret')"
-          >
-            {{ $t("notifyMessage.base.retry") }}
-          </van-button>
-        </div>
       </van-popup>
     </div>
   </div>
@@ -609,7 +670,7 @@
 
 <script>
 import navBar from "@/components/navigation/navBar.vue";
-
+import batchConfigHelper from "@/views/home/hepler/batchConfigHelper";
 import {
   Search,
   DropdownMenu,
@@ -623,9 +684,26 @@ import {
   Popup,
   Tab,
   Tabs,
+  RadioGroup,
+  Radio,
 } from "vant";
 
 export default {
+  components: {
+    [DropdownMenu.name]: DropdownMenu,
+    [DropdownItem.name]: DropdownItem,
+    [Search.name]: Search,
+    [Checkbox.name]: Checkbox,
+    [CheckboxGroup.name]: CheckboxGroup,
+    [Loading.name]: Loading,
+    [Overlay.name]: Overlay,
+    [Popup.name]: Popup,
+    [Tab.name]: Tab,
+    [Tabs.name]: Tabs,
+    [RadioGroup.name]: RadioGroup,
+    [Radio.name]: Radio,
+    navBar: navBar,
+  },
   data() {
     return {
       contentReload: true,
@@ -667,6 +745,9 @@ export default {
 
       channelSecretKey: "",
 
+      // 触发响应时间
+      triggerResponseTime: null,
+
       // 配置秘钥遮罩
       configOverlay: false,
       // 已配置数量
@@ -684,26 +765,32 @@ export default {
       batchConfigPopupActive: 0,
       channelRecordList: [],
       secretKeyRecordList: [],
+      removeSecretKeyRecordList: [],
+      connectableRecordList: [],
+      triggerResponseTimeRecordList: [],
+
+      batchConfigRecordData: [],
 
       // 批量重试
       isBatchConfigRetry: false,
       // 批量配置通道
       batchConfigChannelFlag: false,
+      // 重试定时器
+      retryInterval: null,
+      // 重试倒计时
+      retryCountdown: 5,
+      // 批量配置信息
+      batchInfo: {
+        type: "channel",
+        secretKey: "",
+        oldSecretKey: "",
+        triggerResponseTime: 5,
+      },
+      // 批量配置设置弹窗
+      batchConfigSettingPopupShow: false,
+      // 批量类型选择
+      batchTypeChecked: "1",
     };
-  },
-
-  components: {
-    [DropdownMenu.name]: DropdownMenu,
-    [DropdownItem.name]: DropdownItem,
-    [Search.name]: Search,
-    [Checkbox.name]: Checkbox,
-    [CheckboxGroup.name]: CheckboxGroup,
-    [Loading.name]: Loading,
-    [Overlay.name]: Overlay,
-    [Popup.name]: Popup,
-    [Tab.name]: Tab,
-    [Tabs.name]: Tabs,
-    navBar: navBar,
   },
 
   mounted() {
@@ -734,22 +821,12 @@ export default {
   methods: {
     // 退出APP
     goBack() {},
-    openBatchConfigRecordPopup() {
+    openBatchConfigRecordPopup(batchConfigPopupActive) {
+      this.batchConfigPopupActive = batchConfigPopupActive;
+      this.triggerResponseTime = null;
       this.batchConfigRecordPopupShow = true;
-
-      this.channelRecordList = [];
-      this.secretKeyRecordList = [];
-      this.$androidApi.queryBatchConfigFailureRecord().then((data) => {
-        if (data && data.length > 0) {
-          console.log(JSON.stringify(data));
-          data.forEach((e) => {
-            if (e.type == 0) {
-              this.channelRecordList.push(e);
-            } else if (e.type == 1) {
-              this.secretKeyRecordList.push(e);
-            }
-          });
-        }
+      batchConfigHelper.queryBatchConfigFailureRecord().then((data) => {
+        this.batchConfigRecordData = data;
       });
     },
 
@@ -926,34 +1003,6 @@ export default {
       return true;
     },
 
-    /**
-     * 进入批量配置页面
-     * @param {页面} e
-     */
-    enterBatchConfigPage(e) {
-      this.$storage.toBeConfiguredChannelList = [];
-      let list = [];
-      this.list.forEach((e) => {
-        if (e.selected == true) {
-          list.push(e.address);
-        }
-      });
-      this.$storage.toBeConfiguredList = [...list];
-      if (e == "channel-home") {
-        this.$storage.batchConfigChannelInfo = {
-          batchConfigChannelFlag: false,
-          secretKey: "",
-        };
-        this.$router.push("/home/batch-config/" + e);
-      } else if (e == "secret-key") {
-        this.batchConfigSecretKeyDialog = true;
-        this.secretKey = {
-          oldSecretKey: "",
-          newSecretKey: "",
-        };
-      }
-    },
-
     // 搜索框获取到焦点
     searchFocus() {
       if (this.searchValue) {
@@ -971,9 +1020,6 @@ export default {
     },
 
     scanQrCode() {
-      // if (!this.checkBatchModel()) {
-      //   return;
-      // }
       this.$androidApi.scanQrCode();
     },
 
@@ -1032,37 +1078,125 @@ export default {
       this.language = this.$storage.language;
     },
 
-    batchConfigRetry(type) {
+    /**
+     * 打开批量配置
+     */
+    openBatchConfigSettingPopupShow() {
+      this.batchConfigSettingPopupShow = true;
+      this.enterBatchConfigPage();
+      this.channelSecretKey = "";
+      this.secretKey = {
+        oldSecretKey: "",
+        newSecretKey: "",
+      };
+      this.triggerResponseTime = null;
+    },
+
+    // 批量配置
+    batchConfig() {
+      switch (this.batchTypeChecked) {
+        case "1":
+          this.$storage.batchConfigChannelInfo = {
+            batchConfigChannelFlag: false,
+            secretKey: "",
+          };
+          this.$router.push("/home/batch-config/channel-home");
+          break;
+        case "2":
+          if (!this.checkSecretKey()) {
+            return;
+          }
+          this.batchInfo.secretKey = this.secretKey.newSecretKey;
+          this.batchInfo.oldSecretKey = this.secretKey.oldSecretKey;
+          // 批量配置秘钥
+          this.startBatchConfigAndGetResult("secret");
+          break;
+        case "3":
+          if (!this.checkChannelSecretKey()) {
+            return;
+          }
+          this.batchInfo.secretKey = this.channelSecretKey;
+          this.startBatchConfigAndGetResult("remove_secret_key");
+          break;
+        case "4":
+          if (!this.checkChannelSecretKey()) {
+            return;
+          }
+          this.batchInfo.secretKey = this.channelSecretKey;
+          this.startBatchConfigAndGetResult("connectable");
+          break;
+        case "5":
+          if (!this.checkChannelSecretKey()) {
+            return;
+          }
+          if (!this.triggerResponseTime || this.triggerResponseTime <= 0) {
+            Notify({
+              type: "warning",
+              message: this.$i18n.t("notifyMessage.base.paramsError"),
+            });
+            return;
+          }
+          this.batchInfo.secretKey = this.channelSecretKey;
+          this.batchInfo.triggerResponseTime = this.triggerResponseTime;
+          this.startBatchConfigAndGetResult("trigger_response_time");
+          break;
+      }
+      this.batchConfigSettingPopupShow = false;
+    },
+
+    /**
+     * 进入批量配置页面
+     * @param {页面} e
+     */
+    enterBatchConfigPage() {
+      this.$storage.toBeConfiguredChannelList = [];
+      let list = [];
+      this.list.forEach((e) => {
+        if (e.selected == true) {
+          list.push(e.address);
+        }
+      });
+      this.$storage.toBeConfiguredList = [...list];
+    },
+    batchConfigRetry(type, showDialog) {
       this.isBatchConfigRetry = true;
       this.alreadConfigNum = 0;
       this.batchCount = 0;
       this.$storage.toBeConfiguredList = [];
 
-      if (type == "channel") {
-        this.channelRecordList.forEach((e) =>
-          this.$storage.toBeConfiguredList.push(e.address)
-        );
-        this.batchCount = this.channelRecordList.length;
-        this.$storage.toBeConfiguredChannelList = [];
-        this.secretKeyDialog = true;
-        this.channelSecretKey = "";
-      } else if (type == "secret") {
-        this.secretKeyRecordList.forEach((e) =>
-          this.$storage.toBeConfiguredList.push(e.address)
-        );
-        this.batchCount = this.secretKeyRecordList.length;
+      if (type == "secret") {
         this.batchConfigRecordPopupShow = false;
-        this.batchConfigSecretKeyDialog = true;
         this.secretKey = {
           oldSecretKey: "",
           newSecretKey: "",
         };
+        this.batchConfigSecretKeyDialog = showDialog ? showDialog : false;
+      } else {
+        this.channelSecretKey = "";
+        this.secretKeyDialog = showDialog ? showDialog : false;
+      }
+
+      this.batchInfo.type = type;
+
+      this.$storage.toBeConfiguredChannelList = [];
+
+      for (let i = 0; i < this.batchConfigRecordData.length; i++) {
+        const recordData = this.batchConfigRecordData[i];
+        if (recordData.list && recordData.list.length > 0) {
+          recordData.list.forEach((e) =>
+            this.$storage.toBeConfiguredList.push(e.address)
+          );
+          this.batchCount = recordData.count;
+          break;
+        }
       }
     },
 
     startBatchConfigChannel() {
       this.isBatchConfigRetry = false;
-
+      // 设置批量配置类型 秘钥
+      this.batchInfo.type = "channel";
+      this.batchInfo.secretKey = this.$storage.batchConfigChannelInfo.secretKey;
       let params = {
         secretKey: this.$storage.batchConfigChannelInfo.secretKey,
         addressJson: JSON.stringify(this.$storage.toBeConfiguredList),
@@ -1094,45 +1228,16 @@ export default {
      */
     batchSecretKeyDialogBeforeClose(action, done) {
       if (action == "confirm") {
-        if (
-          !this.secretKey.oldSecretKey ||
-          !this.secretKey.newSecretKey ||
-          this.secretKey.oldSecretKey.length != 6 ||
-          this.secretKey.newSecretKey.length != 6
-        ) {
-          Notify({
-            type: "warning",
-            message: this.$i18n.t("notifyMessage.base.paramsError"),
-          });
+        if (!this.checkSecretKey()) {
           done(false);
           return;
         }
+        this.batchInfo.type = "secret";
+        this.batchInfo.secretKey = this.secretKey.newSecretKey;
+        this.batchInfo.oldSecretKey = this.secretKey.oldSecretKey;
 
-        if (this.secretKey.oldSecretKey == this.secretKey.newSecretKey) {
-          Notify({
-            type: "warning",
-            message: this.i18nInfo.tips.secretKeySameTips,
-          });
-          done(false);
-          return;
-        }
-
-        // 调用Android 开始获取结果
-        this.$androidApi
-          .batchConfigSecretKey({
-            addressJson: JSON.stringify(this.$storage.toBeConfiguredList),
-            oldSecretKey: this.secretKey.oldSecretKey,
-            secretKey: this.secretKey.newSecretKey,
-          })
-          .then(() => {
-            this.configOverlay = true;
-            this.batchModel = false;
-            this.alreadConfigNum = 0;
-            this.queryConfigResultList();
-          })
-          .catch((errorMsg) => {
-            Notify({ type: "warning", message: errorMsg });
-          });
+        // 批量配置秘钥
+        this.startBatchConfigAndGetResult("secret");
       }
       // 关闭错误列表弹窗
       this.batchConfigRecordPopupShow = false;
@@ -1141,33 +1246,58 @@ export default {
 
     secretKeyDialogBeforeClose(action, done) {
       if (action == "confirm") {
-        if (!this.channelSecretKey || this.channelSecretKey.length != 6) {
-          Notify({
-            type: "warning",
-            message: this.$i18n.t("notifyMessage.base.paramsError"),
-          });
+        if (!this.checkChannelSecretKey()) {
           done(false);
+          return;
         }
-
-        let params = {
-          secretKey: this.channelSecretKey,
-          addressJson: JSON.stringify(this.$storage.toBeConfiguredList),
-          retry: true,
-        };
-        this.$androidApi
-          .batchConfigChannel(params)
-          .then(() => {
-            this.configOverlay = true;
-            this.alreadConfigNum = 0;
-            this.queryConfigResultList();
-          })
-          .catch((errorMsg) => {
-            Notify({ type: "warning", message: errorMsg });
-          });
+        this.batchInfo.secretKey = this.channelSecretKey;
+        if (this.batchInfo.type == "trigger_response_time") {
+          if (!this.triggerResponseTime) {
+            Notify({ type: "warning", message: "Response Time 1~10" });
+            done(false);
+            return;
+          }
+          this.batchInfo.triggerResponseTime = this.triggerResponseTime;
+        }
+        this.startBatchConfigAndGetResult(this.batchInfo.type);
       }
       // 关闭错误列表弹窗
       this.batchConfigRecordPopupShow = false;
       done();
+    },
+
+    /**
+     * 开始批量配置并获取结果
+     */
+    startBatchConfigAndGetResult(type) {
+      let params = {
+        addressJson: JSON.stringify(this.$storage.toBeConfiguredList),
+      };
+      this.batchInfo.type = type;
+      if (type == "channel") {
+        params.secretKey = this.channelSecretKey;
+        params.retry = true;
+      } else if (type == "secret") {
+        params.oldSecretKey = this.secretKey.oldSecretKey;
+        params.secretKey = this.secretKey.newSecretKey;
+      } else if (type == "trigger_response_time") {
+        params.secretKey = this.channelSecretKey;
+        params.extendedInfo = this.triggerResponseTime;
+      } else {
+        params.secretKey = this.channelSecretKey;
+      }
+      params.type = type.toUpperCase();
+      batchConfigHelper
+        .startBatchConfig(type, params)
+        .then(() => {
+          this.configOverlay = true;
+          if (this.batchModel) {
+            this.batchModel = false;
+          }
+          this.alreadConfigNum = 0;
+          this.queryConfigResultList();
+        })
+        .catch(() => {});
     },
 
     secretKeyInput(value, type) {
@@ -1214,32 +1344,144 @@ export default {
             if (num == this.batchCount) {
               clearInterval(this.batchConfigInterval);
               this.configOverlay = false;
-              Dialog.confirm({
-                title: this.i18nInfo.title.updateResult,
-                message:
-                  this.i18nInfo.title.configurationQuantity +
-                  this.batchCount +
-                  "<br>" +
-                  this.i18nInfo.tips.success +
-                  successNum +
-                  "、 " +
-                  this.i18nInfo.tips.failed +
-                  failNum,
-                className: "warnDialogClass",
-                cancelButtonText: this.i18nInfo.button.errorList,
-                confirmButtonText: this.$i18n.t("baseButton.sure"),
-                theme: "round-button",
-                messageAlign: "left",
-                showCancelButton: failNum > 0,
-              })
-                .then(() => {})
-                .catch(() => {
-                  this.openBatchConfigRecordPopup();
-                });
+              // 如果没有失败的 直接显示结果
+              if (failNum <= 0) {
+                this.showResultDialog(successNum, failNum);
+              } else {
+                this.showRetryDialog(successNum, failNum);
+              }
             }
           }
         });
       }, 1500);
+    },
+
+    /**
+     * 显示重试弹窗
+     * @param {成功数量} successNum
+     * @param {失败数量} failNum
+     */
+    showRetryDialog(successNum, failNum) {
+      this.retryCountdown = 5;
+
+      Dialog.confirm({
+        title: this.i18nInfo.title.updateResult,
+        message:
+          this.i18nInfo.title.configurationQuantity +
+          this.batchCount +
+          "<br>" +
+          this.i18nInfo.tips.success +
+          successNum +
+          "、 " +
+          this.i18nInfo.tips.failed +
+          failNum +
+          "<br>" +
+          this.i18nInfo.tips.retryTips,
+        className: "warnDialogClass",
+        cancelButtonText: this.i18nInfo.button.seeResults,
+        confirmButtonText: this.i18nInfo.button.retry,
+        theme: "round-button",
+        messageAlign: "left",
+      })
+        .then(() => {
+          // 重试
+          this.startRetryBatchConfig();
+          clearInterval(this.retryInterval);
+          this.retryInterval = null;
+        })
+        .catch(() => {
+          clearInterval(this.retryInterval);
+          this.showResultDialog(successNum, failNum);
+        });
+
+      this.retryInterval = setInterval(() => {
+        this.retryCountdown--;
+        if (this.retryCountdown == 0) {
+          Dialog.close();
+          // 开始重试
+          this.startRetryBatchConfig();
+          clearInterval(this.retryInterval);
+          this.retryInterval = null;
+        }
+      }, 1000);
+    },
+
+    /**
+     *
+     * 开始重试批量配置
+     */
+    startRetryBatchConfig() {
+      batchConfigHelper.queryBatchConfigFailureRecord().then((data) => {
+        this.batchConfigRecordData = data;
+        this.batchConfigRetry(this.batchInfo.type, false);
+        if (this.batchInfo.type == "secret") {
+          this.secretKey = {
+            newSecretKey: this.batchInfo.secretKey,
+            oldSecretKey: this.batchInfo.oldSecretKey,
+          };
+        } else if (
+          this.batchInfo.type == "trigger_response_time" &&
+          this.batchInfo.triggerResponseTime
+        ) {
+          this.triggerResponseTime = this.batchInfo.triggerResponseTime;
+          this.channelSecretKey = this.batchInfo.secretKey;
+        } else {
+          this.channelSecretKey = this.batchInfo.secretKey;
+        }
+        this.startBatchConfigAndGetResult(this.batchInfo.type);
+      });
+    },
+
+    /**
+     * 显示结果弹窗
+     * @param {成功数量} successNum
+     * @param {失败数量} failNum
+     */
+    showResultDialog(successNum, failNum) {
+      Dialog.confirm({
+        title: this.i18nInfo.title.updateResult,
+        message:
+          this.i18nInfo.title.configurationQuantity +
+          this.batchCount +
+          "<br>" +
+          this.i18nInfo.tips.success +
+          successNum +
+          "、 " +
+          this.i18nInfo.tips.failed +
+          failNum,
+        className: "warnDialogClass",
+        cancelButtonText: this.i18nInfo.button.errorList,
+        confirmButtonText: this.$i18n.t("baseButton.sure"),
+        theme: "round-button",
+        messageAlign: "left",
+        showCancelButton: failNum > 0,
+      })
+        .then(() => {})
+        .catch(() => {
+          let batchConfigPopupActive = 0;
+          if (this.batchConfig.type) {
+            switch (this.batchConfig.type) {
+              case "channel":
+                batchConfigPopupActive = 0;
+                break;
+              case "secret":
+                batchConfigPopupActive = 1;
+                break;
+              case "remove_secret_key":
+                batchConfigPopupActive = 2;
+                break;
+              case "connectable":
+                batchConfigPopupActive = 3;
+                break;
+              case "trigger_response_time":
+                batchConfigPopupActive = 3;
+                break;
+              default:
+                break;
+            }
+          }
+          this.openBatchConfigRecordPopup(batchConfigPopupActive);
+        });
     },
 
     /**
@@ -1278,7 +1520,6 @@ export default {
         this.interval = null;
       }
       // 开启扫描
-
       this.interval = setInterval(() => {
         this.$androidApi.deviceList().then((data) => {
           if (this.$config.developmentMode) {
@@ -1388,6 +1629,52 @@ export default {
 
     languageCancel(e) {
       console.log(e);
+    },
+
+    /**
+     * 校验秘钥
+     */
+    checkSecretKey() {
+      if (
+        !this.secretKey.oldSecretKey ||
+        !this.secretKey.newSecretKey ||
+        this.secretKey.oldSecretKey.length != 6 ||
+        this.secretKey.newSecretKey.length != 6
+      ) {
+        Notify({
+          type: "warning",
+          message: this.$i18n.t("notifyMessage.base.paramsError"),
+        });
+        return false;
+      }
+
+      if (this.secretKey.oldSecretKey == this.secretKey.newSecretKey) {
+        Notify({
+          type: "warning",
+          message: this.i18nInfo.tips.secretKeySameTips,
+        });
+        return false;
+      }
+      return true;
+    },
+
+    checkChannelSecretKey() {
+      if (!this.channelSecretKey || this.channelSecretKey.length != 6) {
+        Notify({
+          type: "warning",
+          message: this.$i18n.t("notifyMessage.base.paramsError"),
+        });
+        return false;
+      }
+      return true;
+    },
+
+    keyTiggeredResponseTimeInput() {
+      if (this.triggerResponseTime > 10) {
+        this.triggerResponseTime = 10;
+      } else if (this.triggerResponseTime && this.triggerResponseTime <= 0) {
+        this.triggerResponseTime = 1;
+      }
     },
 
     macReg(value) {
@@ -1731,10 +2018,10 @@ export default {
     width: 7rem;
 
     .van-button {
-      width: 3.4rem;
+      width: 100%;
       height: 0.88rem;
       border-radius: 0.44rem 0.44rem 0.44rem 0.44rem;
-      font-size: 0.26rem;
+      font-size: 0.35rem;
       font-family: PingFang SC-Regular, PingFang SC;
       font-weight: 400;
       line-height: 0.29rem;
@@ -1744,9 +2031,37 @@ export default {
       border: 0.01rem solid #107fff;
       color: #007fff;
     }
-    .secret-key {
-      background: #007fff;
-      color: #ffffff;
+  }
+
+  // 批量配置设置页面
+  .batch-config-setting-popup {
+    .van-radio-group {
+      padding: 0 0.23rem;
+      margin-top: 0.7rem;
+      .van-radio {
+        height: 0.8rem;
+        min-width: 2.5rem;
+      }
+    }
+    .other-config {
+      margin-top: 0.23rem;
+      .van-field {
+        padding: 0.13rem 0.43rem;
+      }
+    }
+    .config-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .channel {
+      font-size: 0.35rem;
+      min-width: 3rem;
+      margin-top: 0.6rem;
+      height: 0.88rem;
+      background: #ffffff;
+      border: 0.01rem solid #107fff;
+      color: #007fff;
     }
   }
 

@@ -200,14 +200,24 @@ export default {
      */
     handleConnectState(status) {
       // 设置蓝牙连接状态
-      this.bluetoothConnectStatus = status;
+      console.log("当前连接状态" + status);
       if (status == 1 || status == "1") {
         this.rate == 20;
         this.text = this.i18nInfo.tips.connecting;
-      } else if (status == 2 || status == "2") {
+        this.bluetoothConnectStatus = 1;
+      }
+      // 连接成功 并且连接状态还不是成功
+      else if (status == 2 || status == "2") {
+        if (this.bluetoothConnectStatus == 2) {
+          return;
+        }
+        this.bluetoothConnectStatus = 2;
+
         this.checkNotificationSwitch();
         // 开启通知
+        console.log("当前连接状态进度1:" + this.rate);
         if (this.rate != 30) {
+          console.log("当前连接状态进度2:" + this.rate);
           this.rate == 30;
           this.text = this.i18nInfo.tips.connectionSucceeded;
           deviceDetailHelper.startNotify(this.address);
@@ -470,6 +480,11 @@ export default {
     keyTiggeredResponseTimeInput() {
       if (this.keyTiggeredResponseTime > 60) {
         this.keyTiggeredResponseTime = 60;
+      } else if (
+        this.keyTiggeredResponseTime &&
+        this.keyTiggeredResponseTime <= 0
+      ) {
+        this.keyTiggeredResponseTime = 1;
       }
     },
 
@@ -750,7 +765,7 @@ export default {
           // 连接失败
           this.exit();
         }
-      }, 5000);
+      }, 7000);
     },
 
     /**

@@ -30,8 +30,7 @@ dependencies {
     // 吐司通知
     implementation 'com.github.GrenderG:Toasty:1.5.2'
 
-//    implementation fileTree(include: ['*.jar'], dir: 'libs')
-     api fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+    api fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 
     implementation 'com.google.android.material:material:1.9.0'
 

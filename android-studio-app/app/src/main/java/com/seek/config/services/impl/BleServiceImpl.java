@@ -51,13 +51,7 @@ public class BleServiceImpl implements BleService {
                         .setNormDevice(!dto.getAllDevice())
                         .setRssi(dto.getRssiValue())
                 );
-        if (null != dto.getShutdownApp() && dto.getShutdownApp()) {
-            BleSdkManager.getBleOptions().setIntermittentScanning(true)
-                    .setIntermittentTime(500)
-                    .setContinuousScanning(true)
-                    .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_LOW_LATENCY)
-                    .setDeviceSurviveTime(5000);
-        }
+
         BleSdkManager.getBleOptions().saveCacheConfig();
     }
 

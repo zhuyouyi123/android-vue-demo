@@ -6,9 +6,11 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.holder.SeekStandardDeviceHolder;
+import com.ble.blescansdk.ble.utils.BleLogUtil;
 import com.ble.blescansdk.ble.utils.StringUtils;
 import com.ble.blescansdk.config.callback.BeaconBleCallback;
 import com.ble.blescansdk.config.helper.BeaconSingleConfigHelper;
+import com.google.gson.Gson;
 import com.seek.config.annotation.AppController;
 import com.seek.config.annotation.AppRequestMapper;
 import com.seek.config.annotation.AppRequestMethod;
@@ -92,6 +94,7 @@ public class BleController {
     @AppRequestMapper(path = "/write", method = AppRequestMethod.POST)
     public RespVO<Void> write(BleWriteDTO dto) {
         BeaconSingleConfigHelper.getInstance().write(dto.getKey(), dto.getData());
+        BleLogUtil.e("开始执行写入：" + new Gson().toJson(dto));
         return RespVO.success();
     }
 

@@ -17,6 +17,8 @@ public class JsBridgeUtil {
 
     public static final String SCAN_RESULT = "SCAN_RESULT";
 
+    public static final String SCAN_DEVICE_LIST_RESULT = "SCAN_DEVICE_LIST_RESULT";
+
     public static final String SUCCESS = "SUCCESS";
     public static final String ERROR = "ERROR";
 

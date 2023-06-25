@@ -74,6 +74,14 @@ public class ChannelController {
         return RespVO.failure(I18nUtil.getMessage(I18nUtil.REQUEST_ERROR));
     }
 
+    @AppRequestMapper(path = "/batch/config", method = AppRequestMethod.POST)
+    public RespVO<Boolean> beaconBatchConfig(BatchChannelConfigDTO dto) {
+        if (channelService.batchConfig(dto)) {
+            return RespVO.success();
+        }
+        return RespVO.failure(I18nUtil.getMessage(I18nUtil.REQUEST_ERROR));
+    }
+
     @AppRequestMapper(path = "/batch/shutdown", method = AppRequestMethod.POST)
     public RespVO<Boolean> beaconBatchShutdown(BatchChannelConfigDTO dto) {
         if (channelService.beaconBatchShutdown(dto)) {

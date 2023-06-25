@@ -1,7 +1,7 @@
 <!-- 批量关机 -->
 <template>
-  <div class="content">
-    <nav-bar> </nav-bar>
+  <div class="content" :class="{ 'mini-content': isChildren }">
+    <nav-bar v-if="!isChildren"> </nav-bar>
 
     <div>
       <van-cell-group inset>
@@ -30,7 +30,11 @@
         </div>
       </div>
 
-      <van-cell-group inset class="list-box">
+      <van-cell-group
+        inset
+        class="list-box"
+        :class="{ 'mini-list-box': isChildren }"
+      >
         <van-cell v-if="list.length == 0" title="请先扫码录入设备"></van-cell>
 
         <van-cell
@@ -112,7 +116,7 @@
         </div>
 
         <div class="retry-button">
-          <van-button round @click="retryShutdown">重试</van-button>
+          <van-button round @click="retryShutdown(true)">重试</van-button>
         </div>
       </van-popup>
     </div>
@@ -164,12 +168,12 @@ export default {
     [Tabs.name]: Tabs,
     navBar: navBar,
   },
+  props: ["isChildren"],
   data() {
     return {
       i18nInfo: this.$i18n.t("home"),
       list: [],
       historyRecordMap: null,
-
       // 错误列表
       failedList: [],
       overlayShow: false,
@@ -197,17 +201,31 @@ export default {
 
       // 清除历史数据
       clearHistory: true,
+      // 重试倒计时
+      retryCountdown: 5,
+      // 重试定时器
+      retryInterval: null,
     };
   },
   mounted() {
     window.addEventListener("commonAndroidEvent", this.callJs);
+    if (window.history && window.history.pushState) {
+      history.pushState(null, null, document.URL);
+      //false阻止默认事件
+      window.addEventListener("popstate", this.goBack, false);
+      this.$androidApi.clearCanBackHistory();
+    }
     this.loadingLastTimeRecords();
   },
 
   destroyed() {
+    //false阻止默认事件
+    window.removeEventListener("popstate", this.goBack, false);
     window.removeEventListener("commonAndroidEvent", this.callJs);
   },
   methods: {
+    // 退出APP
+    goBack() {},
     callJs(e) {
       switch (e.data.eventName) {
         case "SCAN_RESULT":
@@ -338,7 +356,7 @@ export default {
       }
     },
 
-    retryShutdown() {
+    retryShutdown(showDialog) {
       if (this.failedList.length == 0) {
         Notify({ type: "danger", message: "当前不存在失败设备" });
         return;
@@ -349,7 +367,7 @@ export default {
         type: "retry",
         list: retryList,
       };
-      this.secretKeyDialog = true;
+      this.secretKeyDialog = showDialog ? showDialog : false;
       this.batchConfigRecordPopupShow = false;
     },
 
@@ -441,67 +459,93 @@ export default {
               clearInterval(this.batchConfigInterval);
               this.overlayShow = false;
 
-              // if (this.shutdownMode.type == "multiple") {
               this.alreadConfigNum = 0;
               this.alreadShutdownNum = 0;
               this.standbyNumber = 0;
               this.standbyList = [];
               this.list = [];
-              // this.loadingLastTimeRecords();
-              // } else if (this.shutdownMode.type == "single") {
-              // for (let i = 0; i < this.list.length; i++) {
-              //   const device = this.list[i];
-              //   if (device.address == this.shutdownMode.list[0]) {
-              //     if (successNum > 0) {
-              //       this.standbyNumber--;
-              //       device.state = "已关机";
-              //     } else {
-              //       device.state = "等待关机";
-              //     }
-              //     this.$set(this.list, i, device);
-              //     // 待关机列表减一
-              //     for (let j = 0; j < this.standbyList.length; j++) {
-              //       const standby = this.standbyList[j];
-              //       if (device.address == standby.address) {
-              //         this.standbyList.splice(j, 1);
-              //         break;
-              //       }
-              //     }
-              //     break;
-              //   }
-              // }
-
-              // } else if (this.shutdownMode.type == "retry" && successNum > 0) {
-              //   this.loadingLastTimeRecords();
-              //   this.handleBatchScanResult(this.scanResult);
-              // } else {
-              //   this.loadingLastTimeRecords();
-              // }
 
               this.loadingLastTimeRecords().then(() => {
                 if (this.scanResult) {
                   this.handleBatchScanResult(this.scanResult);
                 }
+                if (failNum <= 0) {
+                  this.showResultDialog(num, successNum, failNum);
+                } else {
+                  this.showRetryDialog(num, successNum, failNum);
+                }
               });
-
-              Dialog.confirm({
-                title: "批量关机结果",
-                message: `批量关机结束，共${num}个设备\r\n成功${successNum}个，失败${failNum}个`,
-                className: "warnDialogClass",
-                cancelButtonText: "失败列表",
-                confirmButtonText: "确认",
-                theme: "round-button",
-                messageAlign: "left",
-                showCancelButton: failNum > 0,
-              })
-                .then(() => {})
-                .catch(() => {
-                  this.batchConfigRecordPopupShow = true;
-                });
             }
           }
         });
       }, 1500);
+    },
+
+    showResultDialog(num, successNum, failNum) {
+      Dialog.confirm({
+        title: "批量关机结果",
+        message: `批量关机结束，共${num}个设备\r\n成功${successNum}个，失败${failNum}个`,
+        className: "warnDialogClass",
+        cancelButtonText: "失败列表",
+        confirmButtonText: "确认",
+        theme: "round-button",
+        messageAlign: "left",
+        showCancelButton: failNum > 0,
+      })
+        .then(() => {})
+        .catch(() => {
+          this.batchConfigRecordPopupShow = true;
+        });
+    },
+
+    /**
+     * 显示重试弹窗
+     * @param {成功数量} successNum
+     * @param {失败数量} failNum
+     */
+    showRetryDialog(num, successNum, failNum) {
+      this.retryCountdown = 5;
+      Dialog.confirm({
+        title: this.i18nInfo.title.updateResult,
+        message:
+          "配置数量：" +
+          num +
+          "<br>" +
+          "成功数量：" +
+          successNum +
+          "、 " +
+          "失败数量：" +
+          failNum +
+          "<br>" +
+          "将在5秒后进行重试，点击查看结果后不会进行重试",
+        className: "warnDialogClass",
+        cancelButtonText: "查看结果",
+        confirmButtonText: "立即重试",
+        theme: "round-button",
+        messageAlign: "left",
+      })
+        .then(() => {
+          this.retryShutdown(false);
+          this.startConfigBatchShutdown();
+          clearInterval(this.retryInterval);
+          this.retryInterval = null;
+        })
+        .catch(() => {
+          clearInterval(this.retryInterval);
+          this.retryInterval = null;
+          this.showResultDialog(num, successNum, failNum);
+        });
+      this.retryInterval = setInterval(() => {
+        this.retryCountdown--;
+        if (this.retryCountdown == 0) {
+          Dialog.close();
+          // 开始重试
+          this.retryShutdown(false);
+          this.startConfigBatchShutdown();
+          clearInterval(this.retryInterval);
+          this.retryInterval = null;
+        }
+      }, 1000);
     },
 
     secretKeyDialogBeforeClose(action, done) {
@@ -511,21 +555,23 @@ export default {
           done(false);
           return;
         }
-
-        this.overlayShow = true;
-
-        this.$androidApi.batchShutdown({
-          addressJson: JSON.stringify(this.shutdownMode.list),
-          secretKey: this.secretKey,
-          clearHistory:
-            this.shutdownMode.type == "retry" ? false : this.clearHistory,
-        });
-        // 设置已配置设备数量0
-        this.alreadConfigNum = 0;
-        // 查询批量配置结果列表
-        this.queryConfigResultList();
+        this.startConfigBatchShutdown();
       }
       done();
+    },
+    startConfigBatchShutdown() {
+      this.overlayShow = true;
+
+      this.$androidApi.batchShutdown({
+        addressJson: JSON.stringify(this.shutdownMode.list),
+        secretKey: this.secretKey,
+        clearHistory:
+          this.shutdownMode.type == "retry" ? false : this.clearHistory,
+      });
+      // 设置已配置设备数量0
+      this.alreadConfigNum = 0;
+      // 查询批量配置结果列表
+      this.queryConfigResultList();
     },
 
     // 验证是否是mac
@@ -537,6 +583,9 @@ export default {
 };
 </script>
 <style lang='scss' scoped>
+.mini-content {
+  height: 83vh !important;
+}
 .function-box {
   height: 1.4rem;
   display: flex;
@@ -576,7 +625,7 @@ export default {
 }
 
 .list-box {
-  height: 76vh;
+  height: 70vh;
   overflow: auto;
   .van-cell__value {
     color: rgb(214, 132, 33);
@@ -586,6 +635,9 @@ export default {
       color: rgb(127, 194, 26);
     }
   }
+}
+.mini-list-box {
+  height: 62vh;
 }
 
 .van-popup {

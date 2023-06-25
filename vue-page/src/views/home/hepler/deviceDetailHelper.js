@@ -189,7 +189,7 @@ function callAndroidStartNotify(address) {
   };
   setTimeout(() => {
     androidApi.startNotify(params);
-  }, 1200);
+  }, 1500);
 }
 
 /**

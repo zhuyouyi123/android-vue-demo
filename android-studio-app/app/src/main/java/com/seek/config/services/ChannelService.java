@@ -31,6 +31,14 @@ public interface ChannelService {
     boolean beaconBatchConfigSecretKey(BatchChannelConfigDTO dto);
 
     /**
+     * 批量配置
+     *
+     * @param dto {@link BatchChannelConfigDTO}
+     * @return 是否能够配置
+     */
+    boolean batchConfig(BatchChannelConfigDTO dto);
+
+    /**
      * 批量关机
      */
     boolean beaconBatchShutdown(BatchChannelConfigDTO dto);

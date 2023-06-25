@@ -3,8 +3,10 @@ import Router from "vue-router";
 
 import index from "../../views/home/index.vue";
 import shutdownIndex from "../../views/home/batchShutdownIndex.vue";
-
+import scanIndex from "@/views/home/scanIndex";
 import androidApi from "@/api/android-api";
+
+import config from "@/fetch/config";
 
 Vue.use(Router);
 
@@ -24,6 +26,11 @@ export const constantRoutes = [
     path: "/home1",
     name: "home1",
     component: shutdownIndex,
+  },
+  {
+    path: "/home2",
+    name: "home2",
+    component: scanIndex,
   },
   {
     path: "/config",
@@ -74,13 +81,16 @@ const router = createRouter();
 router.beforeEach((to, form, next) => {
   if (!APP_TYPE) {
     androidApi.shareGet({ key: "APP_TYPE" }).then((data) => {
+      APP_TYPE = config.appType;
       if (data) {
         APP_TYPE = data;
-        let path = data == "SHUTDOWN" ? "/home1" : "/home";
-        next({ path: path });
-      } else {
-        APP_TYPE = "CONFIG";
+      }
+      if (APP_TYPE == "CONFIG") {
         next({ path: "/home" });
+      } else if (APP_TYPE == "SHUTDOWN") {
+        next({ path: "/home1" });
+      } else {
+        next({ path: "/home2" });
       }
     });
   } else {

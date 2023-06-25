@@ -48,11 +48,15 @@ export default {
       batch: "Bulk",
       batchConfigChannel: "Batch config channels",
       batchConfigSecretKey: "Batch config key",
+      batchConfigSetting: "Bulk configuration settings",
       allDevice: "All devices",
       thisBrandDevice: "This brand of equipment",
       refresh: "Scan",
       errorList: "Failure details",
       selectAll: "ALL",
+      seeResults: "View Results",
+      retry: "Retry",
+      batchConfig: "Batch Configuration",
     },
 
     tips: {
@@ -65,6 +69,8 @@ export default {
       secretKeySameTips: "keys cannot be the same",
       success: "success：",
       failed: "fail：",
+      retryTips:
+        "A retry will be performed after 5 seconds, and no retry will be performed after clicking to view the results",
     },
     broadcastInterval: "Broadcast interval",
     calibrationDistance: "Calibration distance",
@@ -72,10 +78,17 @@ export default {
 
     title: {
       batchConfigSecretKey: "Configure keys in batches",
+      batchConfig: "Batch configuration",
       updateResult: "Modify Results",
       batchRecord: "Batch recording",
       secretKeySetting: "Fill in the secret key",
       configurationQuantity: "Configuration Quantity：",
+      secretKey: "Secret key",
+      channel: "Channel",
+      secretKeyUpdate: "Key modification",
+      secretKeyRemove: "Key removal",
+      connectable: "Connectable",
+      triggerResponseTime: "Trigger response time",
     },
 
     sort: {
@@ -92,6 +105,8 @@ export default {
       deviceFilter: "Equipment filtering",
       selectLanguage: "Select Language",
       errorReason: "Reason for failure ",
+      oldSecretKey: "Old key",
+      newSecretKey: "New key",
     },
     scannedCount: "Number of devices scanned：",
     individua: " pcs",

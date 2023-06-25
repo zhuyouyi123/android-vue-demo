@@ -95,9 +95,10 @@ public class AppInitTools extends AppCompatActivity {
                     // 持续扫描开关
                     .setContinuousScanning(false)
                     // 连接失败重试次数
-                    .setConnectFailedRetryCount(5)
+                    .setConnectFailedRetryCount(1)
                     // 连接超时时间
-                    .setConnectTimeout(3_000)
+                    .setConnectTimeout(4000)
+                    .setConnectFailedRetryInterval(5000)
                     // 数据库支持
                     .setDatabaseSupport(true)
                     // 蓝牙扫描等级
@@ -222,13 +223,11 @@ public class AppInitTools extends AppCompatActivity {
                     android.Manifest.permission.BLUETOOTH_CONNECT,
                     android.Manifest.permission.ACCESS_COARSE_LOCATION,
                     android.Manifest.permission.ACCESS_FINE_LOCATION,
-//                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     Manifest.permission.CAMERA
             };
         } else {
             requestPermissions = new String[]{
                     android.Manifest.permission.ACCESS_COARSE_LOCATION,
-//                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.CAMERA
             };

@@ -154,6 +154,11 @@ export default {
     return request("post", "channel/batch/save/secret-key", params);
   },
 
+  // 批量配置
+  batchConfig(params) {
+    return request("post", "channel/batch/config", params);
+  },
+
   batchShutdown(params) {
     if (config.developmentMode) {
       return newPromise(true);
@@ -208,6 +213,14 @@ export default {
 
   shareGet(params) {
     return request("get", "share/get", params);
+  },
+
+  // 扫描工具
+  startBleRanging(params) {
+    return request("post", "scan/start", params);
+  },
+  stopBleRanging(params) {
+    return request("post", "scan/stop", params);
   },
 };
 

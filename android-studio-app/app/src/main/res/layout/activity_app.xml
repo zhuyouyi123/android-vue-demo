@@ -11,28 +11,25 @@
     <Button
         android:id="@+id/refresh"
         style="@style/Widget.AppCompat.Button.Small"
-        android:layout_width="56dp"
-        android:layout_height="40dp"
+        android:layout_width="73dp"
+        android:layout_height="44dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
-        android:layout_marginRight="10dp"
-        android:background="#00FFFFFF"
         android:textAllCaps="false"
-        android:textAppearance="@style/TextAppearance.AppCompat.Small"
         android:textColor="#142FCA"
         android:textColorHighlight="#00FFFFFF"
         android:textColorHint="#00FFFFFF"
         app:backgroundTint="#00FFFFFF"
-        app:icon="@android:drawable/ic_menu_rotate"
+        app:icon="@drawable/logo"
         app:iconTint="#673AB7"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <WebView
         android:id="@+id/mainWebView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_constraintTop_toTopOf="parent" >
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="0dp">
 
     </WebView>
 </androidx.constraintlayout.widget.ConstraintLayout>

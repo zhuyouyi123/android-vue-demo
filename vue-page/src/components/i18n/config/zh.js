@@ -48,11 +48,15 @@ export default {
       batch: "批量",
       batchConfigChannel: "批量配置通道",
       batchConfigSecretKey: "批量配置秘钥",
+      batchConfigSetting: "批量配置设置",
       allDevice: "全部设备",
       thisBrandDevice: "此品牌设备",
       refresh: "扫描",
       errorList: "失败明细",
       selectAll: "全选",
+      seeResults: "查看结果",
+      retry: "重试",
+      batchConfig: "批量配置",
     },
 
     tips: {
@@ -65,6 +69,7 @@ export default {
       secretKeySameTips: "旧秘钥不能与新秘钥相同",
       success: "成功：",
       failed: "失败：",
+      retryTips: "将在5秒后进行重试，点击查看结果后不会进行重试",
     },
     broadcastInterval: "广播间隔",
     calibrationDistance: "校准距离",
@@ -72,10 +77,17 @@ export default {
 
     title: {
       batchConfigSecretKey: "批量配置秘钥",
+      batchConfig: "批量配置",
       updateResult: "修改结果",
       batchRecord: "批量记录",
       secretKeySetting: "填写秘钥",
       configurationQuantity: "配置数量：",
+      secretKey: "秘钥",
+      channel:"通道",
+      secretKeyUpdate:"秘钥修改",
+      secretKeyRemove:"通道",
+      connectable:"可连接",
+      triggerResponseTime:"触发响应时间",
     },
 
     sort: {
@@ -92,6 +104,8 @@ export default {
       deviceFilter: "设备过滤",
       selectLanguage: "选择语言",
       errorReason: "失败原因",
+      oldSecretKey: "旧秘钥",
+      newSecretKey: "新秘钥",
     },
     scannedCount: "扫描到设备数量：",
     individua: "个",
@@ -125,6 +139,7 @@ export default {
         numberOfChannels: "通道数量",
         supportPower: "支持功率",
         supportData: "支持协议",
+        responseTime: "响应时间",
       },
       // 按钮
       button: {

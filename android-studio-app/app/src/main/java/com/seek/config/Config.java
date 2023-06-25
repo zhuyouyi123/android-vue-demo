@@ -84,7 +84,7 @@ public class Config {
         if (APK) {
             return "file:///android_asset/ui/index.html";
         }
-//        return "http://192.168.2.104:8888";
+//  return "http://192.168.2.104:8888";
         return "http://172.16.31.189:8888";
     }
 

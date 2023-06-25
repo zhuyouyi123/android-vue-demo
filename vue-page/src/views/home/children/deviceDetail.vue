@@ -267,12 +267,13 @@
         theme="round-button"
       >
         <van-field
-          label="响应时间(S)"
+          :label="i18nInfo.lable.responseTime + '(S)'"
           type="digit"
           maxlength="2"
           @input="keyTiggeredResponseTimeInput"
           v-model="keyTiggeredResponseTime"
           :placeholder="i18nInfo.function.keyTiggeredResponseTime"
+          clearable
         />
         <div class="explain">在以上时间内完成操作，触发器生效</div>
       </van-dialog>

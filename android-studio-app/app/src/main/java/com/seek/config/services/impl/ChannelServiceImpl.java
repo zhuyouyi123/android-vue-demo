@@ -74,6 +74,9 @@ public class ChannelServiceImpl implements ChannelService {
      */
     @Override
     public boolean beaconBatchConfigChannel(BatchChannelConfigDTO dto) {
+        if (!BleSdkManager.getBleOptions().isDatabaseSupport()) {
+            BleSdkManager.getBleOptions().setDatabaseSupport(true);
+        }
         if (dto.getRetry()) {
             String shareGet = SharePreferenceUtil.getInstance().shareGet(SharePreferenceUtil.BATCH_CONFIG_CHANNEL_LIST_KEY);
             if (StringUtils.isBlank(shareGet)) {
@@ -94,7 +97,24 @@ public class ChannelServiceImpl implements ChannelService {
      */
     @Override
     public boolean beaconBatchConfigSecretKey(BatchChannelConfigDTO dto) {
+        if (!BleSdkManager.getBleOptions().isDatabaseSupport()) {
+            BleSdkManager.getBleOptions().setDatabaseSupport(true);
+        }
         return BleSdkManager.getInstance().batchConfigSecretKey(dto.getAddressList(), dto.getSecretKey(), dto.getOldSecretKey());
+    }
+
+    /**
+     * 批量配置
+     *
+     * @param dto {@link BatchChannelConfigDTO}
+     * @return 是否能够配置
+     */
+    @Override
+    public boolean batchConfig(BatchChannelConfigDTO dto) {
+        if (!BleSdkManager.getBleOptions().isDatabaseSupport()) {
+            BleSdkManager.getBleOptions().setDatabaseSupport(true);
+        }
+        return BleSdkManager.getInstance().batchConfig(dto.getType(), dto.getAddressList(), dto.getSecretKey(), dto.getExtendedInfo());
     }
 
     /**
@@ -104,6 +124,9 @@ public class ChannelServiceImpl implements ChannelService {
      */
     @Override
     public boolean beaconBatchShutdown(BatchChannelConfigDTO dto) {
+        if (!BleSdkManager.getBleOptions().isDatabaseSupport()) {
+            BleSdkManager.getBleOptions().setDatabaseSupport(true);
+        }
         return BleSdkManager.getInstance().batchShutdown(dto.getAddressList(), dto.getSecretKey(), dto.getClearHistory());
     }
 

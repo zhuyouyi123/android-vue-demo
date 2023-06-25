@@ -177,7 +177,6 @@
 </template>
 
 <script>
-import storage from "@/fetch/storage";
 import {
   Notify,
   Collapse,

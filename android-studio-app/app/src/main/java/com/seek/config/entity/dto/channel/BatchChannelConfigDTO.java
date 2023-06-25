@@ -24,6 +24,9 @@ public class BatchChannelConfigDTO {
 
     private Boolean clearHistory;
 
+    private String type;
+    private String extendedInfo;
+
     public List<BeaconConfig> getChannelInfo() {
         if (StringUtils.isBlank(beaconListJson)) {
             return new ArrayList<>();
@@ -75,5 +78,21 @@ public class BatchChannelConfigDTO {
 
     public void setClearHistory(Boolean clearHistory) {
         this.clearHistory = clearHistory;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getExtendedInfo() {
+        return extendedInfo;
+    }
+
+    public void setExtendedInfo(String extendedInfo) {
+        this.extendedInfo = extendedInfo;
     }
 }
