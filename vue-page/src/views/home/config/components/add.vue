@@ -644,6 +644,8 @@ export default {
       let supportACC = this.$storage.supportACC;
       if (!supportACC) {
         this.triggerActions[2].disabled = true;
+      } else {
+        this.triggerActions[2].disabled = false;
       }
 
       let params = {

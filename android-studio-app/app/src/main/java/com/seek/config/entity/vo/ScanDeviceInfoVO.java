@@ -5,6 +5,8 @@ public class ScanDeviceInfoVO {
 
     private Integer rssi;
 
+    private String name;
+
     public ScanDeviceInfoVO(String address, Integer rssi) {
         this.address = address;
         this.rssi = rssi;
@@ -24,5 +26,13 @@ public class ScanDeviceInfoVO {
 
     public void setRssi(Integer rssi) {
         this.rssi = rssi;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

@@ -1,4 +1,5 @@
 import androidApi from "@/api/android-api";
+import i18n from "@/components/i18n";
 import { Notify } from "vant";
 export default {
   /**
@@ -25,6 +26,7 @@ function callAndroidQueryBatchConfigFailureRecord() {
   let removeSecretKeyRecordList = [];
   let connectableRecordList = [];
   let triggerResponseTimeRecordList = [];
+  let resetRecordList = [];
   return new Promise((resolve, reject) => {
     androidApi.queryBatchConfigFailureRecord().then((data) => {
       if (data && data.length > 0) {
@@ -39,6 +41,8 @@ function callAndroidQueryBatchConfigFailureRecord() {
             connectableRecordList.push(e);
           } else if (e.type == 5) {
             triggerResponseTimeRecordList.push(e);
+          } else if (e.type == 6) {
+            resetRecordList.push(e);
           }
         });
       }
@@ -46,32 +50,38 @@ function callAndroidQueryBatchConfigFailureRecord() {
         {
           list: channelRecordList,
           count: channelRecordList.length,
-          type: "Chanel",
+          type: i18n.t("home.title.channel"),
           key: "channel",
         },
         {
           list: secretKeyRecordList,
           count: secretKeyRecordList.length,
-          type: "SecretKey",
+          type: i18n.t("home.title.secretKeyUpdate"),
           key: "secret",
         },
         {
           list: removeSecretKeyRecordList,
           count: removeSecretKeyRecordList.length,
-          type: "Remove SecretKey",
+          type: i18n.t("home.title.secretKeyRemove"),
           key: "remove_secret_key",
         },
         {
           list: connectableRecordList,
           count: connectableRecordList.length,
-          type: "Connectable",
+          type: i18n.t("home.title.connectable"),
           key: "connectable",
         },
         {
           list: triggerResponseTimeRecordList,
           count: triggerResponseTimeRecordList.length,
-          type: "Resonse Time",
+          type: i18n.t("home.title.triggerResponseTime"),
           key: "trigger_response_time",
+        },
+        {
+          list: resetRecordList,
+          count: resetRecordList.length,
+          type: i18n.t("home.title.reset"),
+          key: "reset",
         },
       ]);
     });
@@ -109,6 +119,7 @@ function callAndroidStartBatchConfig(type, params) {
       case "remove_secret_key":
       case "connectable":
       case "trigger_response_time":
+      case "reset":
         androidApi
           .batchConfig(params)
           .then(() => {

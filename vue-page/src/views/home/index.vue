@@ -402,6 +402,9 @@
             <van-radio name="5">
               {{ i18nInfo.title.triggerResponseTime }}
             </van-radio>
+            <van-radio name="6">
+              {{ i18nInfo.title.reset }}
+            </van-radio>
           </van-radio-group>
 
           <div class="other-config">
@@ -821,8 +824,7 @@ export default {
   methods: {
     // 退出APP
     goBack() {},
-    openBatchConfigRecordPopup(batchConfigPopupActive) {
-      this.batchConfigPopupActive = batchConfigPopupActive;
+    openBatchConfigRecordPopup() {
       this.triggerResponseTime = null;
       this.batchConfigRecordPopupShow = true;
       batchConfigHelper.queryBatchConfigFailureRecord().then((data) => {
@@ -835,7 +837,6 @@ export default {
     },
 
     callJs(e) {
-      console.log(JSON.stringify(e));
       switch (e.data.eventName) {
         case "SCAN_RESULT":
           // 批量模式扫码
@@ -1140,6 +1141,13 @@ export default {
           this.batchInfo.triggerResponseTime = this.triggerResponseTime;
           this.startBatchConfigAndGetResult("trigger_response_time");
           break;
+        case "6":
+          if (!this.checkChannelSecretKey()) {
+            return;
+          }
+          this.batchInfo.secretKey = this.channelSecretKey;
+          this.startBatchConfigAndGetResult("reset");
+          break;
       }
       this.batchConfigSettingPopupShow = false;
     },
@@ -1182,7 +1190,11 @@ export default {
 
       for (let i = 0; i < this.batchConfigRecordData.length; i++) {
         const recordData = this.batchConfigRecordData[i];
-        if (recordData.list && recordData.list.length > 0) {
+        if (
+          recordData.key == type &&
+          recordData.list &&
+          recordData.list.length > 0
+        ) {
           recordData.list.forEach((e) =>
             this.$storage.toBeConfiguredList.push(e.address)
           );
@@ -1458,29 +1470,32 @@ export default {
       })
         .then(() => {})
         .catch(() => {
-          let batchConfigPopupActive = 0;
-          if (this.batchConfig.type) {
-            switch (this.batchConfig.type) {
+          this.batchConfigPopupActive = 0;
+          if (this.batchInfo.type) {
+            switch (this.batchInfo.type) {
               case "channel":
-                batchConfigPopupActive = 0;
+                this.batchConfigPopupActive = 0;
                 break;
               case "secret":
-                batchConfigPopupActive = 1;
+                this.batchConfigPopupActive = 1;
                 break;
               case "remove_secret_key":
-                batchConfigPopupActive = 2;
+                this.batchConfigPopupActive = 2;
                 break;
               case "connectable":
-                batchConfigPopupActive = 3;
+                this.batchConfigPopupActive = 3;
                 break;
               case "trigger_response_time":
-                batchConfigPopupActive = 3;
+                this.batchConfigPopupActive = 4;
+                break;
+              case "reset":
+                this.batchConfigPopupActive = 5;
                 break;
               default:
                 break;
             }
           }
-          this.openBatchConfigRecordPopup(batchConfigPopupActive);
+          this.openBatchConfigRecordPopup();
         });
     },
 
@@ -1635,8 +1650,11 @@ export default {
      * 校验秘钥
      */
     checkSecretKey() {
+      // 旧的秘钥不存在 设置一个默认的
+      if (!this.secretKey.oldSecretKey) {
+        this.secretKey.oldSecretKey = 888888;
+      }
       if (
-        !this.secretKey.oldSecretKey ||
         !this.secretKey.newSecretKey ||
         this.secretKey.oldSecretKey.length != 6 ||
         this.secretKey.newSecretKey.length != 6
@@ -1659,7 +1677,9 @@ export default {
     },
 
     checkChannelSecretKey() {
-      if (!this.channelSecretKey || this.channelSecretKey.length != 6) {
+      if (!this.channelSecretKey) {
+        this.channelSecretKey = 888888;
+      } else if (this.channelSecretKey.length != 6) {
         Notify({
           type: "warning",
           message: this.$i18n.t("notifyMessage.base.paramsError"),
@@ -2040,7 +2060,7 @@ export default {
       margin-top: 0.7rem;
       .van-radio {
         height: 0.8rem;
-        min-width: 2.5rem;
+        min-width: 2.8rem;
       }
     }
     .other-config {
@@ -2082,7 +2102,7 @@ export default {
   .van-popup {
     .title {
       width: 1.44rem;
-      height: 0.86rem;
+      height: 0.8rem;
       font-size: 0.36rem;
       font-family: Source Han Sans CN-Regular, Source Han Sans CN;
       font-weight: 400;
@@ -2093,7 +2113,7 @@ export default {
       justify-content: center;
     }
     .list {
-      height: 68vh;
+      height: 66vh;
       background: #eef3fa;
       overflow: auto;
       color: #000000;
@@ -2134,7 +2154,7 @@ export default {
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 1.4rem;
+      height: 1.3rem;
 
       .van-button {
         height: 0.88rem;

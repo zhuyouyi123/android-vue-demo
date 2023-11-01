@@ -87,8 +87,9 @@ export default {
       channel: "Channel",
       secretKeyUpdate: "Key modification",
       secretKeyRemove: "Key removal",
-      connectable: "Connectable",
+      connectable: "UnConnectable",
       triggerResponseTime: "Trigger response time",
+      reset: "Restore factory settings",
     },
 
     sort: {
@@ -140,6 +141,7 @@ export default {
         numberOfChannels: "Number of channels",
         supportPower: "Support power",
         supportData: "supporting agreement",
+        responseTime: "Time",
       },
       // 按钮
       button: {
@@ -183,6 +185,8 @@ export default {
         connecting: "Connecting...",
         connectionSucceeded: "Successfully connected",
         readSecretKey: "Read Secret Key",
+        responseTimeTips:
+          "If the operation is completed within the above time, the trigger will take effect",
       },
     },
     // 通道

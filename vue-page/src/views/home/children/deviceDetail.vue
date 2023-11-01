@@ -275,7 +275,9 @@
           :placeholder="i18nInfo.function.keyTiggeredResponseTime"
           clearable
         />
-        <div class="explain">在以上时间内完成操作，触发器生效</div>
+        <div class="tips-explain">
+          {{ i18nInfo.tips.responseTimeTips }}
+        </div>
       </van-dialog>
 
       <!-- 校验秘钥 -->
@@ -377,6 +379,12 @@ export default deviceDetail;
         }
       }
     }
+  }
+
+  .tips-explain {
+    font-size: 0.25rem;
+    margin: auto;
+    width: 80%;
   }
 }
 </style>

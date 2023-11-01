@@ -83,11 +83,12 @@ export default {
       secretKeySetting: "填写秘钥",
       configurationQuantity: "配置数量：",
       secretKey: "秘钥",
-      channel:"通道",
-      secretKeyUpdate:"秘钥修改",
-      secretKeyRemove:"删除秘钥",
-      connectable:"可连接",
-      triggerResponseTime:"触发响应时间",
+      channel: "通道",
+      secretKeyUpdate: "秘钥修改",
+      secretKeyRemove: "删除秘钥",
+      connectable: "不可连接",
+      triggerResponseTime: "触发响应时间",
+      reset: "恢复出厂设置",
     },
 
     sort: {
@@ -181,6 +182,7 @@ export default {
         connecting: "连接中...",
         connectionSucceeded: "连接成功",
         readSecretKey: "读取秘钥",
+        responseTimeTips: "在以上时间内完成操作，触发器生效",
       },
     },
     // 通道

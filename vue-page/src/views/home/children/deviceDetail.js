@@ -784,17 +784,20 @@ export default {
     },
 
     exit() {
-      if (this.bluetoothConnectStatus == 2) {
-        this.restartDevice();
-      }
+      setTimeout(() => {
+        this.$router.replace("/home");
+      }, 500);
+
+      setTimeout(() => {
+        if (this.bluetoothConnectStatus == 2) {
+          this.restartDevice();
+        }
+      }, 100);
+
       // 取消连接设备
       setTimeout(() => {
         deviceDetailHelper.cancelConnectDevice(this.address);
-      }, 10);
-
-      setTimeout(() => {
-        this.$router.replace("/home");
-      }, 15);
+      }, 110);
     },
 
     restartDevice() {

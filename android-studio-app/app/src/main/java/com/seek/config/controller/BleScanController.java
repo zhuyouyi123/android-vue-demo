@@ -12,11 +12,9 @@ import android.widget.Toast;
 import com.ble.blescansdk.ble.BleOptions;
 import com.ble.blescansdk.ble.BleSdkManager;
 import com.ble.blescansdk.ble.callback.request.BleScanCallback;
-import com.ble.blescansdk.ble.entity.BleDevice;
 import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
 import com.ble.blescansdk.ble.enums.BleScanLevelEnum;
 import com.ble.blescansdk.ble.utils.CollectionUtils;
-import com.google.gson.Gson;
 import com.seek.config.Config;
 import com.seek.config.annotation.AppController;
 import com.seek.config.annotation.AppRequestMapper;
@@ -30,8 +28,6 @@ import java.util.List;
 
 @AppController(path = "scan")
 public class BleScanController {
-
-    private static final Gson GSON = new Gson();
 
     @AppRequestMapper(path = "/start", method = AppRequestMethod.POST)
     public RespVO<Void> startScan() {
@@ -75,7 +71,9 @@ public class BleScanController {
 
                 List<ScanDeviceInfoVO> list = new ArrayList<>();
                 for (SeekStandardDevice seekStandardDevice : device) {
-                    list.add(new ScanDeviceInfoVO(seekStandardDevice.getAddress(), seekStandardDevice.getRssi()));
+                    ScanDeviceInfoVO scanDeviceInfoVO = new ScanDeviceInfoVO(seekStandardDevice.getAddress(), seekStandardDevice.getRssi());
+                    scanDeviceInfoVO.setName(seekStandardDevice.getName());
+                    list.add(scanDeviceInfoVO);
                 }
 
                 JsBridgeUtil.pushEvent(JsBridgeUtil.SCAN_DEVICE_LIST_RESULT, list);
