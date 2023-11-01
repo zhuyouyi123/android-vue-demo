@@ -22,7 +22,11 @@ export default {
 
   methods: {
     init() {
-      this.$androidApi.init().then(()=>{
+      let params={
+        title:"1111",
+        text:"你好啊"
+      }
+      this.$androidApi.init(params).then(()=>{
         console.log(1111111);
       });
     },

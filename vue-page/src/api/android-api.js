@@ -7,7 +7,7 @@ export default {
    * @param {参数} params 
    */
   init(params) {
-    return request("get", "ble/init", params);
+    return request("post", "system/pushMessage", params);
   }
 
 

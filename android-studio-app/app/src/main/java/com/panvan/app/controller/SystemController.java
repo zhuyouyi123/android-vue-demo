@@ -4,6 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
+import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
 
 import com.panvan.app.AppActivity;
 import com.panvan.app.AppInitTools;
@@ -43,8 +47,8 @@ public class SystemController {
     }
 
     @AppRequestMapper(path="/pushMessage",method = AppRequestMethod.POST)
-    public Boolean pushMessage(String title,String text) throws Exception {
-        AppInitTools.showNotify(title,text,AppActivity.appActivity);
+    public Boolean pushMessage(String title,String text) {
+        Toast.makeText(Config.mainContext, "text", Toast.LENGTH_SHORT).show();
         return true ;
     }
 
@@ -89,6 +93,7 @@ public class SystemController {
      * 获取系统 apk版本
      * @return
      */
+    @RequiresApi(api = Build.VERSION_CODES.P)
     @AppRequestMapper(path="/versionInfo",method = AppRequestMethod.GET)
     public HashMap<String,String> getVersionInfo() throws Exception {
         Context context=AppActivity.appActivity;

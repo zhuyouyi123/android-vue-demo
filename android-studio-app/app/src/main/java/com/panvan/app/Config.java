@@ -61,8 +61,8 @@ public class Config {
         return getAssetsPath();
     }
 
-    public static String getAssetsPath(){
-        return "http://172.16.5.135:8888";
+    public static String getAssetsPath() {
+        return APK ? "file:///android_asset/ui/index.html" : "http://172.16.100.134:8888";
     }
 
     public static DateFormat[] df = new SimpleDateFormat[]{

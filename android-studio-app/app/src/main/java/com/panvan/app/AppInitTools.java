@@ -31,11 +31,6 @@ public class AppInitTools extends AppCompatActivity {
         initContentBefore();
         setContentView(R.layout.activity_app);
 
-        BleSdkManager.getBleOptions().setDebugLogSwitch(true)
-                .setContinuousScanning(true)
-                .setIgnoreRepeat(false)
-                .setLogTag("BEACON-CONFIG-TOOL");
-
         BleSdkManager.getInstance().init(this);
     }
 
