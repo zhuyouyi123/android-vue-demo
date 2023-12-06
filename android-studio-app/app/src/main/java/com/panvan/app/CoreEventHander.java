@@ -3,6 +3,7 @@ package com.panvan.app;
 import com.panvan.app.annotation.AppAutowired;
 import com.panvan.app.annotation.AppController;
 import com.panvan.app.annotation.AppRequestMapper;
+import com.panvan.app.utils.StringUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,6 +36,7 @@ import java.util.zip.Deflater;
 
 import android.content.Context;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -43,10 +45,9 @@ import dalvik.system.DexFile;
 public class CoreEventHander {
     private static boolean isInitHander = false;
     private static Map<String, Class> classNameList = null;
-    private static Map<String, Method> methodMap = new HashMap<>();
-    private static Map<String, String> classMap = new HashMap<>();
+    private static final Map<String, Method> methodMap = new HashMap<>();
+    private static final Map<String, String> classMap = new HashMap<>();
     private static Context mContext;
-    private static DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//小写的mm表示的是分钟
 
     /**
      * 执行反射方法
@@ -57,10 +58,11 @@ public class CoreEventHander {
      * @return
      * @throws Exception
      */
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public static Object executeMethodOfController(String action, String jsonParam, Context _mContext) throws Exception {
-        if(jsonParam.equals("undefined")){
-            jsonParam="";
-        }                                   
+        if (jsonParam.equals("undefined")) {
+            jsonParam = "";
+        }
         mContext = _mContext;
         init();
         Method method = methodMap.get(action);
@@ -80,6 +82,7 @@ public class CoreEventHander {
 
     /**
      * 添加 @AppAutowired注解类的自动实例化支持
+     *
      * @param object
      * @param clzss
      * @throws InstantiationException
@@ -171,7 +174,7 @@ public class CoreEventHander {
                 i++;
             }
         }
-        if (jsonObject == null && jsonArray == null&&parameters.length>=1) {
+        if (jsonObject == null && jsonArray == null && parameters.length >= 1) {
 
             String split = parameters[0].getType().getTypeName() != Integer.class.getTypeName() ? "\"" : "";
             String str = "{\"" + parameters[0].getName() + "\":" + split + json + split + "}";
@@ -219,7 +222,7 @@ public class CoreEventHander {
     public static void getParamObject(JSONObject json, Parameter parameter, Object[] objects, int index, int len) throws Exception {
         try {
             String name = parameter.getName();
-            Object val = !json.has(name) && len == 1 ? json :name.equals("arg"+index)?json.get(json.names().get(index).toString()): json.get(name);
+            Object val = !json.has(name) && len == 1 ? json : name.equals("arg" + index) ? json.get(json.names().get(index).toString()) : json.get(name);
             Class<?> clzss = parameter.getType();
             getValue(val, clzss, objects, index, parameter);
             //获取方法参数数组
@@ -265,7 +268,11 @@ public class CoreEventHander {
             return;
         }
         if (clzss == Long.class || clzss == long.class) {
-            objects[index] = Long.parseLong(val.toString());
+            if (StringUtils.isBlank(val.toString())) {
+                objects[index] = null;
+            } else {
+                objects[index] = Long.parseLong(val.toString());
+            }
             return;
         }
         if (clzss == Byte.class || clzss == byte.class) {
@@ -384,7 +391,7 @@ public class CoreEventHander {
             Enumeration<String> enumeration = df.entries();
             while (enumeration.hasMoreElements()) {
                 String className = enumeration.nextElement();
-                if (className.contains(Config.basePackages + ".controller")) {
+                if (className.contains(Config.basePackages + ".controller") && !className.contains("$")) {
                     classNameList.put(className, Class.forName(className));
                 }
             }

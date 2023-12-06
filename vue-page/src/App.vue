@@ -3,45 +3,84 @@
     <!-- <resize autoHeight width="375"> -->
     <router-view :nowTime="time" />
     <!-- </resize> -->
+    <van-popup
+      v-model="popupInfo.show"
+      position="bottom"
+      :style="{ height: `${popupInfo.height}%` }"
+      round
+    >
+      <div class="content-box">
+        <div class="content">
+          {{ popupInfo.content }}
+        </div>
+        <div class="button-group">
+          <!-- <div class="cancel button">取消</div> -->
+          <div class="confirm button" @click="popupConfirm">知道了</div>
+        </div>
+      </div>
+    </van-popup>
   </div>
 </template>
 
 <script>
-import resize from '@/components/Resize/Resize.vue'
-import axios from 'axios';
-import { getNowDateTime } from '@/utils/index.js';
+import resize from "@/components/Resize/Resize.vue";
+import axios from "axios";
+import { getNowDateTime } from "@/utils/index.js";
+import deviceHolder from "./store/deviceHolder";
+import rem from "../static/rem";
 export default {
-  name: 'App',
-  components: { resize },
+  name: "App",
+  components: { resize, rem },
   data() {
     return {
       intervalId: null,
-      time: getNowDateTime(0)
-    }
+      time: getNowDateTime(0),
+      commonAndroidEvent: null,
+      popupInfo: {
+        show: false,
+        content:
+          "为了扫描设备二维码，APP需要使用摄像头，需要获取拍摄照片、录制视频的权限。",
+        height: 20,
+        key: "",
+      },
+    };
   },
-  methods: {
 
+  mounted() {
+    this.loadingDeviceInfo();
+    this.getFirstUseTime();
+
+    //通用安卓推送回调
+    window.commonAndroidEvent = this.commonAndroidCallBack;
+    this.commonAndroidEvent = new Event("commonAndroidEvent");
+  },
+
+  methods: {
     /**
      * 检查网络请求
      */
     checkNetWork() {
-      axios.get(window.location.href, { timeout: 3000 }).then(res => {
-        this.msg = "";
-      }).catch(error => {
-        try {
-          if (error.message.indexOf('Failed') >= 0 || error.message.indexOf('timeout') >= 0) {
-            this.msg = '服务器断开连接！';
-            // alert('服务器断开连接！')
-            // this.$notify.error({ title: '错误', message: '服务器断开连接！', duration: 3500, });
-            return;
-          }
-        } catch (error) {
-        }
-        this.msg = '当前处于离线状态，请检查并连接！';
-        // alert('当前处于离线状态，请检查并连接！')
-        // this.$notify.error({ title: '错误', message: '当前处于离线状态，请检查并连接！', duration: 3500, });
-      });
-
+      axios
+        .get(window.location.href, { timeout: 3000 })
+        .then((res) => {
+          this.msg = "";
+        })
+        .catch((error) => {
+          try {
+            if (
+              error.message.indexOf("Failed") >= 0 ||
+              error.message.indexOf("timeout") >= 0
+            ) {
+              this.msg = "服务器断开连接！";
+              // alert('服务器断开连接！')
+              // this.$notify.error({ title: '错误', message: '服务器断开连接！', duration: 3500, });
+              return;
+            }
+          } catch (error) {}
+          this.msg = "当前处于离线状态，请检查并连接！";
+          // alert('当前处于离线状态，请检查并连接！')
+          // this.$notify.error({ title: '错误', message: '当前处于离线状态，请检查并连接！', duration: 3500, });
+        });
     },
     /**
      * 在进行和android基座调用时的拦截器
@@ -70,118 +109,139 @@ export default {
          */
         error: (error, option) => {
           return error;
-        }
+        },
+      };
+    },
+
+    commonAndroidCallBack(returnJson) {
+      try {
+        this.commonAndroidEvent.data = JSON.parse(returnJson);
+
+        this.responseDataHandle(this.commonAndroidEvent.data);
+
+        window.dispatchEvent(this.commonAndroidEvent);
+      } catch (error) {
+        console.error("commonAndroidCallBack error");
       }
     },
-  },
-  mounted() {
-  
-  },
-  created() {
-  },
-  destroyed() {
 
-  },
+    responseDataHandle(data) {
+      console.log("data.eventName", JSON.stringify(data.data));
 
-}
+      switch (data.eventName) {
+        case "DEVICE_BATTERY":
+          deviceHolder.deviceInfo.battery = data.data;
+          break;
+        case "DEVICE_REAL_TIME":
+          console.log(JSON.stringify(data.data));
+          deviceHolder.deviceInfo = JSON.parse(JSON.stringify(data.data));
+          break;
+        case "STEP_HISTORY_DATA":
+          deviceHolder.stepStatisticsInfo = JSON.parse(
+            JSON.stringify(data.data)
+          );
+          break;
+        case "CALORIE_HISTORY_DATA":
+          deviceHolder.calorieStatisticsInfo = JSON.parse(
+            JSON.stringify(data.data)
+          );
+          break;
+
+        // 弹窗显示
+        case "CAMERA_POPUP_SHOW":
+          this.popupInfo.key = "CAMERA_POPUP_SHOW";
+          this.popupInfo.show = true;
+          this.popupInfo.content =
+            "为了扫描设备二维码，APP需要使用摄像头，需要获取拍摄照片、录制视频的权限。";
+          break;
+        default:
+          break;
+      }
+    },
+
+    loadingDeviceInfo() {
+      this.$androidApi.getDeviceInfo().then((data) => {
+        if (data && data.deviceInfo) {
+          deviceHolder.deviceInfo = data.deviceInfo;
+        }
+      });
+    },
+
+    getFirstUseTime() {
+      this.$androidApi.shareGet("FIRST_USE_TIME").then((data) => {
+        deviceHolder.firstUseTime = data;
+      });
+    },
+
+    popupConfirm() {
+      if (this.popupInfo.key == "CAMERA_POPUP_SHOW") {
+        this.$androidApi.requestCameraPermission();
+      }
+
+      this.popupInfo.show = false;
+    },
+  },
+  created() {},
+  destroyed() {},
+};
 </script>
 
 <style lang="scss">
-@import url(/assets/font.css);
+// @import url(./assets/font.css);
+
 html {
-  font-size: 10px; //可以使用 1/10 rem= 10 px
+  font-size: 15px; //可以使用 1/10 rem= 10 px
 }
+
 html,
 body,
 #app {
-  height: 100%;
-  width: 100%;
-  min-height: 100vh;
-  overflow: hidden;
-  box-sizing: border-box;
-  margin: 0px;
+  background: #f0f1f6;
+  font-family: Source Han Sans CN-Regular, Source Han Sans CN;
+  font-size: 0.36rem;
+  overflow: auto;
 
-  --body-background-color: #f7f8fa;
-  --default-bar-color: #fff;
-  --default-font-color: #000;
-  --default-bar-left-color: rgb(9, 134, 130);
-
-  --van-white: #fff;
-  --van-blue: var(--body-background-color);
-  --van-button-primary-color: var(--van-white);
-  --van-button-primary-background-color: var(--van-primary-color);
-
-  .page-white {
-    background: var(--body-background-color);
-
-    .van-button--primary {
-      background: #032d58;
-    }
-
-    .van-primary-button {
-      background: #032d58;
-      color: #fff;
-    }
-    .van-primary-title {
-      color: #032d58;
-    }
-  }
-  .van-nav-bar .van-icon,
-  .van-nav-bar__text {
-    color: var(--default-font-color);
+  .component {
+    padding: 0 0.25rem;
   }
 
-  .van-nav-bar__title {
-    color: var(--default-font-color);
+  .content-box {
+    height: 100%;
+    width: 100%;
+
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    font-size: 0.28rem;
+    .content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 75%;
+      height: 70%;
+      line-height: 0.6rem;
+    }
+    .button-group {
+      width: 100%;
+      height: 30%;
+      position: absolute;
+
+      bottom: 0;
+      background: #e9e2e271;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      .button {
+        // width: 50%;
+        font-size: 0.3rem;
+        font-weight: 400;
+      }
+
+      .confirm {
+        color: rgba(28, 62, 231, 0.787);
+      }
+    }
   }
 }
-
-.fs-m-y {
-  font-family: YouSheBiaoTiHei;
-} /* 设置滚动条的样式 */
-::-webkit-scrollbar {
-  width: 1px;
-  /*高宽分别对应横竖滚动条的尺寸*/
-  height: 1px;
-}
-
-/* 滚动槽 */
-::-webkit-scrollbar-track {
-  -webkit-box-shadow: inset 2px rgba(0, 0, 0, 0.3);
-  border-radius: 2px;
-}
-
-/* 滚动条滑块 */
-::-webkit-scrollbar-thumb {
-  border-radius: 2px;
-  background: rgba(0, 0, 0, 0.1);
-  -webkit-box-shadow: inset 2px rgba(0, 0, 0, 0.5);
-}
-
-::-webkit-scrollbar-thumb:window-inactive {
-  background: rgba(64, 158, 255, 1);
-}
-.nav-bar {
-  position: sticky;
-  top: 0;
-  z-index: 10001;
-}
-
-.el-message {
-  top: 30px !important;
-  width: 100% !important;
-  z-index: 10002 !important;
-}
-.el-message-box {
-  top: 35% !important;
-  max-width: 100% !important;
-  z-index: 10002 !important;
-  width: 85% !important;
-}
-
-// .van-field--error .van-field__control,
-// .van-field--error .van-field__control::placeholder {
-//   color: #dcdcdc !important;
-//   -webkit-text-fill-color: currentColor;
-// }
 </style>

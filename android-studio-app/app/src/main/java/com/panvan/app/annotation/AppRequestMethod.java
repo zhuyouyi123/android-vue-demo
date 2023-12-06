@@ -9,6 +9,6 @@ public enum AppRequestMethod {
     DELETE,
     OPTIONS,
     TRACE;
-    private AppRequestMethod() {
+    AppRequestMethod() {
     }
 }

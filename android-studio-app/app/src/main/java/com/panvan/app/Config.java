@@ -1,9 +1,11 @@
 package com.panvan.app;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.WebView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -62,7 +64,7 @@ public class Config {
     }
 
     public static String getAssetsPath() {
-        return APK ? "file:///android_asset/ui/index.html" : "http://172.16.100.134:8888";
+        return APK ? "file:///android_asset/ui/index.html" : "http://172.16.31.158:8888";
     }
 
     public static DateFormat[] df = new SimpleDateFormat[]{
@@ -93,7 +95,9 @@ public class Config {
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     public static Context mainContext;
+    public static WebView webView;
 
     public static int Dp2Px(float dpi) {
         final float scale = mainContext.getResources().getDisplayMetrics().density;

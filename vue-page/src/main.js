@@ -2,15 +2,19 @@ import Vue from 'vue'
 
 
 import ElementUI from 'element-ui'
-import locale from 'element-ui/lib/locale/lang/en' // lang i18n
 import Vant from 'vant';
+// import VCharts from 'v-charts'
 
 import 'vant/lib/index.css';
 import 'element-ui/lib/theme-chalk/index.css'
+import './assets/scss/app.scss'
 
 import App from './App'
 import store from './store'
 import router from './router'
+
+// import echarts from 'echarts'
+// Vue.prototype.$echarts = echarts
 
 // import '@/permission' // permission control
 import '@/assets/base.css'
@@ -18,13 +22,11 @@ import '@/assets/font.css'
 
 
 Vue.use(Vant);
+// Vue.use(VCharts);
+
 Vue.use(ElementUI);
 // // set ElementUI lang to EN
 // Vue.use(ElementUI, { locale })
-
-import defaultImport from './defaultImportComp.js';
-Vue.use(defaultImport);
-
 
 router.afterEach((to, from, next) => {
   window.scrollTo(0, 0);
@@ -35,6 +37,21 @@ Vue.use(androidVue);
 
 import androidApi from './api/android-api.js'
 Vue.prototype.$androidApi = androidApi
+
+import dateUtil from './utils/dateUtil.js'
+Vue.prototype.$dateUtil = dateUtil
+
+import chartUtil from './utils/chartUtil.js'
+Vue.prototype.$chartUtil = chartUtil
+
+
+import testCharts from './store/testCharts.js'
+Vue.prototype.$testCharts = testCharts
+
+import deviceHolder from './store/deviceHolder.js'
+Vue.prototype.$deviceHolder = deviceHolder
+
+
 
 let utterMsg = null;
 try {

@@ -38,7 +38,6 @@ export default {
     boxHeight() {
       if (this.autoHeight) {
         const scale = window.innerWidth / this.width;
-        console.log(window.innerHeight / scale);
         return window.innerHeight / scale;
       }
       return this.height;

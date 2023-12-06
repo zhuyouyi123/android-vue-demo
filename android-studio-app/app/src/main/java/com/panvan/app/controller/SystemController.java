@@ -1,5 +1,6 @@
 package com.panvan.app.controller;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -9,17 +10,17 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
+import com.bracelet.scancode.ScanQrActivity;
 import com.panvan.app.AppActivity;
-import com.panvan.app.AppInitTools;
 import com.panvan.app.Config;
 import com.panvan.app.DeviceIDTools;
 import com.panvan.app.SecondActivity;
 import com.panvan.app.annotation.AppController;
 import com.panvan.app.annotation.AppRequestMapper;
 import com.panvan.app.annotation.AppRequestMethod;
+import com.panvan.app.data.constants.ActiveForResultConstants;
 
 import java.util.HashMap;
-import java.util.Map;
 
 @AppController(path = "system")
 public class SystemController {
@@ -43,19 +44,21 @@ public class SystemController {
             result = AppActivity.appActivity.getResources().getDimensionPixelSize(resourceId);
 
         }
-        return Config.Dp2Px(result) ;
+        return Config.Dp2Px(result);
     }
 
-    @AppRequestMapper(path="/pushMessage",method = AppRequestMethod.POST)
-    public Boolean pushMessage(String title,String text) {
+    @AppRequestMapper(path = "/pushMessage", method = AppRequestMethod.POST)
+    public Boolean pushMessage(String title, String text) {
+
         Toast.makeText(Config.mainContext, "text", Toast.LENGTH_SHORT).show();
-        return true ;
+
+        return true;
     }
 
 
-    @AppRequestMapper(path="/goPage",method = AppRequestMethod.POST)
-    public Boolean goPage(){
-        Intent intent=new Intent();
+    @AppRequestMapper(path = "/goPage", method = AppRequestMethod.POST)
+    public Boolean goPage() {
+        Intent intent = new Intent();
         intent.setClass(AppActivity.appActivity, SecondActivity.class);
         AppActivity.appActivity.startActivity(intent);
         return true;
@@ -63,50 +66,54 @@ public class SystemController {
 
     /**
      * 获取设备唯一编号
+     *
      * @return
      */
-    @AppRequestMapper(path="/getDeviceID",method = AppRequestMethod.GET)
-    public String getDeviceUUID(){
+    @AppRequestMapper(path = "/getDeviceID", method = AppRequestMethod.GET)
+    public String getDeviceUUID() {
         return DeviceIDTools.getDeviceUUID(AppActivity.appActivity);
     }
 
     /**
      * 获取设备唯一编号
+     *
      * @return
      */
-    @AppRequestMapper(path="/openWebView",method = AppRequestMethod.GET)
-    public String openWebView(String url){
-        Intent intent= AppActivity.appActivity.openWebView(url);
-        return intent.hashCode()+"";
+    @AppRequestMapper(path = "/openWebView", method = AppRequestMethod.GET)
+    public String openWebView(String url) {
+        Intent intent = AppActivity.appActivity.openWebView(url);
+        return intent.hashCode() + "";
     }
 
     /**
      * 获取设备唯一编号
+     *
      * @return
      */
-    @AppRequestMapper(path="/closeWebView",method = AppRequestMethod.GET)
-    public Boolean closeWebView(Integer formId){
-        return  AppActivity.appActivity.closeWebView(formId);
+    @AppRequestMapper(path = "/closeWebView", method = AppRequestMethod.GET)
+    public Boolean closeWebView(Integer formId) {
+        return AppActivity.appActivity.closeWebView(formId);
     }
 
     /**
      * 获取系统 apk版本
+     *
      * @return
      */
     @RequiresApi(api = Build.VERSION_CODES.P)
-    @AppRequestMapper(path="/versionInfo",method = AppRequestMethod.GET)
-    public HashMap<String,String> getVersionInfo() throws Exception {
-        Context context=AppActivity.appActivity;
+    @AppRequestMapper(path = "/versionInfo", method = AppRequestMethod.GET)
+    public HashMap<String, String> getVersionInfo() throws Exception {
+        Context context = AppActivity.appActivity;
         // 获取packagemanager的实例
         PackageManager packageManager = context.getPackageManager();
         // getPackageName()是你当前类的包名
         PackageInfo packInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
         String version = packInfo.toString();
-        HashMap<String,String> hash=new HashMap<String,String>();
-        hash.put("versionName",packInfo.versionName);
-        hash.put("versionLongCode",packInfo.getLongVersionCode()+"");
-        hash.put("versionBaseRevisionCode",packInfo.baseRevisionCode+"");
-        hash.put("versionCode",packInfo.versionCode+"");
+        HashMap<String, String> hash = new HashMap<String, String>();
+        hash.put("versionName", packInfo.versionName);
+        hash.put("versionLongCode", packInfo.getLongVersionCode() + "");
+        hash.put("versionBaseRevisionCode", packInfo.baseRevisionCode + "");
+        hash.put("versionCode", packInfo.versionCode + "");
         return hash;
     }
 }

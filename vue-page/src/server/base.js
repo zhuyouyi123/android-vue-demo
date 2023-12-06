@@ -8,7 +8,6 @@ export const baseApi = _base;
 function _isMobile() {
     var mobileArray = ["iPhone", "iPad", "Android", "Windows Phone", "BB10; Touch", "BB10; Touch", "PlayBook", "Nokia"];
     var ua = navigator.userAgent;
-    console.log(ua);
     var res = mobileArray.filter(key => {
         return ua.indexOf(key) > 0;
     });

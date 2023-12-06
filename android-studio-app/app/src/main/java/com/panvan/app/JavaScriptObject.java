@@ -15,7 +15,7 @@ import java.util.HashMap;
 
 public class JavaScriptObject {
 
-    private Context mContext;
+    private final Context mContext;
 
     public JavaScriptObject(Context mContext) {
         this.mContext = mContext;
