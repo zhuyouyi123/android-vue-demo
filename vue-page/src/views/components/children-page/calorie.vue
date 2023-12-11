@@ -2,6 +2,7 @@
 <template>
   <div class="calorie-page">
     <custom-nav-bar
+    :returnRouter="$deviceHolder.homeReturnRouter"
       title="卡路里"
       left-arrow
       @rightIconClick="setTarget"

@@ -50,12 +50,17 @@ export default {
     this.loadingDeviceInfo();
     this.getFirstUseTime();
 
+    this.initConfig();
+
     //通用安卓推送回调
     window.commonAndroidEvent = this.commonAndroidCallBack;
     this.commonAndroidEvent = new Event("commonAndroidEvent");
   },
 
   methods: {
+    initConfig(){
+      this.$androidApi.initConfig();
+    },
     /**
      * 检查网络请求
      */
@@ -148,7 +153,7 @@ export default {
           break;
 
         // 弹窗显示
-        case "CAMERA_POPUP_SHOW":
+        case "POPUP_SHOW":
           this.popupInfo.key = "CAMERA_POPUP_SHOW";
           this.popupInfo.show = true;
           this.popupInfo.content =

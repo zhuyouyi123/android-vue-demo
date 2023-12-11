@@ -9,6 +9,13 @@ public enum ConfigurationGroupEnum {
      * 目标
      */
     TARGET("TARGET"),
+
+    /**
+     * 通知
+     */
+    NOTIFICATION("NOTIFICATION"),
+
+
     ;
 
     private final String name;

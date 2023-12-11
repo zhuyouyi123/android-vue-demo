@@ -1,7 +1,12 @@
 <!-- 心率 -->
 <template>
   <div class="heart-rate-page">
-    <custom-nav-bar title="心率" left-arrow> </custom-nav-bar>
+    <custom-nav-bar
+      :returnRouter="$deviceHolder.homeReturnRouter"
+      title="心率"
+      left-arrow
+    >
+    </custom-nav-bar>
 
     <div class="page-content">
       <div class="tabs-box date-stitching">

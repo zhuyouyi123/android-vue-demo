@@ -41,8 +41,8 @@ public class SdkUtil {
                 .setContinuousScanning(false)
                 .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_LOW_LATENCY)
                 .setDatabaseSupport(true)
-                .setConnectFailedRetryCount(5)
-                .setConnectTimeout(3000)
+                // .setConnectFailedRetryCount(5)
+                // .setConnectTimeout(3000)
                 .setEncryption(false)
                 .setDatabaseSupport(false)
                 .setLogSwitch(true)
@@ -183,6 +183,9 @@ public class SdkUtil {
 
     public static void retryWriteCommand(String hex) {
         synchronized (OBJECT) {
+            if (StringUtils.isBlank(hex)) {
+                return;
+            }
             BleSdkManager.getInstance().write(DeviceHolder.DEVICE, ProtocolUtil.hexStrToBytes(hex), WriteCallback.getInstance());
         }
     }

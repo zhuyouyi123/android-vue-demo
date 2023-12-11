@@ -24,10 +24,8 @@
         <div class="null-box"></div>
         <van-cell
           v-show="device"
-          to="/braceletConfig"
-          title="手环"
-          is-link
-          :label="`剩余电量${battery}%`"
+          title="X15X手环"
+          :value="`剩余电量${battery}%`"
           size="large"
           center
         />
@@ -38,6 +36,72 @@
           <span>添加设备</span>
         </div>
       </div>
+
+      <!-- 配置 -->
+      <van-cell-group inset>
+        <van-cell title="来电提醒" size="large" to="/mine/incall" is-link>
+          <van-image
+            slot="icon"
+            :src="
+              require('../../../assets/image/braceletconfig/incoming-call-icon.svg')
+            "
+          ></van-image>
+        </van-cell>
+        <!-- App通知 -->
+        <van-cell
+          title="APP通知提醒"
+          size="large"
+          to="/mine/appnotification"
+          is-link
+        >
+          <van-image
+            slot="icon"
+            :src="
+              require('../../../assets/image/braceletconfig/app-notice-icon.svg')
+            "
+          ></van-image>
+        </van-cell>
+        <!-- 短信提醒 -->
+        <van-cell title="短信提醒" size="large" to="/mine/sms" is-link>
+          <van-image
+            slot="icon"
+            :src="
+              require('../../../assets/image/braceletconfig/text-message.icon.svg')
+            "
+          ></van-image>
+        </van-cell>
+      </van-cell-group>
+
+      <van-cell-group inset class="l-m-t">
+        <van-cell title="固件更新" size="large" is-link>
+          <van-image
+            slot="icon"
+            :src="
+              require('../../../assets/image/braceletconfig/firmware-icon.svg')
+            "
+          ></van-image>
+        </van-cell>
+        <!-- App通知 -->
+        <van-cell title="恢复出厂设置" size="large" is-link>
+          <van-image
+            slot="icon"
+            :src="
+              require('../../../assets/image/braceletconfig/reset-icon.svg')
+            "
+          ></van-image>
+        </van-cell>
+      </van-cell-group>
+
+      <van-cell-group inset class="l-m-t">
+        <van-cell title="检查更新" size="large" is-link>
+          <van-image
+            slot="icon"
+            :src="
+              require('../../../assets/image/braceletconfig/firmware-icon.svg')
+            "
+          ></van-image>
+        </van-cell>
+      </van-cell-group>
     </div>
   </div>
 </template>
@@ -210,6 +274,19 @@ export default {
         font-weight: 400;
         color: #1da772;
         line-height: 0.29rem;
+      }
+    }
+  }
+
+  // 配置
+  .van-cell-group {
+    .van-cell {
+      display: flex;
+      align-items: center;
+      .van-image {
+        width: 0.63rem;
+        height: 0.63rem;
+        padding-right: 0.2rem;
       }
     }
   }

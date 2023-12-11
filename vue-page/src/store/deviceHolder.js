@@ -1,7 +1,7 @@
 export default {
 
-    userInfo:{
-        
+    userInfo: {
+
     },
     needRefresh: true,
     firstUseTime: "",
@@ -44,5 +44,16 @@ export default {
     calorieStatisticsInfo: {
         xAxis: [],
         hourlyData: [],
+    },
+
+    // 路由
+    homeReturnRouter: {
+        path: "/layout/index",
+        query: { active: 0 },
+    },
+
+    mineReturnRouter: {
+        path: "/layout/index",
+        query: { active: 1 },
     },
 }

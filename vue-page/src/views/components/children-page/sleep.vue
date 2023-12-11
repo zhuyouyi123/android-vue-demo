@@ -1,7 +1,12 @@
 <!-- 睡眠 -->
 <template>
   <div class="sleep-page">
-    <custom-nav-bar title="睡眠" left-arrow> </custom-nav-bar>
+    <custom-nav-bar
+      :returnRouter="$deviceHolder.homeReturnRouter"
+      title="睡眠"
+      left-arrow
+    >
+    </custom-nav-bar>
     <div class="page-content">
       <div class="tabs-box date-stitching l-m-t">
         <van-tabs
@@ -220,7 +225,7 @@ export default sleep;
         flex-direction: column;
         .child-title-box {
           font-size: 0.3rem;
-          height: .6rem;
+          height: 0.6rem;
         }
       }
     }

@@ -100,7 +100,7 @@ public class CommunicationService {
                 // if (Objects.isNull(communicationDataDO) ) {
                     LogUtil.info("写入数据：" + instruction);
                     SdkUtil.writeCommand(instruction);
-                    TimeUnit.MILLISECONDS.sleep(80);
+                    TimeUnit.MILLISECONDS.sleep(20);
                 // }
             }
 

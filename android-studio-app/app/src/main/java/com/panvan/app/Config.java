@@ -22,8 +22,8 @@ public class Config {
      * 2.使用 npm run build 打包vue文件
      * 3.使用android-studio 打包成apk文件
      */
-//    public static Boolean APK = false;
-    public static Boolean APK = false;
+   public static Boolean APK = false;
+    // public static Boolean APK = true;
 
     /**
      * 基本项目目录
@@ -64,6 +64,7 @@ public class Config {
     }
 
     public static String getAssetsPath() {
+        // return APK ? "file:///android_asset/ui/index.html" : "http://192.168.1.32:8888";
         return APK ? "file:///android_asset/ui/index.html" : "http://172.16.31.158:8888";
     }
 

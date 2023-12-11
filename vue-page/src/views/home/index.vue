@@ -3,23 +3,23 @@
   <div class="content">
     <div class="index-home">
       <home v-if="active == 0" />
-      <sport v-if="active == 1" />
-      <mine v-else-if="active == 2" />
+      <sport v-else-if="active == 2" />
+      <mine v-else-if="active == 1" />
     </div>
 
     <van-tabbar v-model="active" @change="activeChange" active-color="#1DA772">
       <van-tabbar-item icon="home-o">首页</van-tabbar-item>
-      <van-tabbar-item
+      <!-- <van-tabbar-item
         :icon="
           require(active == 1
             ? '../../assets/image/index/home-sport-icon-b.svg'
             : '../../assets/image/index/home-user-icon-b.svg')
         "
         >运动</van-tabbar-item
-      >
+      > -->
       <van-tabbar-item
         :icon="
-          require(active == 2
+          require(active == 1
             ? '../../assets/image/index/home-user-icon-b.svg'
             : '../../assets/image/index/home-user-icon-a.svg')
         "
@@ -47,6 +47,10 @@ export default {
   },
 
   mounted() {
+    // 如果是别的页面跳转过来
+    if (this.$route.query && this.$route.query.active) {
+      this.active = this.$route.query.active;
+    }
     this.init();
   },
 

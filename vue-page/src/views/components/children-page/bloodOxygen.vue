@@ -1,7 +1,12 @@
 <!-- 血氧饱和度 -->
 <template>
   <div class="blood-xygen">
-    <custom-nav-bar title="血氧饱和度" left-arrow> </custom-nav-bar>
+    <custom-nav-bar
+      :returnRouter="$deviceHolder.homeReturnRouter"
+      title="血氧饱和度"
+      left-arrow
+    >
+    </custom-nav-bar>
     <div class="page-content">
       <van-steps active="-1" direction="vertical" inactive-color="#1da772">
         <van-step>

@@ -12,6 +12,7 @@ import com.google.gson.JsonSyntaxException;
 import com.huawei.hms.hmsscankit.ScanUtil;
 import com.huawei.hms.ml.scan.HmsScan;
 import com.panvan.app.Config;
+import com.panvan.app.Receiver.call.CallViewModel;
 import com.panvan.app.callback.ConnectCallback;
 import com.panvan.app.connect.DeviceConnectHandle;
 import com.panvan.app.data.constants.ActiveForResultConstants;
@@ -94,6 +95,12 @@ public class ActivityResultUtil {
             case PermissionsRequestConstants.CAMERA_PERMISSION_REQUEST_CODE:
                 if (existPermissions) {
                     PermissionService.getInstance().scanQr();
+                }
+                break;
+            case PermissionsRequestConstants.READ_PHONE_STATE_PERMISSION_REQUEST_CODE:
+            case PermissionsRequestConstants.READ_CALL_LOG_PERMISSION_REQUEST_CODE:
+                if (existPermissions) {
+                    new Thread(() -> CallViewModel.getInstance().loadConfig()).start();
                 }
                 break;
             default:

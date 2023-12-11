@@ -18,12 +18,12 @@ public enum HistoryDataTypeEnum {
     /**
      * 全天总数据
      */
-    // TOTAL_DATA(1, 0x00, "00") {
-    //     @Override
-    //     public boolean checkDataComplete(String date, int sort) {
-    //         return false;
-    //     }
-    // },
+    TOTAL_DATA(1, 0x00, "00") {
+        @Override
+        public String[] analysis(byte[] bytes) {
+            return new String[0];
+        }
+    },
     /**
      * 全天运动情况(频率1小时)-类型0x01
      */
@@ -92,18 +92,15 @@ public enum HistoryDataTypeEnum {
     //     }
     // },
     //
-    // /**
-    //  * 全天血压数据(频率5分钟)-类型0x0E
-    //  */
-    // BLOOD_PRESSURE(6, 0x0E, "0E") {
-    //     @Override
-    //     public boolean checkDataComplete(String date, int sort) {
-    //         if (DateUtils.isSameDay(date)) {
-    //             return DateUtil.isBeforeNow(DateUtil.getTimestamp(sort * 4));
-    //         }
-    //         return true;
-    //     }
-    // },
+    /**
+     * 全天血压数据(频率5分钟)-类型0x0E
+     */
+    BLOOD_PRESSURE(6, 0x0E, "0E") {
+        @Override
+        public String[] analysis(byte[] bytes) {
+            return new String[0];
+        }
+    },
 
     /**
      * 全天心率(频率5秒)-类型0x07

@@ -1,5 +1,5 @@
 <resources>
-
-    <string name="app_name">工单管理系统</string>
-    <string name="welcome_title">工单管理系统</string>
+    <string name="app_name">Joy Life</string>
+    <string name="welcome_title">Joy Life</string>
+    <string name="app_list">管理应用</string>
 </resources>

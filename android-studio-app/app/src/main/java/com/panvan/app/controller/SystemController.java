@@ -1,6 +1,5 @@
 package com.panvan.app.controller;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -10,17 +9,19 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
-import com.bracelet.scancode.ScanQrActivity;
+import com.ble.blescansdk.ble.utils.CollectionUtils;
+import com.db.database.UserDatabase;
+import com.db.database.daoobject.NotificationAppListDO;
 import com.panvan.app.AppActivity;
+import com.panvan.app.AppListActivity;
 import com.panvan.app.Config;
-import com.panvan.app.DeviceIDTools;
 import com.panvan.app.SecondActivity;
 import com.panvan.app.annotation.AppController;
 import com.panvan.app.annotation.AppRequestMapper;
 import com.panvan.app.annotation.AppRequestMethod;
-import com.panvan.app.data.constants.ActiveForResultConstants;
 
 import java.util.HashMap;
+import java.util.List;
 
 @AppController(path = "system")
 public class SystemController {
@@ -69,16 +70,6 @@ public class SystemController {
      *
      * @return
      */
-    @AppRequestMapper(path = "/getDeviceID", method = AppRequestMethod.GET)
-    public String getDeviceUUID() {
-        return DeviceIDTools.getDeviceUUID(AppActivity.appActivity);
-    }
-
-    /**
-     * 获取设备唯一编号
-     *
-     * @return
-     */
     @AppRequestMapper(path = "/openWebView", method = AppRequestMethod.GET)
     public String openWebView(String url) {
         Intent intent = AppActivity.appActivity.openWebView(url);
@@ -115,5 +106,17 @@ public class SystemController {
         hash.put("versionBaseRevisionCode", packInfo.baseRevisionCode + "");
         hash.put("versionCode", packInfo.versionCode + "");
         return hash;
+    }
+
+    @AppRequestMapper(path = "/manager-app", method = AppRequestMethod.POST)
+    public void openPage() {
+        List<NotificationAppListDO> queryAll = UserDatabase.getInstance().getNotificationAppListDAO().queryAll();
+        Intent intent = new Intent(Config.mainContext, AppListActivity.class);
+        if (CollectionUtils.isNotEmpty(queryAll)) {
+            for (NotificationAppListDO appListDO : queryAll) {
+                intent.putExtra(appListDO.getPackageName(), appListDO.getAppName());
+            }
+        }
+        Config.mainContext.startActivity(intent);
     }
 }

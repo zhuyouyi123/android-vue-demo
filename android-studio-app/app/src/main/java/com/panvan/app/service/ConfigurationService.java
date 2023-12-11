@@ -9,11 +9,11 @@ import com.db.database.daoobject.ConfigurationDO;
 import com.db.database.enums.ConfigurationGroupEnum;
 import com.db.database.enums.ConfigurationTypeEnum;
 import com.db.database.service.ConfigurationDataService;
+import com.panvan.app.Receiver.call.CallViewModel;
+import com.panvan.app.Receiver.service.NotificationMonitorService;
 import com.panvan.app.data.entity.dto.ConfigurationSaveDTO;
 import com.panvan.app.data.entity.vo.ConfigurationVO;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,12 +53,11 @@ public class ConfigurationService {
             }
             return vo;
         }).collect(Collectors.toList());
-
-
     }
 
     public void saveConfig(ConfigurationSaveDTO dto) {
         ConfigurationDO configurationDO = ConfigurationDataService.getInstance().queryByGroupAndType(dto.getGroup(), dto.getType());
+
         if (Objects.isNull(configurationDO)) {
             configurationDO = new ConfigurationDO();
             configurationDO.setConfigGroup(dto.getGroup());
@@ -68,6 +67,23 @@ public class ConfigurationService {
         } else {
             configurationDO.setValue(dto.getValue());
             ConfigurationDataService.getInstance().updateConfig(configurationDO);
+        }
+
+        ConfigurationTypeEnum type = ConfigurationTypeEnum.getType(dto.getType());
+
+        if (null != type) {
+            switch (type) {
+                case NOTIFICATION_IN_CALL:
+                case NOTIFICATION_IN_CALL_CONTACTS:
+                    CallViewModel.getInstance().loadConfig(type, dto.getValue() == 1);
+                    break;
+                case NOTIFICATION_NOTIFY:
+                    NotificationMonitorService.reloadEnable(type, dto.getValue() == 1);
+                    break;
+                case NOTIFICATION_SMS:
+                    NotificationMonitorService.reloadEnable(type, dto.getValue() == 1);
+                    break;
+            }
         }
     }
 }

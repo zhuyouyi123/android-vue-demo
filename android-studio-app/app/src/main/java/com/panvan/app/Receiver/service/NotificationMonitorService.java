@@ -1,7 +1,7 @@
 package com.panvan.app.Receiver.service;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,18 +17,24 @@ import android.util.Log;
 import android.widget.RemoteViews;
 
 
-import com.ble.blescansdk.ble.BleSdkManager;
-import com.ble.blescansdk.ble.utils.AsciiUtil;
-import com.ble.blescansdk.ble.utils.ProtocolUtil;
+import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
+import com.ble.blescansdk.ble.utils.CollectionUtils;
+import com.db.database.UserDatabase;
+import com.db.database.daoobject.ConfigurationDO;
+import com.db.database.daoobject.NotificationAppListDO;
+import com.db.database.enums.ConfigurationGroupEnum;
+import com.db.database.enums.ConfigurationTypeEnum;
 import com.panvan.app.Config;
-import com.panvan.app.callback.WriteCallback;
+import com.panvan.app.data.enums.NotificationTypeEnum;
 import com.panvan.app.data.holder.DeviceHolder;
-import com.panvan.app.utils.DataConvertUtil;
 import com.panvan.app.utils.SdkUtil;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class NotificationMonitorService extends NotificationListenerService {
 
@@ -46,28 +52,48 @@ public class NotificationMonitorService extends NotificationListenerService {
     // 来电 -
     public static final String IN_CALL = "com.android.incallui";
 
+    private static boolean NOTIFY_ENABLE = false;
+    private static boolean SMS_ENABLE = false;
 
-    private static final int MMS_CODE = 0x00;
-    private static final int WX_CODE = 0x01;
-    private static final int QQ_CODE = 0x02;
+    private static final Map<String, String> APP_LIST_MAP = new HashMap<>();
+
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "开启服务：NotificationMonitorService");
-
-//        startForeground(1,getNotification());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            requestListenerHints(NotificationListenerService.HINT_HOST_DISABLE_CALL_EFFECTS);
+        }
     }
+    //        startForeground(1,getNotification());
+
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
+
         Log.d(TAG, "通知所属包名：" + sbn.getPackageName());
+
+        if (null == DeviceHolder.DEVICE || DeviceHolder.DEVICE.getConnectState() != BleConnectStatusEnum.CONNECTED.getStatus()) {
+            return;
+        }
 
         Notification notification = sbn.getNotification();
         if (notification == null) {
             return;
         }
-        String title = "通知消息";
+
+        NotificationTypeEnum typeEnum = NotificationTypeEnum.getPacket(sbn.getPackageName());
+
+        if (Objects.nonNull(typeEnum) && NotificationTypeEnum.MMS == typeEnum) {
+            if (!SMS_ENABLE) {
+                return;
+            }
+        } else if (!NOTIFY_ENABLE) {
+            return;
+        }
+
+        String title;
         String content = "";
 
         // 当 API > 18 时，使用 extras 获取通知的详细信息
@@ -92,18 +118,17 @@ public class NotificationMonitorService extends NotificationListenerService {
             }
         }
 
-        byte[] two = ProtocolUtil.intToByteArrayTwo(content.getBytes().length);
-        byte[] bytes = new byte[two.length];
-        for (int i = 0; i < two.length; i++) {
-            bytes[two.length - 1 - i] = two[i];
+        if (Objects.isNull(typeEnum)) {
+            if (!APP_LIST_MAP.containsKey(sbn.getPackageName())) {
+                return;
+            }
+            typeEnum = NotificationTypeEnum.OTHERS;
         }
 
-        switch (sbn.getPackageName()) {
-            case QQ:
-                String hex = "680B" + ProtocolUtil.byteArrToHexStr(DataConvertUtil.mergeBytes(bytes, content.getBytes()));
-                SdkUtil.writeCommand(ProtocolUtil.byteArrToHexStr(ProtocolUtil.addSumBytes(ProtocolUtil.hexStrToBytes(hex))) + "16");
-                break;
+        if (typeEnum != NotificationTypeEnum.IN_CALL) {
+            SdkUtil.retryWriteCommand(NotificationTypeEnum.getCommand(typeEnum, content));
         }
+
 
     }
 
@@ -211,4 +236,34 @@ public class NotificationMonitorService extends NotificationListenerService {
         pm.setComponentEnabledSetting(new ComponentName(Config.mainContext, NotificationMonitorService.class),
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
     }
+
+    @SuppressLint("RestrictedApi")
+    public static void reloadEnable() {
+        new Thread(() -> {
+            ConfigurationDO notifyConfig = UserDatabase.getInstance().getConfigurationDAO().queryByGroupAndType(ConfigurationTypeEnum.NOTIFICATION_NOTIFY.getGroup().getName(), ConfigurationTypeEnum.NOTIFICATION_NOTIFY.getType());
+            NOTIFY_ENABLE = Objects.isNull(notifyConfig) ? ConfigurationTypeEnum.NOTIFICATION_NOTIFY.getDefaultValue() == 1 : notifyConfig.getValue() == 1;
+
+            ConfigurationDO smsConfig = UserDatabase.getInstance().getConfigurationDAO().queryByGroupAndType(ConfigurationTypeEnum.NOTIFICATION_SMS.getGroup().getName(), ConfigurationTypeEnum.NOTIFICATION_SMS.getType());
+            SMS_ENABLE = Objects.isNull(smsConfig) ? ConfigurationTypeEnum.NOTIFICATION_SMS.getDefaultValue() == 1 : smsConfig.getValue() == 1;
+
+            List<NotificationAppListDO> list = UserDatabase.getInstance().getNotificationAppListDAO().queryAll();
+            APP_LIST_MAP.clear();
+            if (CollectionUtils.isNotEmpty(list)) {
+                for (NotificationAppListDO appListDO : list) {
+                    APP_LIST_MAP.put(appListDO.getPackageName(), appListDO.getAppName());
+                }
+            }
+        }).start();
+    }
+
+    public static void reloadEnable(ConfigurationTypeEnum typeEnum, boolean enable) {
+        if (ConfigurationTypeEnum.NOTIFICATION_NOTIFY == typeEnum) {
+            NOTIFY_ENABLE = enable;
+        } else if (ConfigurationTypeEnum.NOTIFICATION_SMS == typeEnum) {
+            SMS_ENABLE = enable;
+        }
+
+    }
+
+
 }

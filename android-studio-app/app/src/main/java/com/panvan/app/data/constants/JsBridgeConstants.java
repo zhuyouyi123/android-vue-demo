@@ -10,7 +10,7 @@ public class JsBridgeConstants {
     /**
      * 摄像机弹窗显示
      */
-    public static final String CAMERA_POPUP_SHOW="CAMERA_POPUP_SHOW";
+    public static final String POPUP_SHOW = "POPUP_SHOW";
 
     // 连接中
     public static final int BINDING_STATUS_CONNECTING = 3001;

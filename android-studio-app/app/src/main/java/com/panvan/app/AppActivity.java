@@ -1,48 +1,23 @@
 package com.panvan.app;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.StrictMode;
-import android.provider.MediaStore;
 import android.view.View;
-import android.webkit.DownloadListener;
-import android.webkit.JsResult;
 import android.webkit.ValueCallback;
-import android.webkit.WebChromeClient;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.Button;
-import android.widget.Toast;
 
-import com.ble.blescansdk.ble.BleSdkManager;
+import androidx.annotation.NonNull;
+
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.ble.blescansdk.ble.utils.StringUtils;
 import com.db.database.utils.DateUtils;
-import com.huawei.hms.hmsscankit.ScanUtil;
-import com.huawei.hms.ml.scan.HmsScan;
-import com.panvan.app.connect.DeviceConnectHandle;
-import com.panvan.app.data.constants.ActiveForResultConstants;
 import com.panvan.app.data.constants.SharePreferenceConstants;
 import com.panvan.app.utils.ActivityResultUtil;
-import com.panvan.app.utils.PermissionsUtil;
-import com.panvan.app.utils.SdkUtil;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
 
 
@@ -51,6 +26,7 @@ public class AppActivity extends AppInitTools {
     @SuppressLint("StaticFieldLeak")
     public static AppActivity appActivity;
     public HashMap<Integer, Intent> intentMap = new HashMap<>();
+
 
 
     @Override
@@ -160,6 +136,8 @@ public class AppActivity extends AppInitTools {
         intent.setClass(this, WelComeActivity.class);
         startActivity(intent);
     }
+
+
 
 
     private void setFirstUseTime() {

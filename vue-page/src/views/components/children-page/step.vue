@@ -2,6 +2,7 @@
 <template>
   <div class="step step-page">
     <custom-nav-bar
+      :returnRouter="$deviceHolder.homeReturnRouter"
       title="步数"
       left-arrow
       @rightIconClick="setTarget"

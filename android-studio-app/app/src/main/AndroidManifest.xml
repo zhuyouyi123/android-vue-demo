@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.panvan.app"
-    >
+    package="com.panvan.app">
 
     <!-- 查看网络连接 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -11,9 +10,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <!-- 添加网络权限 -->
     <uses-permission android:name="android.permission.INTERNET" /> <!-- 广播权限 -->
@@ -21,9 +20,18 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.AUDIO_ATTRIBUTES_DEFAULT" />
     <!-- 摄像头权限 -->
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+
+    <!--监听电话状态-->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
 
 
 
@@ -40,8 +48,9 @@
             android:name=".WelComeActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/AppTheme.Transparent"
-            />
+            android:theme="@style/AppTheme.Transparent" />
+
+        <activity android:permission="android.permission.PACKAGE_USAGE_STATS" android:name=".AppListActivity" />
 
         <activity
             android:name=".AppActivity"
@@ -71,15 +80,16 @@
             android:exported="true"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService"/>
+                <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
 
         </service>
 
 
-
         <!-- 在这里添加你的组件声明 -->
-        <activity android:name="com.bracelet.scancode.ScanQrActivity"  android:screenOrientation="portrait" />
+        <activity
+            android:name="com.bracelet.scancode.ScanQrActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

@@ -90,6 +90,24 @@ export const constantRoutes = [
     path: "/user/info",
     name: "userInfo",
     component: () => import("@/views/components/children-page/config/userInfo.vue"),
+  },
+  // 来电提醒
+  {
+    path: "/mine/incall",
+    name: "incall",
+    component: () => import("@/views/components/children-page/mine-config/InCallConfiguration.vue"),
+  },
+  // 来电提醒
+  {
+    path: "/mine/appnotification",
+    name: "appnotification",
+    component: () => import("@/views/components/children-page/mine-config/appNotification.vue"),
+  },
+  // 短信提醒
+  {
+    path: "/mine/sms",
+    name: "sms",
+    component: () => import("@/views/components/children-page/mine-config/smsConfiguration.vue"),
   }
 ];
 

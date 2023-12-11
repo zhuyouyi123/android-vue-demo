@@ -30,16 +30,39 @@ export default {
     // 图标属性
     rightIcon: String,
     leftText: String,
+    returnRouter: {
+      type: Object,
+      default: () => {
+        return {
+          path: "",
+          query: {},
+        };
+      },
+    },
   },
   data() {
-    return {};
+    return {
+      // returnRouter: {
+      //   path: "",
+      //   query: {},
+      // },
+    };
   },
 
   mounted() {},
 
   methods: {
     clickLeft() {
-      this.$router.go(-1);
+      if (!this.returnRouter.path) {
+        this.$router.go(-1);
+      } else {
+        this.$router.replace(this.returnRouter);
+        this.returnRouter = {};
+      }
+    },
+
+    setReturnRouter(params) {
+      this.returnRouter = params;
     },
 
     rightIconClick() {

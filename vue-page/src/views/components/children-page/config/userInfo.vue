@@ -1,7 +1,12 @@
 <!-- 用户信息 -->
 <template>
   <div class="user-info">
-    <custom-nav-bar title="用户信息" left-arrow> </custom-nav-bar>
+    <custom-nav-bar
+      title="用户信息"
+      :returnRouter="$deviceHolder.mineReturnRouter"
+      left-arrow
+    >
+    </custom-nav-bar>
     <div class="page-content config-page">
       <van-form @submit="onSubmit" class="l-m-t">
         <van-cell-group inset>
@@ -38,7 +43,7 @@
 
         <div style="margin: 16px">
           <van-button round block type="primary" native-type="submit">
-            提交
+            保存
           </van-button>
         </div>
       </van-form>

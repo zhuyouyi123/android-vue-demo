@@ -1,5 +1,7 @@
 package com.db.database.service;
 
+import android.util.Log;
+
 import com.db.database.AppDatabase;
 import com.db.database.cache.CommunicationDataCache;
 import com.db.database.daoobject.CommunicationDataDO;

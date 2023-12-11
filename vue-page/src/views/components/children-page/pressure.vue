@@ -1,7 +1,12 @@
 <!-- 压力 -->
 <template>
   <div class="pressure-page">
-    <custom-nav-bar title="压力" left-arrow> </custom-nav-bar>
+    <custom-nav-bar
+      :returnRouter="$deviceHolder.homeReturnRouter"
+      title="压力"
+      left-arrow
+    >
+    </custom-nav-bar>
     <div class="page-content">
       <!-- 图表 -->
       <div class="pressure-chart b-d-c l-m-t round">

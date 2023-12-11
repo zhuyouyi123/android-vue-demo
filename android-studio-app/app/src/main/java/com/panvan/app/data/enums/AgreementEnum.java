@@ -65,6 +65,21 @@ public enum AgreementEnum {
     },
 
     /**
+     * 恢复出厂设置
+     */
+    RESET(0x11, 0x91, "RESET") {
+        @Override
+        public void responseHandle(byte[] bytes, AgreementCallback callback) {
+            callback.success(RESET);
+        }
+
+        @Override
+        public byte[] getRequestCommand(String params) {
+            return ProtocolUtil.hexStrToBytes("68110100017B16");
+        }
+    },
+
+    /**
      * 实时数据
      */
     REAL_TIME(0x06, 0x86, "REAL_TIME") {
@@ -130,8 +145,13 @@ public enum AgreementEnum {
                 callback.failed(HISTORY_DATA, bytes);
                 return;
             }
+
+            LogUtil.info(ProtocolUtil.byteToHexStr(bytes[7]));
             HistoryDataTypeEnum typeEnum = HistoryDataTypeEnum.getType(bytes[7]);
 
+            if (Objects.isNull(typeEnum)) {
+                return;
+            }
             LogUtil.info("HISTORY_DATA:" + typeEnum.getKeyDes() + "-" + ProtocolUtil.byteArrToHexStr(bytes));
 
             String formatDate = DateUtils.formatDate(bytes[4], bytes[5], bytes[6]);
@@ -143,14 +163,20 @@ public enum AgreementEnum {
                 case BLOOD_OXYGEN:
                 case HEART_RATE:
                 case TEMPERATURE:
+                case BLOOD_PRESSURE:
                     analysis = typeEnum.analysis(bytes);
-                    CommunicationDataService.getInstance().save(typeEnum.getKeyDes(), Integer.parseInt(formatDate), analysis,  sort);
+                    CommunicationDataService.getInstance().save(typeEnum.getKeyDes(), Integer.parseInt(formatDate), analysis, sort);
                     break;
             }
 
             String dateHex = ProtocolUtil.byteArrToHexStr(DataConvertUtils.subBytes(bytes, 4, 3));
-            String packetHex = ProtocolUtil.byteArrToHexStr(DataConvertUtils.subBytes(bytes, 7, 3));
-            String command = "170600" + dateHex + packetHex;
+            String command = "170600" + dateHex;
+            if (sort == 0) {
+                command += "00";
+            } else {
+                command += ProtocolUtil.byteArrToHexStr(DataConvertUtils.subBytes(bytes, 7, 3));
+            }
+
             CommandRetryScheduled.getInstance().remove(command);
             callback.success(HISTORY_DATA);
         }

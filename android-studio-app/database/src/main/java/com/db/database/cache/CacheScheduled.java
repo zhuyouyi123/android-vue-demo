@@ -1,5 +1,7 @@
 package com.db.database.cache;
 
+import android.util.Log;
+
 import com.db.database.AppDatabase;
 import com.db.database.daoobject.CommunicationDataDO;
 
@@ -57,10 +59,12 @@ public class CacheScheduled {
 
             if (addList.size() > 0) {
                 AppDatabase.getInstance().getCommunicationDataDAO().insert(addList.toArray(new CommunicationDataDO[0]));
+                Log.w("数据库-插入数据", addList.size() + "");
             }
 
             if (updateList.size() > 0) {
                 AppDatabase.getInstance().getCommunicationDataDAO().update(updateList.toArray(new CommunicationDataDO[0]));
+                Log.w("数据库-修改数据", updateList.size() + "");
             }
 
         }, 5000, 5000, TimeUnit.MILLISECONDS);

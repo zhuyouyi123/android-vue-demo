@@ -6,9 +6,9 @@ export default {
   //  * 页面初始化
   //  * @param {参数} params 
   //  */
-  // init(params) {
-  //   return request("post", "system/pushMessage", params);
-  // },
+  openManagerAppPage(params) {
+    return request("post", "system/manager-app", params);
+  },
 
   shareGet(params) {
     return request('get', 'share/get', params)
@@ -21,6 +21,14 @@ export default {
   // 获取权限
   requestCameraPermission() {
     return request("post", 'permission/camera')
+  },
+
+  queryPermissionExist(type) {
+    return request("get", 'permission/exist', type)
+  },
+
+  requestPermission(type) {
+    return request("post", 'permission', type)
   },
 
   /**
@@ -70,6 +78,9 @@ export default {
 
   // 配置表￥￥￥￥￥￥￥￥
 
+  initConfig() {
+    return request('get', 'configuration/init')
+  },
   /**
    * 查询配置根据组
    * @param {group} params 

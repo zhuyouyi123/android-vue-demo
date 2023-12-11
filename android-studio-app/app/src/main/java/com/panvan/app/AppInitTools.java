@@ -9,9 +9,13 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebChromeClient;
@@ -24,10 +28,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
 import com.db.database.UserDatabase;
+import com.panvan.app.Receiver.MyPhoneStateListener;
+import com.panvan.app.Receiver.PhoneReceiver;
+import com.panvan.app.Receiver.call.CallViewModel;
+import com.panvan.app.utils.PermissionsUtil;
 import com.panvan.app.utils.SdkUtil;
 
-public class AppInitTools extends AppCompatActivity {
+import java.util.Objects;
 
+public class AppInitTools extends AppCompatActivity {
 
     //获取到通知管理器
     public static NotificationManager mNotificationManager = null;
@@ -50,11 +59,25 @@ public class AppInitTools extends AppCompatActivity {
         Config.webView = this.webView;
         SdkUtil.init();
         UserDatabase.init(Config.mainContext, "app-user");
-
+        //
         // if (!PermissionsUtil.isNotificationListenerEnabled()) {
         //     AlertDialog enableNotificationListenerDialog = buildNotificationServiceAlertDialog();
         //     enableNotificationListenerDialog.show();
         // }
+
+        // TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        // MyPhoneStateListener phoneStateListener = new MyPhoneStateListener();
+        // telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+    }
+
+
+    /**
+     * 注册监听
+     */
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        CallViewModel.getInstance().listenNone();
     }
 
 
@@ -154,20 +177,9 @@ public class AppInitTools extends AppCompatActivity {
 
     private AlertDialog buildNotificationServiceAlertDialog() {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setTitle(R.string.app_name);
-        alertDialogBuilder.setPositiveButton("开启", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
-            }
-        });
-        alertDialogBuilder.setNegativeButton("不开启", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(Config.mainContext, "不授予通知读取权限Monitor将无法运行！", Toast.LENGTH_SHORT)
-                        .show();
-            }
-        });
+        alertDialogBuilder.setTitle("请求授予通知权限");
+        alertDialogBuilder.setPositiveButton("开启", (dialog, which) -> startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")));
+        alertDialogBuilder.setNegativeButton("不开启", (dialog, which) -> Toast.makeText(Config.mainContext, "不授予通知读取权限Monitor将无法运行！", Toast.LENGTH_SHORT).show());
         return alertDialogBuilder.create();
     }
 
