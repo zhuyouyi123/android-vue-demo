@@ -9,65 +9,42 @@
     </custom-nav-bar>
 
     <div class="page-content">
-      <div class="tabs-box date-stitching">
-        <van-tabs
-          v-model="timeActive"
-          @click="onClickTab"
-          type="card"
-          color="#1DA772"
-        >
-          <van-tab title="日"></van-tab>
-          <van-tab title="周"></van-tab>
-          <van-tab title="月"></van-tab>
-          <van-tab title="年"></van-tab>
-        </van-tabs>
-      </div>
-
-      <div class="date-blood-pressure-num base-space-between-box">
-        <div class="date">{{ dateText }}</div>
-        <div class="heart-num"><span>88-120</span>次/分</div>
-      </div>
-
-      <!-- 折线图 -->
-      <div class="blood-pressure-chart round">
-        <echarts-component
-          :options="$testCharts.bloodPressureData"
-          :height="pageWidth - 208"
-          tooltip
-          :tooltipTitle="['高压', '低压']"
-          tooltipUnit="次/分"
-          areaStyleGradientBcg
-          :lineStyleColor="['#EC526A', '#1DA772']"
-        >
-        </echarts-component>
-
-        <div class="mark-box">
-          <div class="low-box">
-            <div class="round-box"></div>
-            <div class="name">低压</div>
-          </div>
-          <div class="high-box">
-            <div class="round-box"></div>
-            <div class="name">高压</div>
-          </div>
-        </div>
-      </div>
+      <!-- 图表 -->
+      <custom-swipe
+        ref="customSwipe"
+        type="0E"
+        chartType="line"
+        :lineStyleColor="['#1DA772', '#EC526A']"
+        :tooltipTitle="['低压', '高压']"
+        @extendedInfoResponse="extendedInfoResponse"
+        @tabsChange="tabsChange"
+      >
+      </custom-swipe>
 
       <!-- 统计 -->
       <div class="statistics round l-m-t">
-        <div class="base-title">日统计</div>
+        <div class="base-title">{{ timeUnit }}统计</div>
 
         <div class="base-space-between-box">
-          <div class="unit">日平均值</div>
-          <div><span>76-116</span>mmHg</div>
+          <div class="unit">{{ timeUnit }}平均值</div>
+          <div>
+            <span>{{ extendedInfo.average }}</span
+            >mmHg
+          </div>
         </div>
         <div class="base-space-between-box">
-          <div class="unit">日最高值</div>
-          <div><span>80-120</span>mmHg</div>
+          <div class="unit">{{ timeUnit }}最高值</div>
+          <div>
+            <span>{{ extendedInfo.max }}</span
+            >mmHg
+          </div>
         </div>
         <div class="base-space-between-box">
-          <div class="unit">日最低值</div>
-          <div><span>60-100</span>mmHg</div>
+          <div class="unit">{{ timeUnit }}最低值</div>
+          <div>
+            <span>{{ extendedInfo.min }}</span
+            >mmHg
+          </div>
         </div>
       </div>
     </div>
@@ -77,41 +54,39 @@
 <script>
 import customNavBar from "../custom/customNavBar.vue";
 import echartsComponent from "@/components/Charts/echartsComponent.vue";
+import customSwipe from "../custom/customSwipe.vue";
 export default {
   name: "bloodPressure",
   data() {
     return {
-      timeActive: 0,
+      timeUnit: "日",
       // 日期显示
       dateText: "",
       pageWidth: window.innerWidth,
+      extendedInfo: {
+        average: "",
+        max: "",
+        min: "",
+      },
     };
   },
 
-  components: { customNavBar, echartsComponent },
+  components: { customNavBar, echartsComponent, customSwipe },
 
-  mounted() {
-    // 设置显示日期
-    this.setDateText();
-  },
+  mounted() {},
 
   methods: {
-    onClickTab() {
-      // 设置显示日期
-      this.setDateText();
+    extendedInfoResponse(extendedInfo) {
+      this.extendedInfo = { ...extendedInfo };
     },
 
-    /**
-     * 设置日期文本
-     */
-    setDateText() {
-      this.dateText = this.$dateUtil.getDateTextByActive(this.timeActive);
-    },
-
-    currentActiveText() {
-      if (this.timeActive == 0) {
-        return "日";
-      } else if (this.timeActive == 1) {
+    tabsChange(e) {
+      if (e == 0) {
+        this.timeUnit = "日";
+      } else if (e == 1) {
+        this.timeUnit = "周";
+      } else {
+        this.timeUnit = "月";
       }
     },
   },
@@ -170,7 +145,7 @@ export default {
       margin-bottom: 0.1rem;
     }
     .base-space-between-box {
-      margin: 0 0.27rem 0.05rem 0.27rem;
+      margin: 0 0.27rem 0.07rem 0.27rem;
     }
   }
 }

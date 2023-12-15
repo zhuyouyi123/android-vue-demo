@@ -9,56 +9,40 @@
     </custom-nav-bar>
 
     <div class="page-content">
-      <div class="tabs-box date-stitching">
-        <van-tabs
-          v-model="timeActive"
-          @click="onClickTab"
-          type="card"
-          color="#1DA772"
-        >
-          <van-tab title="日"></van-tab>
-          <van-tab title="周"></van-tab>
-          <van-tab title="月"></van-tab>
-        </van-tabs>
-      </div>
-
-      <div class="date-temperature-num base-space-between-box">
-        <div class="date">{{ dateText }}</div>
-        <div class="temperature-num"><span>36.5</span>℃</div>
-      </div>
-
       <!-- 折线图 -->
-      <div class="temperature-chart round">
-        <custom-swipe
-          type="0B"
-          tooltipName="体温"
-          @chartResponse="chartResponse"
-        >
-        </custom-swipe>
-      </div>
+      <custom-swipe
+        type="0B"
+        tooltipName="体温"
+        :tooltipTitle="['最低', '最高']"
+        :lineStyleColor="['#1DA772', '#EC526A']"
+        :chartType="timeActive == 0 ? 'line' : 'bar'"
+        @extendedInfoResponse="extendedInfoResponse"
+        @tabsChange="tabsChange"
+      >
+      </custom-swipe>
 
       <!-- 统计 -->
       <div class="statistics round l-m-t">
-        <div class="base-title">日统计</div>
+        <div class="base-title">{{ timeUnit }}统计</div>
 
         <div class="base-space-between-box">
           <div class="unit">平均体温</div>
           <div>
-            <span>{{ info.ave }}</span
+            <span>{{ extendedInfo.average }}</span
             >℃
           </div>
         </div>
         <div class="base-space-between-box">
           <div class="unit">最高体温</div>
           <div>
-            <span>{{ info.max }}</span
+            <span>{{ extendedInfo.max }}</span
             >℃
           </div>
         </div>
         <div class="base-space-between-box">
           <div class="unit">最低体温</div>
           <div>
-            <span>{{ info.min }}</span
+            <span>{{ extendedInfo.min }}</span
             >℃
           </div>
         </div>
@@ -69,7 +53,6 @@
 
 <script>
 import customNavBar from "../custom/customNavBar.vue";
-import echartsComponent from "@/components/Charts/echartsComponent.vue";
 import customSwipe from "../custom/customSwipe.vue";
 export default {
   name: "temperature",
@@ -81,32 +64,34 @@ export default {
       pageWidth: window.innerWidth,
       chartSize: 0,
       chartOptionsArray: [{}],
-      info: {
+      timeUnit: "日",
+      extendedInfo: {
+        average: "--",
         max: "--",
         min: "--",
-        ave: "--",
       },
     };
   },
 
-  components: { customNavBar, echartsComponent, customSwipe },
+  components: { customNavBar, customSwipe },
 
-  mounted() {
-    // 设置显示日期
-    this.setDateText();
-  },
+  mounted() {},
 
   methods: {
-    onClickTab() {
-      // 设置显示日期
-      this.setDateText();
+    extendedInfoResponse(extendedInfo) {
+      console.log("extendedInfo", JSON.stringify(extendedInfo));
+      this.extendedInfo = { ...extendedInfo };
     },
 
-    /**
-     * 设置日期文本
-     */
-    setDateText() {
-      this.dateText = this.$dateUtil.getDateTextByActive(this.timeActive);
+    tabsChange(e) {
+      if (e == 0) {
+        this.timeUnit = "日";
+      } else if (e == 1) {
+        this.timeUnit = "周";
+      } else {
+        this.timeUnit = "月";
+      }
+      this.timeActive = e;
     },
 
     chartResponse(e) {

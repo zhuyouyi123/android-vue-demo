@@ -42,7 +42,6 @@ public class DeviceConnectHandle {
         this.address = address;
         AppDatabase.init(Config.mainContext, address);
         JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BINDING_STATUS, JsBridgeConstants.BINDING_STATUS_CONNECTING);
-        SdkUtil.runOnUiThread(() -> MaskUtil.showProgressDialog("设备正在绑定中..."));
 
         if (StringUtils.isNotBlank(address)) {
             BraceletDevice braceletDevice = new BraceletDevice();

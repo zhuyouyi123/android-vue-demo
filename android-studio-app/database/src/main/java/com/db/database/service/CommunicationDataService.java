@@ -1,16 +1,22 @@
 package com.db.database.service;
 
+
 import android.util.Log;
 
 import com.db.database.AppDatabase;
 import com.db.database.cache.CommunicationDataCache;
+import com.db.database.callback.DBCallback;
 import com.db.database.daoobject.CommunicationDataDO;
+import com.db.database.daoobject.RealTimeDataDO;
 import com.db.database.enums.CommunicationTypeEnum;
 import com.db.database.utils.DataConvertUtils;
 import com.db.database.utils.DateUtils;
 
 import java.util.List;
 import java.util.Objects;
+
+import io.reactivex.Completable;
+import io.reactivex.schedulers.Schedulers;
 
 public class CommunicationDataService {
 
@@ -27,45 +33,58 @@ public class CommunicationDataService {
     /**
      * 缓存数据初始化
      */
-    public void cacheDataInit() {
-        List<CommunicationDataDO> list = AppDatabase.getInstance().getCommunicationDataDAO().queryAll();
-        CommunicationDataCache.init(list);
+    public void cacheDataInit(DBCallback dbCallback) {
+        try {
+            Completable.fromAction(() -> {
+                        List<CommunicationDataDO> list = AppDatabase.getInstance().getCommunicationDataDAO().queryAll();
+                        CommunicationDataCache.getInstance().init(list, dbCallback);
+                    }).subscribeOn(Schedulers.io())
+                    .subscribe();
+        } catch (Exception e) {
+            dbCallback.failed();
+        }
     }
 
 
     public void save(String type, Integer date, String[] data, int sort) {
-        CommunicationTypeEnum typeEnum = CommunicationTypeEnum.getByType(type);
+        Completable.fromAction(() -> {
+                    CommunicationTypeEnum typeEnum = CommunicationTypeEnum.getByType(type);
 
-        if (Objects.isNull(typeEnum)) {
-            return;
-        }
+                    if (Objects.isNull(typeEnum)) {
+                        return;
+                    }
 
-        CommunicationDataDO communicationDataDO = CommunicationDataCache.get(date, type);
+                    CommunicationDataDO communicationDataDO = CommunicationDataCache.get(date, type);
+                    String[] arr = new String[typeEnum.getTotalPacket() * typeEnum.getPacketSize()];
 
+                    if (null == communicationDataDO) {
+                        communicationDataDO = new CommunicationDataDO();
+                        communicationDataDO.setType(type);
+                        communicationDataDO.setDataDate(date);
+                    } else {
+                        arr = communicationDataDO.getData().split(",");
+                    }
 
-        String[] arr = new String[typeEnum.getTotalPacket() * typeEnum.getPacketSize()];
+                    communicationDataDO.setCompleteData(!DateUtils.isSameDay(date));
 
+                    if (sort != 0) {
+                        for (int i = 0; i < data.length; i++) {
+                            int index = (sort - 1) * typeEnum.getPacketSize() + i;
+                            arr[index] = data[i];
+                        }
+                    }
 
-        if (null == communicationDataDO) {
-            communicationDataDO = new CommunicationDataDO();
-            communicationDataDO.setType(type);
-            communicationDataDO.setDataDate(date);
-        } else {
-            arr = communicationDataDO.getData().split(",");
-        }
+                    for (int i = 0; i < arr.length; i++) {
+                        if (Objects.isNull(arr[i])) {
+                            arr[i] = "0";
+                        }
+                    }
 
-        communicationDataDO.setCompleteData(DateUtils.isSameDay(date));
-
-        if (sort != 0) {
-            for (int i = 0; i < data.length; i++) {
-                int index = (sort - 1) * typeEnum.getPacketSize() + i;
-                arr[index] = data[i];
-            }
-        }
-
-        communicationDataDO.setData(String.join(",", arr));
-
-        CommunicationDataCache.getInstance().updateDataCache(communicationDataDO);
+                    communicationDataDO.setData(String.join(",", arr));
+                    Log.i("RESULT", date + "-" + String.join(",", arr));
+                    CommunicationDataCache.getInstance().updateDataCache(communicationDataDO);
+                }).subscribeOn(Schedulers.io())
+                .subscribe();
     }
 
     /**

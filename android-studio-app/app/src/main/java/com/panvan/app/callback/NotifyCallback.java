@@ -10,12 +10,16 @@ import com.ble.blescansdk.ble.entity.seek.BraceletDevice;
 import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.db.database.cache.CacheScheduled;
+import com.db.database.callback.DBCallback;
+import com.db.database.service.CommunicationDataService;
 import com.panvan.app.Receiver.service.NotificationMonitorService;
 import com.panvan.app.data.constants.JsBridgeConstants;
 import com.panvan.app.data.enums.AgreementEnum;
 import com.panvan.app.scheduled.CommandRetryScheduled;
 import com.panvan.app.scheduled.DeviceDataUpdateScheduled;
 import com.panvan.app.scheduled.DeviceHistoryDataUpdateScheduled;
+import com.panvan.app.service.CommunicationService;
+import com.panvan.app.utils.AsyncTaskProcessorUtil;
 import com.panvan.app.utils.DataConvertUtil;
 import com.panvan.app.utils.JsBridgeUtil;
 import com.panvan.app.utils.LogUtil;
@@ -34,29 +38,38 @@ public class NotifyCallback extends BleNotifyCallback<BraceletDevice> {
         return callback;
     }
 
+    private final Object object = new Object();
 
     private AgreementPacketInfo agreementPacketInfo;
 
     private boolean packetBreakage;
 
+    private long previousPackageTime;
+
     private final AgreementCallback AGREEMENT_CALLBACK = new AgreementCallback() {
         @Override
         public void success(AgreementEnum agreementEnum) {
             packetBreakage = false;
-            if (Objects.nonNull(agreementPacketInfo)) {
-                agreementPacketInfo = null;
+            synchronized (object) {
+                if (Objects.nonNull(agreementPacketInfo)) {
+                    agreementPacketInfo = null;
+                }
             }
+
         }
 
         @Override
         public void failed(AgreementEnum agreementEnum, byte[] msg) {
             packetBreakage = true;
-            if (Objects.isNull(agreementPacketInfo)) {
-                agreementPacketInfo = new AgreementPacketInfo();
-                agreementPacketInfo.setAgreementEnum(agreementEnum);
+            synchronized (object) {
+                if (Objects.isNull(agreementPacketInfo)) {
+                    agreementPacketInfo = new AgreementPacketInfo();
+                    agreementPacketInfo.setAgreementEnum(agreementEnum);
+                }
+                agreementPacketInfo.setBytes(msg);
+                agreementPacketInfo.setTime(System.currentTimeMillis());
             }
-            agreementPacketInfo.setBytes(msg);
-            agreementPacketInfo.setTime(System.currentTimeMillis());
+
 
         }
     };
@@ -64,22 +77,34 @@ public class NotifyCallback extends BleNotifyCallback<BraceletDevice> {
 
     @Override
     public void onChanged(BraceletDevice device, BluetoothGattCharacteristic characteristic) {
-        byte[] bytes = characteristic.getValue();
-        LogUtil.info("接收到onChanged:" + ProtocolUtil.byteArrToHexStr(bytes));
+        // LogUtil.info("接收到onChanged:" + ProtocolUtil.byteArrToHexStr(bytes));
+            byte[] bytes = characteristic.getValue();
 
-        if (bytes[0] == 0x68 && bytes[1] == 0x17) {
-            if (packetBreakage) {
-                packetBreakage = false;
+            long currentTimeMillis = System.currentTimeMillis();
+            if (previousPackageTime != 0) {
+                if (currentTimeMillis - previousPackageTime > 100 && packetBreakage) {
+                    packetBreakage = false;
+                }
             }
-        }
-        if (packetBreakage && Objects.nonNull(agreementPacketInfo)) {
-            bytes = DataConvertUtil.mergeBytes(agreementPacketInfo.getBytes(), bytes);
-            agreementPacketInfo.getAgreementEnum().responseHandle(bytes, AGREEMENT_CALLBACK);
-            return;
-        }
 
-        AgreementEnum agreementByResponse = AgreementEnum.getAgreementByResponse(bytes);
-        agreementByResponse.responseHandle(bytes, AGREEMENT_CALLBACK);
+            previousPackageTime = currentTimeMillis;
+
+            if (bytes[0] == 0x68 && bytes[1] == 0x17) {
+                if (packetBreakage) {
+                    packetBreakage = false;
+                }
+            }
+
+
+            if (packetBreakage && Objects.nonNull(agreementPacketInfo)) {
+                bytes = DataConvertUtil.mergeBytes(agreementPacketInfo.getBytes(), bytes);
+                agreementPacketInfo.getAgreementEnum().responseHandle(bytes, AGREEMENT_CALLBACK);
+                return;
+            }
+
+            AgreementEnum agreementByResponse = AgreementEnum.getAgreementByResponse(bytes);
+            agreementByResponse.responseHandle(bytes, AGREEMENT_CALLBACK);
+
 
     }
 
@@ -92,7 +117,7 @@ public class NotifyCallback extends BleNotifyCallback<BraceletDevice> {
 
         BleHandler.of().postDelayed(() -> JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BINDING_STATUS, JsBridgeConstants.BINDING_STATUS_FINISHED), 2000);
 
-        // 加载设备信息
+        // 加载通知监听
         NotificationMonitorService.toggleNotificationListenerService();
         // 开启定时任务
         DeviceDataUpdateScheduled.start();
@@ -101,7 +126,18 @@ public class NotifyCallback extends BleNotifyCallback<BraceletDevice> {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        DeviceHistoryDataUpdateScheduled.start();
+
+        CommunicationDataService.getInstance().cacheDataInit(new DBCallback() {
+            @Override
+            public void success() {
+                CommunicationService.getInstance().reloadCommand();
+            }
+
+            @Override
+            public void failed() {
+                CommunicationService.getInstance().reloadCommand();
+            }
+        });
 
         CommandRetryScheduled.getInstance().start();
         CacheScheduled.getInstance().start();

@@ -8,9 +8,11 @@ import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.panvan.app.utils.HistoryDataAnalysisUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 public enum HistoryDataTypeEnum {
@@ -18,21 +20,26 @@ public enum HistoryDataTypeEnum {
     /**
      * 全天总数据
      */
-    TOTAL_DATA(1, 0x00, "00") {
+    TOTAL_DATA(1, 0x00, "00", false) {
         @Override
         public String[] analysis(byte[] bytes) {
-            return new String[0];
+            return HistoryDataAnalysisUtil.analysisTotalData(bytes);
         }
     },
     /**
      * 全天运动情况(频率1小时)-类型0x01
      */
-    // SPORT(1, 0x01, "01"),
+    SPORT(1, 0x01, "01", false) {
+        @Override
+        public String[] analysis(byte[] bytes) {
+            return new String[0];
+        }
+    },
 
     /**
      * 全天睡眠情况-类型0x02
      */
-    SLEEP(1, 0x02, "02") {
+    SLEEP(1, 0x02, "02", false) {
         @Override
         public String[] analysis(byte[] bytes) {
             return HistoryDataAnalysisUtil.analysisEveryTenMinuteData(bytes, SLEEP, 10 * 60, 2);
@@ -42,7 +49,7 @@ public enum HistoryDataTypeEnum {
     /**
      * 全天计步详情(频率5分钟)-类型0x04
      */
-    STEP(3, 0x04, "04") {
+    STEP(3, 0x04, "04", true) {
         @Override
         public String[] analysis(byte[] bytes) {
             return HistoryDataAnalysisUtil.analysisEveryHourData(bytes, STEP, 5 * 60, 2);
@@ -52,7 +59,7 @@ public enum HistoryDataTypeEnum {
     /**
      * 全天热量卡路里详情(频率5分钟)-类型0x05
      */
-    CALORIE(3, 0X05, "05") {
+    CALORIE(3, 0X05, "05", true) {
         @Override
         public String[] analysis(byte[] bytes) {
             return HistoryDataAnalysisUtil.analysisEveryHourData(bytes, CALORIE, 5 * 60, 2);
@@ -62,7 +69,7 @@ public enum HistoryDataTypeEnum {
     /**
      * 全天血氧(频率5分钟)-类型0x09
      */
-    BLOOD_OXYGEN(2, 0x09, "09") {
+    BLOOD_OXYGEN(2, 0x09, "09", true) {
         @Override
         public String[] analysis(byte[] bytes) {
             return HistoryDataAnalysisUtil.analysisEveryHourData(bytes, BLOOD_OXYGEN, 300, 1);
@@ -72,30 +79,17 @@ public enum HistoryDataTypeEnum {
     /**
      * 全天温度(频率5分钟)-类型0x0B
      */
-    TEMPERATURE(6, 0x0B, "0B") {
+    TEMPERATURE(6, 0x0B, "0B", true) {
         @Override
         public String[] analysis(byte[] bytes) {
             return HistoryDataAnalysisUtil.analysisEveryHourData(bytes, TEMPERATURE, 300, 4);
         }
     },
-    //
-    // /**
-    //  * 全天大气压(频率10分钟)-类型0x0C
-    //  */
-    // ATMOSPHERIC_PRESSURE(3, 0x0C, "0C") {
-    //     @Override
-    //     public boolean checkDataComplete(String date, int sort) {
-    //         if (DateUtils.isSameDay(date)) {
-    //             return DateUtil.isBeforeNow(DateUtil.getTimestamp(sort * 8));
-    //         }
-    //         return true;
-    //     }
-    // },
-    //
+
     /**
-     * 全天血压数据(频率5分钟)-类型0x0E
+     * 全天大气压(频率10分钟)-类型0x0C
      */
-    BLOOD_PRESSURE(6, 0x0E, "0E") {
+    ATMOSPHERIC_PRESSURE(3, 0x0C, "0C", false) {
         @Override
         public String[] analysis(byte[] bytes) {
             return new String[0];
@@ -103,23 +97,32 @@ public enum HistoryDataTypeEnum {
     },
 
     /**
-     * 全天心率(频率5秒)-类型0x07
+     * 全天血压数据(频率5分钟)-类型0x0E
      */
-    HEART_RATE(96, 0x07, "07") {
+    BLOOD_PRESSURE(6, 0x0E, "0E", true) {
         @Override
         public String[] analysis(byte[] bytes) {
-            return HistoryDataAnalysisUtil.analysisMinuteData(bytes, 5, 5 * 60);
+            return HistoryDataAnalysisUtil.analysisEveryHourData(bytes, BLOOD_PRESSURE, 5 * 60, 3);
+        }
+    },
+
+    /**
+     * 全天心率(频率5秒)-类型0x07
+     */
+    HEART_RATE(96, 0x07, "07", true) {
+        @Override
+        public String[] analysis(byte[] bytes) {
+            return HistoryDataAnalysisUtil.analysisMinuteData(bytes, 5, 5 * 60, 40);
         }
     },
     ;
 
 
-    private static final String TAG = HistoryDataTypeEnum.class.getSimpleName();
-
-    HistoryDataTypeEnum(int totalPacket, int key, String keyDes) {
+    HistoryDataTypeEnum(int totalPacket, int key, String keyDes, boolean enable) {
         this.totalPacket = totalPacket;
-        this.keyDes = keyDes;
         this.key = key;
+        this.keyDes = keyDes;
+        this.enable = enable;
     }
 
     private final int totalPacket;
@@ -127,6 +130,8 @@ public enum HistoryDataTypeEnum {
     private final int key;
 
     private final String keyDes;
+
+    private final boolean enable;
 
     public abstract String[] analysis(byte[] bytes);
 
@@ -179,6 +184,10 @@ public enum HistoryDataTypeEnum {
         return typeEnum;
     }
 
+    public static List<HistoryDataTypeEnum> getAllEnable() {
+        return Arrays.stream(values()).filter(HistoryDataTypeEnum::isEnable).collect(Collectors.toList());
+    }
+
     public int getTotalPacket() {
         return totalPacket;
     }
@@ -191,4 +200,7 @@ public enum HistoryDataTypeEnum {
         return keyDes;
     }
 
+    public boolean isEnable() {
+        return enable;
+    }
 }

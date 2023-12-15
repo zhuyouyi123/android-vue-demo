@@ -29,11 +29,11 @@
           size="large"
           center
         />
-        <div class="add-device" @click="addDevice">
+        <div class="add-device" @click="addDevice" v-show="!device">
           <van-image
             :src="require('../../../assets/image/mine/add-device-icon.svg')"
           ></van-image>
-          <span>添加设备</span>
+          <span>绑定设备</span>
         </div>
       </div>
 

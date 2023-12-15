@@ -6,51 +6,70 @@ import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
+import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.db.database.cache.CommunicationDataCache;
+import com.db.database.daoobject.AllDayDataDO;
 import com.db.database.daoobject.CommunicationDataDO;
+import com.db.database.service.AllDayDataService;
 import com.db.database.utils.DataConvertUtils;
+import com.db.database.utils.DateUtils;
 import com.panvan.app.data.constants.ChartConstants;
+import com.panvan.app.data.constants.SharePreferenceConstants;
 import com.panvan.app.data.enums.HistoryDataTypeEnum;
 import com.panvan.app.data.holder.chart.ChartInfo;
-import com.panvan.app.data.holder.chart.TemperatureChartInfo;
+import com.panvan.app.data.holder.chart.MonthChartInfo;
+import com.panvan.app.data.holder.chart.MultipleChartInfo;
+import com.panvan.app.data.holder.chart.MultipleChartInfoVO;
+import com.panvan.app.data.holder.chart.SingleChartInfoVO;
+import com.panvan.app.data.holder.chart.WeekChartInfo;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.DoubleSummaryStatistics;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Random;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class HistoryDataAnalysisUtil {
-    private static final String TAG = HistoryDataAnalysisUtil.class.getSimpleName();
 
-    private static final String ZERO_DATA = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+    private static Integer firstUseTime = null;
 
-    private static final DecimalFormat df = new DecimalFormat("#.0");
+    private static final Random RANDOM = new Random();
 
     public static String[] analysisEveryHourData(byte[] bytes, HistoryDataTypeEnum historyDataTypeEnum, int intervalSeconds, int intervalNum) {
         // 每小时包含的字节数
         int bytesPerHour = 3600 / intervalSeconds * intervalNum;
 
-        String[] dataArr = new String[24 / historyDataTypeEnum.getTotalPacket()];
+        String[] dataArr;
+
+        if (historyDataTypeEnum == HistoryDataTypeEnum.BLOOD_PRESSURE) {
+            dataArr = new String[24 / historyDataTypeEnum.getTotalPacket() * 2];
+        } else {
+            dataArr = new String[24 / historyDataTypeEnum.getTotalPacket()];
+        }
 
         if (Objects.isNull(bytes) || bytes.length == 0) {
             return dataArr;
         }
 
+        if ((bytes[8] & 0xff) == 0) {
+            return dataArr;
+        }
         bytes = DataConvertUtils.subBytes(bytes, 10, bytes.length - 10 - 2);
+
 
         switch (historyDataTypeEnum) {
             case STEP:
             case CALORIE:
-            case BLOOD_OXYGEN:
                 return defaultAnalysis(bytes, bytesPerHour, intervalNum, dataArr);
+            case BLOOD_OXYGEN:
+                return bloodOxygenAnalysis(bytes, bytesPerHour, intervalNum, dataArr);
             case TEMPERATURE:
                 return temperatureAnalysis(bytes, bytesPerHour, intervalNum, dataArr);
+            case BLOOD_PRESSURE:
+                return bloodPressureAnalysis(bytes, bytesPerHour, intervalNum, dataArr);
         }
         return dataArr;
     }
@@ -63,7 +82,7 @@ public class HistoryDataAnalysisUtil {
      * @param packetTime 每包时间
      * @return 结果
      */
-    public static String[] analysisMinuteData(byte[] bytes, int byteTime, int packetTime) {
+    public static String[] analysisMinuteData(byte[] bytes, int byteTime, int packetTime, int minValue) {
         // 每五分钟的数据包数量
         int packetsPerFiveMinutes = packetTime / byteTime;
 
@@ -73,20 +92,28 @@ public class HistoryDataAnalysisUtil {
 
         // 计算每个五分钟段的平均值
         int index = 0;
-        for (int i = 0; i < bytes.length; i += packetsPerFiveMinutes) {
-            int sum = 0;
-            for (int j = i; j < i + packetsPerFiveMinutes; j++) {
-                // 将每5秒钟的数据累加起来
-                int num = bytes[j] & 0xff;
-                if (num == 255) {
-                    num = 0;
+        try {
+            for (int i = 0; i < bytes.length; i += packetsPerFiveMinutes) {
+                int sum = 0;
+                for (int j = i; j < i + packetsPerFiveMinutes; j++) {
+                    // 将每5秒钟的数据累加起来
+                    int num = bytes[j] & 0xff;
+                    if (num == 255) {
+                        num = 0;
+                    }
+                    sum += num;
                 }
-                sum += num;
-            }
-            // 求平均值
-            int average = sum / packetsPerFiveMinutes;
-            arr[index++] = String.valueOf(average);
+                // 求平均值
+                int average = sum / packetsPerFiveMinutes;
+                if (average != 0 && average < minValue) {
+                    average = minValue + RANDOM.nextInt(10);
+                }
+                arr[index++] = String.valueOf(average);
 
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            LogUtil.error(ProtocolUtil.byteArrToHexStr(bytes));
         }
         return arr;
     }
@@ -121,6 +148,65 @@ public class HistoryDataAnalysisUtil {
             dataArr[hourIndex] = String.valueOf(hourData);
         }
 
+        return dataArr;
+    }
+
+    /**
+     * 解析血压
+     *
+     * @return
+     */
+    private static String[] bloodPressureAnalysis(byte[] bytes, int bytesPerHour, int intervalNum, String[] strings) {
+        for (int i = 0; i < bytes.length; i += bytesPerHour) {
+            // 计算当前小时的索引
+            int hourIndex = i / bytesPerHour;
+            hourIndex = hourIndex * 2;
+
+
+            List<Integer> lowList = new ArrayList<>();
+            List<Integer> highList = new ArrayList<>();
+            for (int j = i; j < i + bytesPerHour; j += intervalNum) {
+                if (j + intervalNum < bytes.length) {
+                    // 0 正常 1 高压过高， 2 高压过低 3 低压过高， 4 低压过低 5 无效数据
+                    int value0 = bytes[j + 2] & 0xFF;
+
+                    int value1 = bytes[j + 1] & 0xFF;
+                    int value2 = bytes[j] & 0xFF;
+
+                    if (value1 == 255 || value2 == 255) {
+                        value1 = value2 = 0;
+                    }
+
+                    lowList.add(value1);
+                    highList.add(value2);
+                }
+            }
+            // 将每小时的数据存入数组中
+            strings[hourIndex] = String.valueOf(Double.valueOf(DataConvertUtil.calcBloodPressureAverage(lowList)).intValue());
+            strings[hourIndex + 1] = String.valueOf(Double.valueOf(DataConvertUtil.calcBloodPressureAverage(highList)).intValue());
+        }
+
+        return strings;
+    }
+
+    private static String[] bloodOxygenAnalysis(byte[] bytes, int bytesPerHour, int intervalNum, String[] dataArr) {
+        for (int i = 0; i < bytes.length; i += bytesPerHour) {
+            // 计算当前小时的索引
+            int hourIndex = i / bytesPerHour;
+
+            List<Integer> list = new ArrayList<>();
+            for (int j = i; j < i + bytesPerHour; j += intervalNum) {
+                if (j + intervalNum < bytes.length) {
+                    int value = bytes[j] & 0xFF;
+                    if (value == ChartConstants.MAX_255) {
+                        value = 0;
+                    }
+                    list.add(value);
+                }
+            }
+            // 将每小时的数据存入数组中
+            dataArr[hourIndex] = String.valueOf(DataConvertUtil.calcBloodPressureAverageToInt(list));
+        }
         return dataArr;
     }
 
@@ -169,9 +255,44 @@ public class HistoryDataAnalysisUtil {
         }
 
         for (int i = 0; i < hourDataList.size(); i++) {
-            dataArr[i] = df.format(hourDataList.get(i));
+            Double aDouble = hourDataList.get(i);
+            if (aDouble == 0.0) {
+                dataArr[i] = "0";
+                continue;
+            }
+            dataArr[i] = DataConvertUtil.roundedDoubleToString(hourDataList.get(i));
         }
         return dataArr;
+    }
+
+    public static Object getChartData(String type, Integer dateType, Integer index) {
+        if (Objects.isNull(dateType)) {
+            dateType = 1;
+        }
+        HistoryDataTypeEnum typeEnum = HistoryDataTypeEnum.getType(type);
+
+        boolean isMu = typeEnum == HistoryDataTypeEnum.BLOOD_PRESSURE;
+
+        boolean isNeedInterval = typeEnum == HistoryDataTypeEnum.HEART_RATE || typeEnum == HistoryDataTypeEnum.TEMPERATURE;
+
+        switch (dateType) {
+            case 1:
+                if (isMu) {
+                    return multipleStatisticalDataByDay(type, index);
+                }
+                return statisticalDataByDay(type, index);
+            case 2:
+                if (isMu || isNeedInterval) {
+                    return multipleStatisticalDataByWeek(type, index, isMu, isNeedInterval);
+                }
+                return statisticalDataByWeek(type, index);
+            case 3:
+                if (isMu || isNeedInterval) {
+                    return multipleStatisticalDataByMonth(type, index, isMu, isNeedInterval);
+                }
+                return statisticalDataByMonth(type, index);
+        }
+        return null;
     }
 
 
@@ -181,198 +302,458 @@ public class HistoryDataAnalysisUtil {
      * @param type 类型
      * @return 结果
      */
-    public static List<ChartInfo<String>> getChartDataByType(String type) {
+    public static SingleChartInfoVO<ChartInfo<String>> statisticalDataByDay(String type, Integer index) {
+        SingleChartInfoVO<ChartInfo<String>> chartInfoVO = new SingleChartInfoVO<>();
+        setFirstUseTime();
+        // 设置大小
+        int daysBetweenTodayAndFirstUseTime = DateUtil.getDaysBetweenTodayAndFirstUseTime(firstUseTime);
+        chartInfoVO.setChartSize(daysBetweenTodayAndFirstUseTime);
         List<ChartInfo<String>> chartInfoList = new ArrayList<>();
-        // 根据类型获取所有数据
-        List<CommunicationDataDO> list = CommunicationDataCache.listByType(type);
 
-        for (CommunicationDataDO dataDO : list) {
-            String data = dataDO.getData();
+        if (-1 == index) {
+            index = daysBetweenTodayAndFirstUseTime - 1;
+        }
+        chartInfoVO.setDataIndex(daysBetweenTodayAndFirstUseTime - index - 1);
+        Integer previousIntDate = DateUtils.getPreviousIntDate(daysBetweenTodayAndFirstUseTime - index - 1);
+
+        ChartInfo<String> chartInfo = getChartInfo(previousIntDate, type);
+        chartInfoList.add(chartInfo);
+
+        HistoryDataTypeEnum typeEnum = HistoryDataTypeEnum.getType(type);
+        boolean needDouble = typeEnum == HistoryDataTypeEnum.TEMPERATURE;
+
+        chartInfoVO.setAverage(DataConvertUtil.calcDoubleStringAverage(chartInfo.getHourlyData(), needDouble));
+        chartInfoVO.setMax(DataConvertUtil.getListStringMax(chartInfo.getHourlyData(), needDouble));
+        chartInfoVO.setMin(DataConvertUtil.getListStringMin(chartInfo.getHourlyData(), needDouble));
+        chartInfoVO.setList(chartInfoList);
+        return chartInfoVO;
+    }
+
+    public static MultipleChartInfoVO<MultipleChartInfo<List<String>>> multipleStatisticalDataByDay(String type, Integer index) {
+        MultipleChartInfoVO<MultipleChartInfo<List<String>>> chartInfoVO = new MultipleChartInfoVO<>();
+        setFirstUseTime();
+        // 设置大小
+        int daysBetweenTodayAndFirstUseTime = DateUtil.getDaysBetweenTodayAndFirstUseTime(firstUseTime);
+        chartInfoVO.setChartSize(daysBetweenTodayAndFirstUseTime);
+
+        if (-1 == index) {
+            index = daysBetweenTodayAndFirstUseTime - 1;
+        }
+        chartInfoVO.setDataIndex(daysBetweenTodayAndFirstUseTime - index - 1);
+        Integer previousIntDate = DateUtils.getPreviousIntDate(daysBetweenTodayAndFirstUseTime - index - 1);
+
+        MultipleChartInfo<List<String>> multipleChartInfo = getMultipleChartInfo(previousIntDate, type, false, false);
+
+        chartInfoVO.setData(multipleChartInfo);
+        if (CollectionUtils.isNotEmpty(multipleChartInfo.getDataList())) {
+            chartInfoVO.setAverage(DataConvertUtil.calcDoubleStringAverage(multipleChartInfo.getDataList().get(0), false) + "-" + DataConvertUtil.calcDoubleStringAverage(multipleChartInfo.getDataList().get(1), false));
+            chartInfoVO.setMax(DataConvertUtil.getListStringMax(multipleChartInfo.getDataList().get(0)) + "-" + DataConvertUtil.getListStringMax(multipleChartInfo.getDataList().get(1)));
+            chartInfoVO.setMin(DataConvertUtil.getListStringMin(multipleChartInfo.getDataList().get(0)) + "-" + DataConvertUtil.getListStringMin(multipleChartInfo.getDataList().get(1)));
+
+        }
+        return chartInfoVO;
+    }
+
+    private static ChartInfo<String> getChartInfo(Integer previousIntDate, String type) {
+        CommunicationDataDO communicationDataDO = CommunicationDataCache.get(previousIntDate, type);
+        if (null == communicationDataDO) {
+            return new ChartInfo<>(previousIntDate, new ArrayList<>());
+        } else {
+            String data = communicationDataDO.getData();
             String[] split = data.split(",");
-            chartInfoList.add(new ChartInfo<>(dataDO.getDataDate(), new ArrayList<>(Arrays.asList(split))));
+            return new ChartInfo<>(previousIntDate, new ArrayList<>(Arrays.asList(split)));
         }
-
-        return chartInfoList;
     }
 
+    private static MultipleChartInfo<List<String>> getMultipleChartInfo(Integer previousIntDate, String type, boolean isNeedInterval, boolean isTemp) {
+        CommunicationDataDO communicationDataDO = CommunicationDataCache.get(previousIntDate, type);
+        if (null == communicationDataDO) {
+            return new MultipleChartInfo<>(previousIntDate, new ArrayList<>());
+        } else {
+            String data = communicationDataDO.getData();
+            String[] split = data.split(",");
 
-    /**
-     * 解析血氧
-     */
-    public static List<ChartInfo<Integer>> analysisBloodOxygen() {
-        List<ChartInfo<Integer>> chartInfoList = new ArrayList<>();
-        // 根据类型获取所有数据
-        // getCommunicationMap(HistoryDataTypeEnum.BLOOD_OXYGEN).forEach((k, v) -> {
-        //     if (v.stream().anyMatch(i -> StringUtils.isBlank(i.getData()))) {
-        //         chartInfoList.add(new TemperatureChartInfo<>(k, new ArrayList<>()));
-        //         return;
-        //     }
-        //     chartInfoList.add(analysisBloodOxygenHex(k, handleJoinDataHex(v, HistoryDataTypeEnum.BLOOD_OXYGEN)));
-        // });
-        return chartInfoList;
-    }
-
-    /**
-     * 根据类型获取缓存数据
-     *
-     * @param historyDataTypeEnum {@link HistoryDataTypeEnum}
-     * @return map
-     */
-    private static Map<Integer, List<CommunicationDataDO>> getCommunicationMap(HistoryDataTypeEnum historyDataTypeEnum) {
-        // 根据类型获取所有数据
-        List<CommunicationDataDO> list = CommunicationDataCache.listByType(historyDataTypeEnum.getKeyDes());
-        return list.stream().collect(Collectors.groupingBy(CommunicationDataDO::getDataDate));
-    }
-
-    /**
-     * 统计每天的数据 每包5分钟
-     *
-     * @return 每天数据
-     */
-    public static List<Integer> defaultAnalysis(List<CommunicationDataDO> dataList) {
-        List<Integer> hourlyData = new ArrayList<>();
-
-        StringBuilder hex = new StringBuilder();
-
-        for (CommunicationDataDO dataDO : dataList) {
-            if (StringUtils.isBlank(dataDO.getData())) {
-                hex.append(ZERO_DATA);
-            } else {
-                hex.append(dataDO.getData());
+            if (isNeedInterval) {
+                String[] list = new String[split.length];
+                for (int i = 0; i < split.length; i++) {
+                    if (isTemp) {
+                        list[i] = String.valueOf(Double.valueOf(split[i]));
+                    } else {
+                        list[i] = String.valueOf(Double.valueOf(split[i]).intValue());
+                    }
+                }
+                MultipleChartInfo<List<String>> listMultipleChartInfo = new MultipleChartInfo<>(previousIntDate, Collections.singletonList(Arrays.asList(list)));
+                listMultipleChartInfo.setOriginalData(Arrays.asList(split));
+                return listMultipleChartInfo;
             }
-        }
-
-        byte[] bytes = ProtocolUtil.hexStrToBytes(hex.toString());
-
-        int data = 0;
-
-        for (int i = 0; i < bytes.length; i += 2) {
-            byte[] subArray = DataConvertUtil.getSubArray(bytes, i, 2);
-            int num = ProtocolUtil.byteArrayToInt(subArray, false);
-
-            if (ChartConstants.MAX == num) {
-                num = 0;
-            }
-
-            data += num;
-
-            if (i % 24 == 0) {
-                hourlyData.add(data);
-                data = 0;
-            }
-        }
-
-        return hourlyData;
-    }
-
-
-    /**
-     * 解析温度hex
-     *
-     * @param date 日期
-     * @param hex  hex
-     * @return 结果
-     */
-    private static TemperatureChartInfo<Double> analysisTemperatureHex(Integer date, String hex) {
-        byte[] bytes = ProtocolUtil.hexStrToBytes(hex);
-
-        List<Double> bodySurface = new ArrayList<>();
-        List<Double> environment = new ArrayList<>();
-
-        for (int i = 0; i < bytes.length; i += 2) {
-            byte[] subArray = DataConvertUtil.getSubArray(bytes, i, 2);
-            double temperature = ProtocolUtil.byteArrayToInt(subArray, false);
-            temperature = temperature == ChartConstants.MAX ? ChartConstants.MAX : ((temperature * 0.005 - 32) * 5 / 9);
-
-            if (i % 4 == 0) {
-                bodySurface.add(temperature);
-            } else {
-                environment.add(temperature);
-            }
-        }
-
-        List<Double> resList = new ArrayList<>();
-        for (int i = 0; i < bodySurface.size(); i++) {
-            double x = environment.get(i);
-            double y = bodySurface.get(i);
-
-            if (x == ChartConstants.MAX || y == ChartConstants.MAX) {
-                resList.add(0.0);
-            } else {
-                resList.add(0.0337 * y * y - 0.545 * y + 1.7088 * x - 0.0519 * x * y + 17.626);
-            }
-        }
-
-        List<Double> hourList = new ArrayList<>();
-        List<Double> hourDetails = new ArrayList<>();
-        for (int i = 0; i < resList.size(); i++) {
-            Double v = resList.get(i);
-            if (v != 0) {
-                hourDetails.add(v);
-            }
-            if ((i + 1) % 12 == 0) {
-                if (CollectionUtils.isEmpty(hourDetails)) {
-                    hourList.add(0.0);
+            int x = 0;
+            String[] listA = new String[split.length / 2];
+            String[] listB = new String[split.length / 2];
+            for (int i = 0; i < split.length; i++) {
+                if (i % 2 == 0) {
+                    listA[x] = String.valueOf(Double.valueOf(split[i]).intValue());
                 } else {
-                    double sumValue = hourDetails.stream().mapToDouble(a -> a).sum();
-
-                    hourList.add(Double.parseDouble(df.format(sumValue / hourDetails.size())));
-                    hourDetails = new ArrayList<>();
+                    listB[x] = String.valueOf(Double.valueOf(split[i]).intValue());
+                    x++;
                 }
             }
+            return new MultipleChartInfo<>(previousIntDate, Arrays.asList(Arrays.asList(listA), Arrays.asList(listB)));
         }
-
-        TemperatureChartInfo<Double> temperatureChartInfo = new TemperatureChartInfo<>(date, hourList);
-
-        List<Double> list = hourList.stream().filter(e -> e != 0).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(list)) {
-            DoubleSummaryStatistics summaryStatistics = hourList.stream().filter(e -> e != 0).collect(Collectors.summarizingDouble(e -> e));
-            temperatureChartInfo.getExtendedInfo().setAve(Double.parseDouble(df.format(summaryStatistics.getAverage())));
-            temperatureChartInfo.getExtendedInfo().setMax(Double.parseDouble(df.format(summaryStatistics.getMax())));
-            temperatureChartInfo.getExtendedInfo().setMin(Double.parseDouble(df.format(summaryStatistics.getMin())));
-        }
-
-        return temperatureChartInfo;
     }
 
-    private static ChartInfo<Integer> analysisBloodOxygenHex(Integer date, String hex) {
-        byte[] bytes = ProtocolUtil.hexStrToBytes(hex);
+    public static SingleChartInfoVO<WeekChartInfo<String>> statisticalDataByWeek(String type, Integer index) {
+        // 第一次使用时间
+        setFirstUseTime();
+        SingleChartInfoVO<WeekChartInfo<String>> chartInfoVO = new SingleChartInfoVO<>();
+        // 根据第一次时间计算到今天有几周
+        int weeks = DateUtil.calculateWeeksToCurrentWeek(String.valueOf(firstUseTime));
+        chartInfoVO.setChartSize(weeks);
 
-        Map<Integer, List<Integer>> hourlyStatistics = new HashMap<>();
-        int intervalMinutes = 5;
+        Map<Integer, List<Integer>> weeksDates = DateUtil.getWeeksDates(weeks);
 
+        List<WeekChartInfo<String>> weekChartInfoList = new ArrayList<>();
 
-        for (int i = 0; i < bytes.length; i++) {
-            // Calculate the corresponding hour
-            int hour = i * intervalMinutes / 60;
-            List<Integer> orDefault = hourlyStatistics.getOrDefault(hour, new ArrayList<>());
-            int unsignedInt = Byte.toUnsignedInt(bytes[i]);
-            if (unsignedInt == 255) {
-                unsignedInt = 0;
-            }
-
-            if (unsignedInt != 0) {
-                if (CollectionUtils.isEmpty(orDefault)) {
-                    orDefault = new ArrayList<>();
-                }
-                orDefault.add(unsignedInt);
-            }
-
-            hourlyStatistics.put(hour, orDefault);
+        if (-1 == index) {
+            index = weeks - 1;
         }
 
-        return new ChartInfo<>(date, hourlyStatistics.values().stream().map(integers -> {
-            if (CollectionUtils.isNotEmpty(integers)) {
-                int sum = integers.stream().mapToInt(Integer::intValue).sum();
-                return sum / integers.size();
+        List<Map.Entry<Integer, List<Integer>>> list = new ArrayList<>(weeksDates.entrySet());
+
+        chartInfoVO.setDataIndex(weeks - index - 1);
+        Map.Entry<Integer, List<Integer>> entry = list.get(weeks - index - 1);
+
+        HistoryDataTypeEnum typeEnum = HistoryDataTypeEnum.getType(type);
+        boolean isTemperature = typeEnum == HistoryDataTypeEnum.TEMPERATURE;
+        boolean isHeartRate = typeEnum == HistoryDataTypeEnum.HEART_RATE;
+        boolean isBloodOxygen = typeEnum == HistoryDataTypeEnum.BLOOD_OXYGEN;
+
+        List<Integer> value = entry.getValue();
+        // 初始化集合 存放每天数据
+        List<Double> dayData = new ArrayList<>();
+
+        for (Integer date : value) {
+            CommunicationDataDO communicationDataDO = CommunicationDataCache.get(date, type);
+            if (null == communicationDataDO) {
+                dayData.add(0.0);
             } else {
-                return 0;
+                if (isTemperature || isHeartRate || isBloodOxygen) {
+                    dayData.add(DataConvertUtil.calcDataAverage(communicationDataDO.getData()));
+                } else {
+                    dayData.add(calcDataSum(communicationDataDO.getData()));
+                }
             }
-        }).collect(Collectors.toList()));
+        }
+
+        if (isTemperature) {
+            chartInfoVO.setAverage(String.valueOf(DataConvertUtil.calcListDoubleAverage(dayData)));
+            chartInfoVO.setMax(DataConvertUtil.getDoubleListMax(dayData, true));
+            chartInfoVO.setMin(DataConvertUtil.getDoubleListMin(dayData, true));
+        } else {
+            chartInfoVO.setAverage(DataConvertUtil.calculateIntAverage(dayData));
+            chartInfoVO.setMax(DataConvertUtil.getDoubleListMax(dayData, false));
+            chartInfoVO.setMin(DataConvertUtil.getDoubleListMin(dayData, false));
+        }
+
+        List<String> stringList = new ArrayList<>();
+        for (Double dayDatum : dayData) {
+            if (isTemperature) {
+                stringList.add(String.valueOf(dayDatum));
+            } else if (isBloodOxygen) {
+                int intValue = dayDatum.intValue();
+                stringList.add(String.valueOf(Math.min(intValue, 100)));
+            } else {
+                stringList.add(String.valueOf(dayDatum.intValue()));
+            }
+        }
+
+        weekChartInfoList.add(new WeekChartInfo<>(stringList));
+
+        chartInfoVO.setList(weekChartInfoList);
+        return chartInfoVO;
+    }
+
+    public static MultipleChartInfoVO<MultipleChartInfo<List<String>>> multipleStatisticalDataByWeek(String type, Integer index, boolean isBloodPressure, boolean isNeedInterval) {
+        // 第一次使用时间
+        setFirstUseTime();
+        MultipleChartInfoVO<MultipleChartInfo<List<String>>> chartInfoVO = new MultipleChartInfoVO<>();
+        chartInfoVO.setNeedSoar(isNeedInterval);
+        // 根据第一次时间计算到今天有几周
+        int weeks = DateUtil.calculateWeeksToCurrentWeek(String.valueOf(firstUseTime));
+        chartInfoVO.setChartSize(weeks);
+
+        Map<Integer, List<Integer>> weeksDates = DateUtil.getWeeksDates(weeks);
+
+        if (-1 == index) {
+            index = weeks - 1;
+        }
+
+        List<Map.Entry<Integer, List<Integer>>> list = new ArrayList<>(weeksDates.entrySet());
+
+        chartInfoVO.setDataIndex(weeks - index - 1);
+        Map.Entry<Integer, List<Integer>> entry = list.get(weeks - index - 1);
+
+        List<Integer> value = entry.getValue();
+
+        List<String> lowList = new ArrayList<>();
+        List<String> highList = new ArrayList<>();
+
+        List<String> allList = new ArrayList<>();
+        boolean isTemp = HistoryDataTypeEnum.TEMPERATURE == HistoryDataTypeEnum.getType(type);
+
+        for (Integer date : value) {
+            MultipleChartInfo<List<String>> multipleChartInfo = getMultipleChartInfo(date, type, isNeedInterval, isTemp);
+            List<List<String>> dataList = multipleChartInfo.getDataList();
+            if (CollectionUtils.isEmpty(dataList)) {
+                lowList.add("0");
+                highList.add("0");
+                continue;
+            }
+            if (Objects.nonNull(multipleChartInfo.getOriginalData())){
+                allList.addAll(multipleChartInfo.getOriginalData());
+            }
+
+            if (isNeedInterval) {
+                lowList.add(DataConvertUtil.getListStringMin(dataList.get(0), isTemp));
+                highList.add(DataConvertUtil.getListStringMax(dataList.get(0), isTemp));
+            } else {
+                lowList.add(DataConvertUtil.calcStringAverage(dataList.get(0), isTemp));
+                highList.add(DataConvertUtil.calcStringAverage(dataList.get(1), isTemp));
+            }
+        }
+        MultipleChartInfo<List<String>> multipleChartInfo = new MultipleChartInfo<>(null, Arrays.asList(lowList, highList));
+        chartInfoVO.setData(multipleChartInfo);
+        if (CollectionUtils.isNotEmpty(multipleChartInfo.getDataList())) {
+            if (isBloodPressure) {
+                chartInfoVO.setAverage(DataConvertUtil.calcStringAverage(multipleChartInfo.getDataList().get(0), isTemp) + "-" + DataConvertUtil.calcStringAverage(multipleChartInfo.getDataList().get(1), isTemp));
+                chartInfoVO.setMax(DataConvertUtil.getListStringMax(multipleChartInfo.getDataList().get(0), isTemp) + "-" + DataConvertUtil.getListStringMax(multipleChartInfo.getDataList().get(1), isTemp));
+                chartInfoVO.setMin(DataConvertUtil.getListStringMin(multipleChartInfo.getDataList().get(0), isTemp) + "-" + DataConvertUtil.getListStringMin(multipleChartInfo.getDataList().get(1), isTemp));
+            } else {
+                chartInfoVO.setAverage(DataConvertUtil.calcStringAverage(allList, isTemp));
+                chartInfoVO.setMax(DataConvertUtil.getListStringMax(allList, isTemp));
+                chartInfoVO.setMin(DataConvertUtil.getListStringMin(allList, isTemp));
+            }
+        }
+        return chartInfoVO;
+    }
+
+    public static SingleChartInfoVO<MonthChartInfo<String>> statisticalDataByMonth(String type, Integer index) {
+        SingleChartInfoVO<MonthChartInfo<String>> chartInfoVO = new SingleChartInfoVO<>();
+        setFirstUseTime();
+        // 根据第一次时间计算到今天有几月
+        int months = DateUtil.calculateMonthsToCurrentDate(String.valueOf(firstUseTime));
+        chartInfoVO.setChartSize(months);
+
+        Map<Integer, List<Integer>> datesForMonth = DateUtil.getDatesForMonth(months);
+
+        List<MonthChartInfo<String>> monthChartInfoList = new ArrayList<>();
+
+        if (-1 == index) {
+            index = months - 1;
+        }
+
+        List<Map.Entry<Integer, List<Integer>>> list = new ArrayList<>(datesForMonth.entrySet());
+
+        chartInfoVO.setDataIndex(months - index - 1);
+        Map.Entry<Integer, List<Integer>> entry = list.get(index);
+
+        HistoryDataTypeEnum typeEnum = HistoryDataTypeEnum.getType(type);
+        boolean isTemperature = typeEnum == HistoryDataTypeEnum.TEMPERATURE;
+        boolean isHeartRate = typeEnum == HistoryDataTypeEnum.HEART_RATE;
+        boolean isBloodOxygen = typeEnum == HistoryDataTypeEnum.BLOOD_OXYGEN;
+
+        List<Integer> value = entry.getValue();
+        // 初始化集合 存放每天数据
+        List<Double> dayData = new ArrayList<>();
+        List<String> xAxis = new ArrayList<>();
+        for (Integer date : value) {
+            CommunicationDataDO communicationDataDO = CommunicationDataCache.get(date, type);
+            if (null == communicationDataDO) {
+                dayData.add(0.0);
+            } else {
+                if (isTemperature || isHeartRate || isBloodOxygen) {
+                    dayData.add(DataConvertUtil.calcDataAverage(communicationDataDO.getData()));
+                } else {
+                    dayData.add(calcDataSum(communicationDataDO.getData()));
+                }
+            }
+            xAxis.add(DateUtil.convertDate(String.valueOf(date)));
+        }
+
+        List<String> stringList = new ArrayList<>();
+        for (Double dayDatum : dayData) {
+            if (isTemperature) {
+                stringList.add(String.valueOf(dayDatum));
+            } else if (isBloodOxygen) {
+                int intValue = dayDatum.intValue();
+                stringList.add(String.valueOf(Math.min(intValue, 100)));
+            } else {
+                stringList.add(String.valueOf(dayDatum.intValue()));
+            }
+        }
+
+        monthChartInfoList.add(new MonthChartInfo<>(xAxis, stringList));
+
+        if (isTemperature) {
+            chartInfoVO.setAverage(String.valueOf(DataConvertUtil.calcListDoubleAverage(dayData)));
+            chartInfoVO.setMax(DataConvertUtil.getDoubleListMax(dayData, true));
+            chartInfoVO.setMin(DataConvertUtil.getDoubleListMin(dayData, true));
+        } else {
+            chartInfoVO.setAverage(DataConvertUtil.calculateIntAverage(dayData));
+            chartInfoVO.setMax(DataConvertUtil.getDoubleListMax(dayData, false));
+            chartInfoVO.setMin(DataConvertUtil.getDoubleListMin(dayData, false));
+        }
+
+        chartInfoVO.setList(monthChartInfoList);
+
+        return chartInfoVO;
+    }
+
+    public static MultipleChartInfoVO<MultipleChartInfo<List<String>>> multipleStatisticalDataByMonth(String type, Integer index, boolean isBloodPressure, boolean isNeedInterval) {
+        // 第一次使用时间
+        setFirstUseTime();
+        MultipleChartInfoVO<MultipleChartInfo<List<String>>> chartInfoVO = new MultipleChartInfoVO<>();
+        chartInfoVO.setNeedSoar(isNeedInterval);
+        // 根据第一次时间计算到今天有几月
+        int months = DateUtil.calculateMonthsToCurrentDate(String.valueOf(firstUseTime));
+        chartInfoVO.setChartSize(months);
+
+        Map<Integer, List<Integer>> datesForMonth = DateUtil.getDatesForMonth(months);
+
+        if (-1 == index) {
+            index = months - 1;
+        }
+
+        List<Map.Entry<Integer, List<Integer>>> list = new ArrayList<>(datesForMonth.entrySet());
+
+        chartInfoVO.setDataIndex(months - index - 1);
+        Map.Entry<Integer, List<Integer>> entry = list.get(index);
+
+        List<Integer> value = entry.getValue();
+
+        List<String> lowList = new ArrayList<>();
+        List<String> highList = new ArrayList<>();
+        List<String> allList = new ArrayList<>();
+        List<String> xAxis = new ArrayList<>();
+        boolean isTemp = HistoryDataTypeEnum.TEMPERATURE == HistoryDataTypeEnum.getType(type);
+
+        for (Integer date : value) {
+            xAxis.add(DateUtil.convertDate(String.valueOf(date)));
+            MultipleChartInfo<List<String>> multipleChartInfo = getMultipleChartInfo(date, type, isNeedInterval, isTemp);
+            List<List<String>> dataList = multipleChartInfo.getDataList();
+            if (CollectionUtils.isEmpty(dataList)) {
+                lowList.add("0");
+                highList.add("0");
+                continue;
+            }
+            if (Objects.nonNull(multipleChartInfo.getOriginalData())){
+                allList.addAll(multipleChartInfo.getOriginalData());
+            }
+            if (isNeedInterval) {
+                lowList.add(DataConvertUtil.getListStringMin(dataList.get(0), isTemp));
+                highList.add(DataConvertUtil.getListStringMax(dataList.get(0), isTemp));
+            } else {
+                lowList.add(DataConvertUtil.calcStringAverage(dataList.get(0), isTemp));
+                highList.add(DataConvertUtil.calcStringAverage(dataList.get(1), isTemp));
+            }
+        }
+        MultipleChartInfo<List<String>> multipleChartInfo = new MultipleChartInfo<>(null, Arrays.asList(lowList, highList));
+        multipleChartInfo.setxAxis(xAxis);
+        chartInfoVO.setData(multipleChartInfo);
+        if (isBloodPressure) {
+            chartInfoVO.setAverage(DataConvertUtil.calcStringAverage(multipleChartInfo.getDataList().get(0), isTemp) + "-" + DataConvertUtil.calcStringAverage(multipleChartInfo.getDataList().get(1), isTemp));
+            chartInfoVO.setMax(DataConvertUtil.getListStringMax(multipleChartInfo.getDataList().get(0), isTemp) + "-" + DataConvertUtil.getListStringMax(multipleChartInfo.getDataList().get(1), isTemp));
+            chartInfoVO.setMin(DataConvertUtil.getListStringMin(multipleChartInfo.getDataList().get(0), isTemp) + "-" + DataConvertUtil.getListStringMin(multipleChartInfo.getDataList().get(1), isTemp));
+        } else {
+            chartInfoVO.setAverage(DataConvertUtil.calcStringAverage(allList, isTemp));
+            chartInfoVO.setMax(DataConvertUtil.getListStringMax(allList, isTemp));
+            chartInfoVO.setMin(DataConvertUtil.getListStringMin(allList, isTemp));
+        }
+        return chartInfoVO;
+    }
+
+    /**
+     * 计算和
+     *
+     * @param data
+     * @return
+     */
+    private static Double calcDataSum(String data) {
+        if (StringUtils.isBlank(data)) {
+            return 0.0;
+        }
+
+        String[] split = data.split(",");
+
+        double sum = 0;
+
+        for (String s : split) {
+            if ("null".equals(s) || StringUtils.isBlank(s)) {
+                continue;
+            }
+            sum += Double.parseDouble(s);
+        }
+
+        return sum;
     }
 
 
     public static String[] analysisEveryTenMinuteData(byte[] bytes, HistoryDataTypeEnum historyDataTypeEnum, int intervalSeconds, int intervalBitNum) {
         return new String[1];
     }
+
+    /**
+     * 解析全天数据
+     *
+     * @param bytes
+     * @return
+     */
+    public static String[] analysisTotalData(byte[] bytes) {
+        // 681706000B0C17000000B316
+        // 681722000C0C17000101FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB616
+        if (bytes.length < 20) {
+            return new String[0];
+        }
+
+        byte[] subBytes = DataConvertUtils.subBytes(bytes, 10, bytes.length - 10 - 2);
+        int index = 0;
+        // 步数信息
+        byte[] stepArray = DataConvertUtils.subBytes(subBytes, index, 4);
+        int step = ProtocolUtil.byteArrayToInt(stepArray, false);
+        // 卡路里
+        byte[] caArray = DataConvertUtils.subBytes(subBytes, index += 4, 4);
+        int ca = ProtocolUtil.byteArrayToInt(caArray, false);
+        // 里程
+        byte[] meArray = DataConvertUtils.subBytes(subBytes, index += 4, 4);
+        int me = ProtocolUtil.byteArrayToInt(meArray, false);
+        // 活动时间
+        byte[] activeTimeArray = DataConvertUtils.subBytes(subBytes, index += 4, 4);
+        int activeTime = ProtocolUtil.byteArrayToInt(activeTimeArray, false);
+        // 活动消耗
+        byte[] activeCaArray = DataConvertUtils.subBytes(subBytes, index + 4, 4);
+        int activeCa = ProtocolUtil.byteArrayToInt(caArray, false);
+
+        AllDayDataDO allDayDataDO = new AllDayDataDO();
+        allDayDataDO.setStep(step);
+        allDayDataDO.setCalorie(ca);
+        allDayDataDO.setMileage(me);
+        allDayDataDO.setActiveTime(activeTime);
+        allDayDataDO.setDateTime(DateUtils.formatDateToInt(bytes[4], bytes[5], bytes[6]));
+
+        // 证明数据都是无效的数据 不保存
+        if (step == -1 || ca == -1) {
+            return new String[0];
+        }
+
+        AllDayDataService.getInstance().save(allDayDataDO);
+
+        return new String[0];
+    }
+
+    public static void setFirstUseTime() {
+        if (null == firstUseTime) {
+            String firstTime = SharePreferenceUtil.getInstance().shareGet(SharePreferenceConstants.FIRST_USE_TIME);
+            firstUseTime = Integer.parseInt(firstTime);
+        }
+    }
+
 }

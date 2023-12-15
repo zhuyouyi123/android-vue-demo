@@ -2,10 +2,15 @@ package com.panvan.app.utils;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
+import com.db.database.callback.DBCallback;
 import com.db.database.daoobject.DeviceDO;
+import com.db.database.service.CommunicationDataService;
 import com.db.database.service.DeviceDataService;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -18,6 +23,7 @@ import com.panvan.app.connect.DeviceConnectHandle;
 import com.panvan.app.data.constants.ActiveForResultConstants;
 import com.panvan.app.data.constants.PermissionsRequestConstants;
 import com.panvan.app.data.entity.bo.WatchQrCodeBO;
+import com.panvan.app.service.CommunicationService;
 import com.panvan.app.service.PermissionService;
 
 public class ActivityResultUtil {
@@ -41,15 +47,26 @@ public class ActivityResultUtil {
                         WatchQrCodeBO watchQrCodeBO = new Gson().fromJson(scanResult, WatchQrCodeBO.class);
 
                         DeviceConnectHandle.getInstance().bind(StringUtils.formatBleAddress(watchQrCodeBO.getMac()), new ConnectCallback() {
+                            @RequiresApi(api = Build.VERSION_CODES.N)
                             @Override
                             public void success(String address) {
-                                new Thread(() -> {
-                                    // 创建设备
-                                    DeviceDO deviceDO = new DeviceDO();
-                                    deviceDO.setAddress(address);
-                                    deviceDO.setInUse(true);
-                                    DeviceDataService.getInstance().saveDevice(deviceDO);
-                                }).start();
+                                // 创建设备
+                                DeviceDO deviceDO = new DeviceDO();
+                                deviceDO.setAddress(address);
+                                deviceDO.setInUse(true);
+                                DeviceDataService.getInstance().saveDevice(deviceDO);
+                                CommunicationDataService.getInstance().cacheDataInit(new DBCallback() {
+                                    @Override
+                                    public void success() {
+                                        CommunicationService.getInstance().reloadCommand();
+                                    }
+
+                                    @Override
+                                    public void failed() {
+                                        CommunicationService.getInstance().reloadCommand();
+                                    }
+                                });
+
                             }
 
                             @Override

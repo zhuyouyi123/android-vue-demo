@@ -8,7 +8,7 @@
         <div
           v-if="getCardShow('STEP')"
           class="step-container round l-m-t"
-          @click="enterStepPage"
+          @click="$router.push('/step')"
         >
           <!-- title 刷新时间 -->
           <div class="step-title-refresh-time">
@@ -273,7 +273,7 @@ import echartsComponent from "@/components/Charts/echartsComponent.vue";
 import customBloodPressure from "../custom/customBloodPressure.vue";
 import dashboard from "@/components/Charts/dashboard.vue";
 import customNavBar from "../custom/customNavBar.vue";
-import { Toast } from "vant";
+import deviceData from "@/store/deviceData";
 export default {
   components: {
     echartsComponent,
@@ -335,15 +335,7 @@ export default {
 
   mounted() {
     window.addEventListener("commonAndroidEvent", this.callJs);
-    // 查询首页卡片显示
-    this.queryMenuCard();
-    // 查询目标值
-    this.getTarget();
-
-    this.calcUpdateTimeDiff();
-
-    this.monitorUpdateTime();
-
+    this.init();
     this.updatePageInfo();
   },
 
@@ -355,9 +347,26 @@ export default {
   },
 
   methods: {
+    init() {
+      // 查询首页卡片显示
+      this.queryMenuCard();
+      // 查询目标值
+      deviceData.querySportTarget().then((res) => {
+        this.stepTarget = res.stepTarget;
+        this.calorieTarget = res.calorieTarget;
+      });
+      deviceData.queryRealInfo().then((res) => {
+        this.deviceInfo = res;
+        this.calcUpdateTimeDiff();
+      });
+
+      this.monitorUpdateTime();
+      // 设备连接初始化
+      this.$androidApi.init();
+    },
+
     onRefresh() {
-      this.$deviceHolder.needRefresh = true;
-      this.init();
+      this.$androidApi.init();
       setTimeout(() => {
         this.loading = false;
       }, 3000);
@@ -402,50 +411,23 @@ export default {
           }
           break;
         case "DEVICE_REAL_TIME":
-          this.deviceInfo = this.$deviceHolder.deviceInfo;
-          this.$deviceHolder.bindingInfo.time = new Date().getTime();
+          this.deviceInfo = data;
+          this.$emit("updateDeviceInfo");
           break;
         default:
           break;
       }
     },
 
-    init() {
-      if (this.$deviceHolder.needRefresh) {
-        this.$androidApi.init();
-        this.$deviceHolder.needRefresh = false;
-      }
-    },
-
+    /**
+     * 查询首页卡片
+     */
     queryMenuCard() {
       this.$androidApi.queryConfigurationByGroup("HOME_CARD").then((data) => {
-        console.log(JSON.stringify(data));
         this.homeCard = data;
         this.homeCardMap = new Map();
         data.forEach((e) => this.homeCardMap.set(e.type, e.enable));
       });
-    },
-
-    /**
-     * 获取目标值
-     */
-    getTarget() {
-      this.$androidApi.queryConfigurationByGroup("TARGET").then((data) => {
-        data.forEach((e) => {
-          switch (e.type) {
-            case "STEP":
-              this.stepTarget = e.value;
-              break;
-            case "CALORIE":
-              this.calorieTarget = e.value;
-              break;
-          }
-        });
-      });
-    },
-
-    enterStepPage() {
-      this.$router.push("/step");
     },
 
     /**
@@ -460,19 +442,7 @@ export default {
       }
     },
 
-    updatePageInfo() {
-      // setTimeout(() => {
-      //   let deviceInfo = this.$deviceHolder.deviceInfo;
-      //   // 目标值
-      //   let targetValue = 100;
-      //   let currCa = deviceInfo.stepInfo.calories;
-      //   if (currCa >= targetValue) {
-      //     this.calorieInfo.rate = 100;
-      //   } else {
-      //     this.calorieInfo.rate = parseInt((currCa / targetValue) * 100);
-      //   }
-      // }, 500);
-    },
+    updatePageInfo() {},
 
     monitorUpdateTime() {
       if (!this.refreshInterval) {

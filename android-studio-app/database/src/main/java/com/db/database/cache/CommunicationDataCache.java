@@ -5,6 +5,7 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import com.db.database.callback.DBCallback;
 import com.db.database.daoobject.CommunicationDataDO;
 
 import java.util.ArrayList;
@@ -34,8 +35,9 @@ public class CommunicationDataCache {
         return INSTANCE;
     }
 
-    public static void init(List<CommunicationDataDO> list) {
+    public void init(List<CommunicationDataDO> list, DBCallback dbCallback) {
         dataCacheMap.clear();
+        CACHE_MAP.clear();
         if (Objects.nonNull(list) && !list.isEmpty()) {
             Map<Integer, Map<String, CommunicationDataDO>> dataDOMap = new HashMap<>();
 
@@ -75,6 +77,7 @@ public class CommunicationDataCache {
                 }
             }
         }
+        dbCallback.success();
     }
 
     public ConcurrentMap<Integer, ConcurrentMap<String, Long>> getCacheMap() {
@@ -112,7 +115,6 @@ public class CommunicationDataCache {
             }
         }
 
-
         map.put(communicationDataDO.getType(), communicationDataDO);
 
         dataCacheMap.put(date, map);
@@ -121,10 +123,6 @@ public class CommunicationDataCache {
     public void updateDataCache(CommunicationDataDO communicationDataDO) {
         push(communicationDataDO.getDataDate(), communicationDataDO);
         addCacheMap(communicationDataDO.getDataDate(), communicationDataDO.getType());
-    }
-
-    public static CommunicationDataDO get(Integer date, String type, int sort) {
-        return get(date, getKey(type, sort));
     }
 
     public static ConcurrentMap<String, CommunicationDataDO> get(Integer date) {

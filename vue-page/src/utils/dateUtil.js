@@ -81,7 +81,7 @@ export default {
      */
     getTimeDiffInMinutes(timestamp) {
         if (timestamp < 10000) {
-            return "无效时间";
+            return "刷新失败";
         }
         const currentTime = new Date();
         const targetTime = new Date(timestamp);

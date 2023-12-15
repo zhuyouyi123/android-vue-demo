@@ -10,27 +10,14 @@
     />
 
     <div class="page-content">
-      <div class="tabs-box date-stitching">
-        <van-tabs
-          v-model="timeActive"
-          @click="onClickTab"
-          type="card"
-          color="#1DA772"
-        >
-          <van-tab title="日"></van-tab>
-          <van-tab title="周"></van-tab>
-          <van-tab title="月"></van-tab>
-        </van-tabs>
-      </div>
-
-      <div class="date-step-num">
-        <div class="date">{{ dateText }}</div>
-        <div class="step-num">
-          <span> {{ stepInfo.stepNumber }} </span>步
-        </div>
-      </div>
       <!-- 图表 -->
-      <custom-swipe type="04" time-interval @swipeResponse="vanSwipeChange">
+      <custom-swipe
+        ref="customSwipe"
+        type="04"
+        tooltipName="步数"
+        :time-interval="timeActive == 0"
+        :axis-label-interval="timeActive == 0 ? 5 : null"
+      >
       </custom-swipe>
 
       <!-- 步数消耗统计 -->
@@ -63,11 +50,17 @@
         <div class="base-title">步数达标</div>
         <div class="compliance-children-box">
           <div class="compliance-lable">总计达标天数</div>
-          <div class="compliance-num"><span>8</span>天</div>
+          <div class="compliance-num">
+            <span>{{ complianceDays }}</span
+            >天
+          </div>
         </div>
         <div class="compliance-children-box">
           <div class="compliance-lable">连续达标天数</div>
-          <div class="compliance-num"><span>10</span>天</div>
+          <div class="compliance-num">
+            <span>{{ continueComplianceDays }}</span
+            >天
+          </div>
         </div>
       </div>
 
@@ -84,7 +77,7 @@
 
         <!-- 进度条 -->
         <van-progress
-          :percentage="50"
+          :percentage="1"
           :color="'#1DA772'"
           :track-color="'#d1ede5'"
           :show-pivot="false"

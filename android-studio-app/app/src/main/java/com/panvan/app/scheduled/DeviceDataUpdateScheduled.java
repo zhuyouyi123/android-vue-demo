@@ -59,7 +59,7 @@ public class DeviceDataUpdateScheduled {
             // 更新设备
             updateDevice();
 
-        }, 10, 30000, TimeUnit.MILLISECONDS);
+        }, 3000, 60000, TimeUnit.MILLISECONDS);
     }
 
     /**

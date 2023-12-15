@@ -67,29 +67,29 @@ public class DeviceHolder {
     public static class DeviceInfo {
         private long time;
 
-        private int battery;
+        private int battery = 0;
         /**
          * 心率
          */
-        private int heartRate;
+        private int heartRate = 60;
         /**
          * 步数信息
          */
-        private StepInfo stepInfo;
+        private StepInfo stepInfo = new StepInfo();
         /**
          * 体表温度
          */
-        private double bodySurfaceTemperature;
+        private double bodySurfaceTemperature = 36.5;
 
         /**
          * 佩戴状态
          */
-        private boolean wearingStatus;
+        private boolean wearingStatus = false;
 
         /**
          * 血液相关
          */
-        private BloodPressureInfo bloodPressureInfo;
+        private BloodPressureInfo bloodPressureInfo = new BloodPressureInfo();
 
         public int getBattery() {
             return battery;
@@ -155,9 +155,9 @@ public class DeviceHolder {
     }
 
     public static class StepInfo {
-        private int stepNumber;
-        private int mileage;
-        private int calories;
+        private int stepNumber = 0;
+        private int mileage = 0;
+        private int calories = 0;
 
         public int getStepNumber() {
             return stepNumber;
@@ -189,22 +189,22 @@ public class DeviceHolder {
         /**
          * 血氧
          */
-        private int bloodOxygen;
+        private int bloodOxygen = 100;
 
         /**
          * 收缩压
          */
-        private int systolicPressure;
+        private int systolicPressure = 0;
 
         /**
          * 舒张压
          */
-        private int diastolicPressure;
+        private int diastolicPressure = 0;
 
         /**
          * 血液粘稠度
          */
-        private int bloodViscosity;
+        private int bloodViscosity = 0;
 
         public int getBloodOxygen() {
             return bloodOxygen;

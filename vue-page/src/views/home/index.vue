@@ -2,7 +2,7 @@
 <template>
   <div class="content">
     <div class="index-home">
-      <home v-if="active == 0" />
+      <home @updateDeviceInfo="queryRealInfo" v-if="active == 0" />
       <sport v-else-if="active == 2" />
       <mine v-else-if="active == 1" />
     </div>
@@ -37,7 +37,7 @@ import sport from "../components/home-page/sport.vue";
 import mine from "@/views/components/home-page/mine";
 export default {
   data() {
-    return { active: 0 };
+    return { active: 0, realTimeInterval: null };
   },
 
   components: {
@@ -51,17 +51,31 @@ export default {
     if (this.$route.query && this.$route.query.active) {
       this.active = this.$route.query.active;
     }
-    this.init();
+  },
+
+  destroyed() {
+    this.clearIntervals();
   },
 
   methods: {
     activeChange(e) {},
-    init() {
-      let params = {
-        title: "1111",
-        text: "你好啊",
-      };
-      this.$androidApi.init(params);
+
+    /**
+     * 初始化定时任务
+     */
+    initInterval() {},
+
+    /**
+     * 清理定时任务
+     */
+    clearIntervals() {
+      if (this.realTimeInterval) {
+        clearInterval(this.realTimeInterval);
+      }
+    },
+
+    queryRealInfo(){
+      
     },
   },
 };

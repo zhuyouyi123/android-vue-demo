@@ -53,14 +53,22 @@ export default {
   },
 
 
-  getHistoryData(params) {
-    return request("get", "communication/history/list", params);
+  getHistoryData(type, dateType, currIndex) {
+    // return new Promise((resolve, reject) => {
+    //   resolve({"average":"97","chartSize":314,"dataIndex":0,"list":[{"date":20231215,"hourlyData":["98","96","98","98","99","97","98","0","94","98","99","98","98","0","0","0","0","0","0","0","0","0","0","0"]}],"max":"99","min":"94"});
+    //   return
+    // })
+    return request("get", "communication/history/list", { type: type, dateType: dateType, currIndex: currIndex });
   },
 
-  startSport(params) {
-    return request("post", "communication/history/list", params);
+  startSport(type) {
+    return request("post", "communication/history/list", type);
   },
 
+  // 查询达标次数
+  queryComplianceDays() {
+    return request("get", "communication/compliance/days");
+  },
 
   // 用户表
   queryUserInfo(params) {

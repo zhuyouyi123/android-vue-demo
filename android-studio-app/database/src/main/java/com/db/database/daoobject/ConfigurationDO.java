@@ -2,9 +2,10 @@ package com.db.database.daoobject;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "configuration")
+@Entity(tableName = "configuration", indices = {@Index(value = {"config_group", "type"})})
 public class ConfigurationDO {
 
     @PrimaryKey(autoGenerate = true)

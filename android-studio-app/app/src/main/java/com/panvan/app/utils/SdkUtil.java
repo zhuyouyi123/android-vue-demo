@@ -10,6 +10,7 @@ import com.ble.blescansdk.ble.callback.request.BleScanCallback;
 import com.ble.blescansdk.ble.entity.seek.BraceletDevice;
 import com.ble.blescansdk.ble.enums.BleScanLevelEnum;
 import com.ble.blescansdk.ble.enums.ManufacturerEnum;
+import com.ble.blescansdk.ble.queue.retry.RetryDispatcher;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.ble.blescansdk.ble.utils.ThreadUtils;
@@ -101,9 +102,6 @@ public class SdkUtil {
             @Override
             public void onStatusChange(boolean state) {
                 LogUtil.info("设备扫描状态：" + state);
-                if (!state) {
-                    runOnUiThread(MaskUtil::hide);
-                }
             }
 
             @Override
@@ -145,7 +143,6 @@ public class SdkUtil {
         BleSdkManager.getInstance().connect(device, new BleConnectCallback<BraceletDevice>() {
             @Override
             public void onConnectChange(BraceletDevice device, int status) {
-                // DeviceHolder.getInstance().setConnectStatus();
             }
 
             @Override
@@ -158,17 +155,20 @@ public class SdkUtil {
                 SharePreferenceUtil.getInstance().shareSet(SharePreferenceConstants.DEVICE_ADDRESS_KEY, device.getAddress());
 
                 BleSdkManager.getInstance().startNotify(device, NotifyCallback.getInstance());
-                runOnUiThread(MaskUtil::hide);
 
             }
 
             @Override
             public void onConnectFailed(BraceletDevice device, int errorCode) {
+                int retryCount = RetryDispatcher.getInstance().getRetryCountByAddress(device.getAddress());
+
+                if (retryCount > 0) {
+                    return;
+                }
                 callback.failed();
 
                 DeviceHolder.getInstance().setConnectStatus(DeviceHolder.CONNECT_FAILED);
                 JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BINDING_STATUS, JsBridgeConstants.BINDING_STATUS_UN_CONNECTED);
-                runOnUiThread(MaskUtil::hide);
             }
         });
     }
@@ -182,25 +182,20 @@ public class SdkUtil {
 
 
     public static void retryWriteCommand(String hex) {
-        synchronized (OBJECT) {
-            if (StringUtils.isBlank(hex)) {
-                return;
-            }
-            BleSdkManager.getInstance().write(DeviceHolder.DEVICE, ProtocolUtil.hexStrToBytes(hex), WriteCallback.getInstance());
+        if (StringUtils.isBlank(hex)) {
+            return;
         }
+        BleSdkManager.getInstance().write(DeviceHolder.DEVICE, ProtocolUtil.hexStrToBytes(hex), WriteCallback.getInstance());
     }
 
     public static void writeCommand(String hex) {
-        synchronized (OBJECT) {
-            CommandRetryScheduled.getInstance().add(hex);
-            BleSdkManager.getInstance().write(DeviceHolder.DEVICE, ProtocolUtil.hexStrToBytes(hex), WriteCallback.getInstance());
-        }
+        LogUtil.info("写入数据:"+hex);
+        CommandRetryScheduled.getInstance().add(hex);
+        BleSdkManager.getInstance().write(DeviceHolder.DEVICE, ProtocolUtil.hexStrToBytes(hex), WriteCallback.getInstance());
     }
 
     public static void writeCommand(byte[] bytes) {
-        synchronized (OBJECT) {
-            CommandRetryScheduled.getInstance().add(ProtocolUtil.byteArrToHexStr(bytes));
-            BleSdkManager.getInstance().write(DeviceHolder.DEVICE, bytes, WriteCallback.getInstance());
-        }
+        CommandRetryScheduled.getInstance().add(ProtocolUtil.byteArrToHexStr(bytes));
+        BleSdkManager.getInstance().write(DeviceHolder.DEVICE, bytes, WriteCallback.getInstance());
     }
 }

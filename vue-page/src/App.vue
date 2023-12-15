@@ -47,7 +47,6 @@ export default {
   },
 
   mounted() {
-    this.loadingDeviceInfo();
     this.getFirstUseTime();
 
     this.initConfig();
@@ -164,13 +163,7 @@ export default {
       }
     },
 
-    loadingDeviceInfo() {
-      this.$androidApi.getDeviceInfo().then((data) => {
-        if (data && data.deviceInfo) {
-          deviceHolder.deviceInfo = data.deviceInfo;
-        }
-      });
-    },
+  
 
     getFirstUseTime() {
       this.$androidApi.shareGet("FIRST_USE_TIME").then((data) => {

@@ -3,7 +3,9 @@ package com.db.database.cache;
 import android.util.Log;
 
 import com.db.database.AppDatabase;
+import com.db.database.callback.DBCallback;
 import com.db.database.daoobject.CommunicationDataDO;
+import com.db.database.service.CommunicationDataService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,7 @@ public class CacheScheduled {
     private static CacheScheduled INSTANCE = null;
 
     private static final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+    private static final ScheduledExecutorService scheduledRreashExecutorService = Executors.newScheduledThreadPool(1);
 
     public static CacheScheduled getInstance() {
         if (Objects.isNull(INSTANCE)) {
@@ -34,7 +37,7 @@ public class CacheScheduled {
             ConcurrentMap<Integer, ConcurrentMap<String, Long>> cacheMap = CommunicationDataCache.getInstance().getCacheMap();
             for (Map.Entry<Integer, ConcurrentMap<String, Long>> entry : cacheMap.entrySet()) {
                 ConcurrentMap<String, Long> value = entry.getValue();
-                if (Objects.isNull(value)) {
+                if (null == value || value.isEmpty()) {
                     continue;
                 }
 
@@ -50,12 +53,10 @@ public class CacheScheduled {
                                 updateList.add(communicationDataDO);
                             }
                         }
+                        entry.getValue().remove(dataDOEntry.getKey());
                     }
-
                 }
             }
-
-            CommunicationDataCache.getInstance().clearCacheMap();
 
             if (addList.size() > 0) {
                 AppDatabase.getInstance().getCommunicationDataDAO().insert(addList.toArray(new CommunicationDataDO[0]));
@@ -66,7 +67,6 @@ public class CacheScheduled {
                 AppDatabase.getInstance().getCommunicationDataDAO().update(updateList.toArray(new CommunicationDataDO[0]));
                 Log.w("数据库-修改数据", updateList.size() + "");
             }
-
         }, 5000, 5000, TimeUnit.MILLISECONDS);
     }
 

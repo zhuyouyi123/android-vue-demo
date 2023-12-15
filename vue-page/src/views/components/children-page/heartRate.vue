@@ -9,49 +9,45 @@
     </custom-nav-bar>
 
     <div class="page-content">
-      <div class="tabs-box date-stitching">
-        <van-tabs
-          v-model="timeActive"
-          @click="onClickTab"
-          type="card"
-          color="#1DA772"
-        >
-          <van-tab title="日"></van-tab>
-          <van-tab title="周"></van-tab>
-          <van-tab title="月"></van-tab>
-        </van-tabs>
-      </div>
-
-      <div class="date-heart-num base-space-between-box">
-        <div class="date">{{ dateText }}</div>
-        <div class="heart-num"><span>95</span>次/分</div>
-      </div>
-
       <!-- 折线图 -->
       <custom-swipe
+        ref="customSwipe"
         type="07"
         tooltipName="心率"
+        :tooltipTitle="['最低', '最高']"
+        :lineStyleColor="['#1DA772', '#EC526A']"
         :xAxisData="times"
-        chartType="line"
-        axisLabelInterval="-1"
+        :chartType="timeActive == 0 ? 'line' : 'bar'"
+        :axisLabelInterval="null"
+        @extendedInfoResponse="extendedInfoResponse"
+        @tabsChange="tabsChange"
       >
       </custom-swipe>
 
       <!-- 统计 -->
       <div class="statistics round l-m-t">
-        <div class="base-title">日统计</div>
+        <div class="base-title">{{ timeUnit }}统计</div>
 
         <div class="base-space-between-box">
           <div class="unit">平均心率</div>
-          <div><span>76</span>次/分</div>
+          <div>
+            <span>{{ extendedInfo.average }}</span
+            >次/分
+          </div>
         </div>
         <div class="base-space-between-box">
           <div class="unit">最高心率</div>
-          <div><span>120</span>次/分</div>
+          <div>
+            <span>{{ extendedInfo.max }}</span
+            >次/分
+          </div>
         </div>
         <div class="base-space-between-box">
           <div class="unit">最低心率</div>
-          <div><span>55</span>次/分</div>
+          <div>
+            <span>{{ extendedInfo.min }}</span
+            >次/分
+          </div>
         </div>
       </div>
     </div>
@@ -71,6 +67,12 @@ export default {
       dateText: "",
       pageWidth: window.innerWidth,
       times: [],
+      extendedInfo: {
+        average: "",
+        max: "",
+        min: "",
+      },
+      timeUnit: "日",
     };
   },
 
@@ -80,17 +82,9 @@ export default {
     this.generateTimeData();
   },
 
-  mounted() {
-    // 设置显示日期
-    this.setDateText();
-  },
+  mounted() {},
 
   methods: {
-    onClickTab() {
-      // 设置显示日期
-      this.setDateText();
-    },
-
     generateTimeData() {
       for (let hour = 0; hour < 24; hour++) {
         for (let minute = 0; minute < 60; minute += 5) {
@@ -100,19 +94,19 @@ export default {
         }
       }
     },
-
-    /**
-     * 设置日期文本
-     */
-    setDateText() {
-      this.dateText = this.$dateUtil.getDateTextByActive(this.timeActive);
+    extendedInfoResponse(extendedInfo) {
+      this.extendedInfo = { ...extendedInfo };
     },
 
-    currentActiveText() {
-      if (this.timeActive == 0) {
-        return "日";
-      } else if (this.timeActive == 1) {
+    tabsChange(e) {
+      if (e == 0) {
+        this.timeUnit = "日";
+      } else if (e == 1) {
+        this.timeUnit = "周";
+      } else {
+        this.timeUnit = "月";
       }
+      this.timeActive = e;
     },
   },
 };

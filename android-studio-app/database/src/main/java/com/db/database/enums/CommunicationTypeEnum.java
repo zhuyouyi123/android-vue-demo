@@ -8,6 +8,7 @@ public enum CommunicationTypeEnum {
     HEART_RATE("07", 96, 3),
     BLOOD_OXYGEN("09", 2, 12),
     TEMPERATURE("0B", 6, 4),
+    BLOOD_PRESSURE("0E", 6, 8),
 
     ;
 

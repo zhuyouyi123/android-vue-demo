@@ -23,6 +23,10 @@ export default {
                 calories: 0
             },
             initialSwipe: 0,
+            // 达标天数
+            complianceDays: 0,
+            // 连续达标天数
+            continueComplianceDays: 0,
         };
     },
 
@@ -30,13 +34,16 @@ export default {
         // 设置显示日期
         // this.setDateText();
         this.setDayData();
+        this.queryComplianceDays();
 
     },
 
     methods: {
-        onClickTab() {
+        onClickTab(e) {
             // 设置显示日期
             this.setDateText();
+            console.log("onClickTab", e);
+            this.$refs.customSwipe.changeDateType(e);
         },
 
         /**
@@ -59,6 +66,13 @@ export default {
 
         setTarget() {
             this.$refs.customPicker.open();
+        },
+
+        queryComplianceDays() {
+            this.$androidApi.queryComplianceDays().then(res => {
+                this.complianceDays = res.complianceDays
+                this.continueComplianceDays = res.continueComplianceDays
+            })
         },
     },
 };

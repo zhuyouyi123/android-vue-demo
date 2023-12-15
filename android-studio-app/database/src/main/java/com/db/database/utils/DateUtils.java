@@ -18,6 +18,14 @@ public class DateUtils {
         return getPreviousDate(0);
     }
 
+    public static Integer getPreviousIntDate() {
+        return Integer.parseInt(getPreviousDate(0));
+    }
+
+    public static Integer getPreviousIntDate(int daysToSubtract) {
+        return Integer.parseInt(getPreviousDate(daysToSubtract));
+    }
+
     public static String getPreviousDate(int daysToSubtract) {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_YEAR, -daysToSubtract); // 减去指定的天数
@@ -37,6 +45,10 @@ public class DateUtils {
 
         // 格式化年月日为字符串
         return String.format(Locale.ENGLISH, "%04d%02d%02d", year, month, day);
+    }
+
+    public static Integer formatDateToInt(byte dayByte, byte monthByte, byte yearByte) {
+        return Integer.parseInt(formatDate(dayByte, monthByte, yearByte));
     }
 
     public static String formatDate(byte[] bytes) {

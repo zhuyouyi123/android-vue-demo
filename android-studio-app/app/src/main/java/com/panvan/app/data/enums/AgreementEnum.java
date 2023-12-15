@@ -4,6 +4,7 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.db.database.daoobject.CommunicationDataDO;
 import com.db.database.service.CommunicationDataService;
@@ -13,6 +14,7 @@ import com.panvan.app.callback.AgreementCallback;
 import com.panvan.app.data.constants.JsBridgeConstants;
 import com.panvan.app.data.holder.DeviceHolder;
 import com.panvan.app.scheduled.CommandRetryScheduled;
+import com.panvan.app.service.CommunicationService;
 import com.panvan.app.utils.DataConvertUtil;
 import com.panvan.app.utils.DateUtil;
 import com.panvan.app.utils.JsBridgeUtil;
@@ -83,6 +85,7 @@ public enum AgreementEnum {
      * 实时数据
      */
     REAL_TIME(0x06, 0x86, "REAL_TIME") {
+        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         public void responseHandle(byte[] bytes, AgreementCallback callback) {
             if (bytes[bytes.length - 1] != 0x16 || !DataConvertUtil.checkSum(bytes)) {
@@ -90,7 +93,6 @@ public enum AgreementEnum {
                 return;
             }
 
-            LogUtil.info("ProtocolUtil.byteArrToHexStr(data)" + ProtocolUtil.byteArrToHexStr(bytes));
             int index = 5;
             // 心率
             DeviceHolder.getInstance().getInfo().setHeartRate(bytes[index++] & 0xff);
@@ -125,6 +127,7 @@ public enum AgreementEnum {
 
             JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_REAL_TIME, DeviceHolder.getInstance().getInfo());
 
+            CommunicationService.getInstance().saveRealTimeInfo();
             CommandRetryScheduled.getInstance().remove((byte) REAL_TIME.getRequestKey());
             callback.success(REAL_TIME);
         }
@@ -146,15 +149,16 @@ public enum AgreementEnum {
                 return;
             }
 
-            LogUtil.info(ProtocolUtil.byteToHexStr(bytes[7]));
             HistoryDataTypeEnum typeEnum = HistoryDataTypeEnum.getType(bytes[7]);
 
             if (Objects.isNull(typeEnum)) {
                 return;
             }
-            LogUtil.info("HISTORY_DATA:" + typeEnum.getKeyDes() + "-" + ProtocolUtil.byteArrToHexStr(bytes));
 
             String formatDate = DateUtils.formatDate(bytes[4], bytes[5], bytes[6]);
+
+            LogUtil.info("HISTORY_DATA:" + formatDate + "-" + typeEnum.getKeyDes() + "-" + ProtocolUtil.byteArrToHexStr(bytes));
+
             int sort = bytes[9] & 0xff;
             String[] analysis;
             switch (typeEnum) {
@@ -164,6 +168,7 @@ public enum AgreementEnum {
                 case HEART_RATE:
                 case TEMPERATURE:
                 case BLOOD_PRESSURE:
+                case TOTAL_DATA:
                     analysis = typeEnum.analysis(bytes);
                     CommunicationDataService.getInstance().save(typeEnum.getKeyDes(), Integer.parseInt(formatDate), analysis, sort);
                     break;
@@ -172,7 +177,7 @@ public enum AgreementEnum {
             String dateHex = ProtocolUtil.byteArrToHexStr(DataConvertUtils.subBytes(bytes, 4, 3));
             String command = "170600" + dateHex;
             if (sort == 0) {
-                command += "00";
+                command += typeEnum.getKeyDes();
             } else {
                 command += ProtocolUtil.byteArrToHexStr(DataConvertUtils.subBytes(bytes, 7, 3));
             }
@@ -283,7 +288,6 @@ public enum AgreementEnum {
                 break;
             }
         }
-
         return agreementEnum;
     }
 

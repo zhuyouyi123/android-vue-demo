@@ -7,15 +7,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebChromeClient;
@@ -28,13 +23,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
 import com.db.database.UserDatabase;
-import com.panvan.app.Receiver.MyPhoneStateListener;
-import com.panvan.app.Receiver.PhoneReceiver;
 import com.panvan.app.Receiver.call.CallViewModel;
-import com.panvan.app.utils.PermissionsUtil;
 import com.panvan.app.utils.SdkUtil;
-
-import java.util.Objects;
 
 public class AppInitTools extends AppCompatActivity {
 

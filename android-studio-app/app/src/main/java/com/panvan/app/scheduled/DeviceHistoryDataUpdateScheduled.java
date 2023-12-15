@@ -43,13 +43,7 @@ public class DeviceHistoryDataUpdateScheduled {
 
             if (device.getConnectState() != BleConnectStatusEnum.CONNECTED.getStatus()) {
                 LogUtil.info("历史数据定时任务执行失败，设备未连接");
-                return;
             }
-
-            CommunicationDataService.getInstance().cacheDataInit();
-            CommunicationService.getInstance().loadingTodayDeviceHistoryData();
-
-            // CommunicationService.getInstance().loadingBeforeToday();
 
         }, 150, 300000, TimeUnit.MILLISECONDS);
     }

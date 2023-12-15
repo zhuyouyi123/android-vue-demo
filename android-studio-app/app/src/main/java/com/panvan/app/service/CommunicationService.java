@@ -1,38 +1,51 @@
 package com.panvan.app.service;
 
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
-import com.ble.blescansdk.ble.BleSdkManager;
+import com.ble.blescansdk.ble.scan.handle.BleHandler;
+import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
+import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.db.database.AppDatabase;
 import com.db.database.cache.CommunicationDataCache;
+import com.db.database.callback.DBCallback;
 import com.db.database.daoobject.CommunicationDataDO;
 import com.db.database.service.CommunicationDataService;
+import com.db.database.service.RealTimeDataService;
 import com.db.database.utils.DateUtils;
-import com.panvan.app.callback.WriteCallback;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.panvan.app.data.constants.SharePreferenceConstants;
+import com.panvan.app.data.entity.vo.DeviceInfoVO;
 import com.panvan.app.data.enums.AgreementEnum;
 import com.panvan.app.data.enums.HistoryDataTypeEnum;
 import com.panvan.app.data.holder.DeviceHolder;
+import com.panvan.app.data.holder.statistics.StepStatisticsInfo;
+import com.panvan.app.response.RespVO;
+import com.panvan.app.scheduled.task.WriteCommandTask;
 import com.panvan.app.utils.DateUtil;
+import com.panvan.app.utils.HistoryDataAnalysisUtil;
 import com.panvan.app.utils.LogUtil;
 import com.panvan.app.utils.SdkUtil;
+import com.panvan.app.utils.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class CommunicationService {
     private static CommunicationService INSTANCE = null;
     private static final String TAG = CommunicationService.class.getSimpleName();
 
-    private static final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+    private static final Gson GSON = new Gson();
 
     public static CommunicationService getInstance() {
         if (Objects.isNull(INSTANCE))
@@ -55,29 +68,20 @@ public class CommunicationService {
     }
 
     public void loadingTodayDeviceHistoryData() {
-        for (HistoryDataTypeEnum typeEnum : HistoryDataTypeEnum.values()) {
+        for (HistoryDataTypeEnum typeEnum : HistoryDataTypeEnum.getAllEnable()) {
             writeCommand(typeEnum, DateUtil.getCurrentDateHex(0));
         }
     }
 
     public void loadingBeforeToday() {
-        // 这边需要获取历史6天的数据
-        for (int i = 1; i < 3; i++) {
-            for (HistoryDataTypeEnum typeEnum : HistoryDataTypeEnum.values()) {
+        // 这边需要获取历史
+        for (int i = 1; i < 2; i++) {
+            for (HistoryDataTypeEnum typeEnum : HistoryDataTypeEnum.getAllEnable()) {
                 // 如果缓存中存在了 并且数量一致 则不去获取
-                ConcurrentMap<String, CommunicationDataDO> concurrentMap = CommunicationDataCache.get(Integer.parseInt(DateUtils.getPreviousDate(i)));
-
-                int packetNum = 0;
-                for (Map.Entry<String, CommunicationDataDO> dataDOEntry : concurrentMap.entrySet()) {
-                    if (dataDOEntry.getKey().startsWith(typeEnum.getKeyDes())) {
-                        packetNum++;
-                    }
-                }
-
-                if (concurrentMap.isEmpty() || packetNum != typeEnum.getTotalPacket()) {
-                    writeCommand(typeEnum, DateUtil.getCurrentDateHex(i));
-                }
+                writeCommand(typeEnum, DateUtil.getCurrentDateHex(i));
             }
+            // 全天数据 只需要历史的
+            writeCommand(HistoryDataTypeEnum.TOTAL_DATA, DateUtil.getCurrentDateHex(i));
         }
     }
 
@@ -88,24 +92,22 @@ public class CommunicationService {
      * @param dateHex
      */
     private void writeCommand(HistoryDataTypeEnum typeEnum, String dateHex) {
-        try {
-            List<String> instructions = HistoryDataTypeEnum.getInstructions(typeEnum, dateHex);
-            String formatDate = DateUtils.formatDate(ProtocolUtil.hexStrToBytes(dateHex));
-            for (int i = 0; i < instructions.size(); i++) {
-                String instruction = instructions.get(i);
+        List<String> instructions = HistoryDataTypeEnum.getInstructions(typeEnum, dateHex);
+        String formatDate = DateUtils.formatDate(ProtocolUtil.hexStrToBytes(dateHex));
 
-                // CommunicationDataDO communicationDataDO = CommunicationDataCache.get(Integer.parseInt(formatDate), typeEnum.getKeyDes(), i + 1);
+        List<String> needList = new ArrayList<>();
+        for (int i = 0; i < instructions.size(); i++) {
+            String instruction = instructions.get(i);
 
-                // if (Objects.isNull(communicationDataDO) || !communicationDataDO.getCompleteData()) {
-                // if (Objects.isNull(communicationDataDO) ) {
-                    LogUtil.info("写入数据：" + instruction);
-                    SdkUtil.writeCommand(instruction);
-                    TimeUnit.MILLISECONDS.sleep(20);
-                // }
+            CommunicationDataDO communicationDataDO = CommunicationDataCache.get(Integer.parseInt(formatDate), typeEnum.getKeyDes());
+
+            if (null == communicationDataDO || !communicationDataDO.getCompleteData()) {
+                needList.add(instruction);
             }
+        }
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (CollectionUtils.isNotEmpty(needList)) {
+            new WriteCommandTask(needList).execute();
         }
     }
 
@@ -122,21 +124,132 @@ public class CommunicationService {
         SdkUtil.writeCommand(AgreementEnum.TIMING.getRequestCommand(null));
     }
 
-    public void readHistoryStepData() {
-
-        List<String> instructions = HistoryDataTypeEnum.getInstructions(HistoryDataTypeEnum.STEP, DateUtil.getCurrentDateHex(1));
-
-        for (String instruction : instructions) {
-            try {
-                LogUtil.info("写入数据：" + instruction);
-                SdkUtil.writeCommand(instruction);
-                TimeUnit.MILLISECONDS.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
+    /**
+     * 保存实时信息
+     */
+    public void saveRealTimeInfo() {
+        BleHandler.of().post(() -> {
+            DeviceHolder.DeviceInfo info = DeviceHolder.getInstance().getInfo();
+            RealTimeDataService.getInstance().save(GSON.toJson(info));
+        });
     }
 
+    /**
+     * 获取deviceInfo
+     */
+    public DeviceInfoVO getDeviceInfo() {
+        String paramsJson = SharePreferenceUtil.getInstance().shareGet(SharePreferenceConstants.DEVICE_HOLDER_KEY);
+        if (StringUtils.isBlank(paramsJson)) {
+            paramsJson = RealTimeDataService.getInstance().query();
+        }
 
+        if (StringUtils.isBlank(paramsJson)) {
+            return null;
+        }
+
+        try {
+            DeviceHolder.DeviceInfo deviceInfo = new Gson().fromJson(paramsJson, DeviceHolder.DeviceInfo.class);
+
+            LogUtil.info("设备信息时间：" + deviceInfo.getTime());
+
+            if (deviceInfo.getTime() > DateUtil.getTodayStartTime()) {
+                return new DeviceInfoVO(deviceInfo);
+            }
+        } catch (JsonSyntaxException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void reloadCommand() {
+        CommunicationService.getInstance().loadingTodayDeviceHistoryData();
+        CommunicationService.getInstance().loadingBeforeToday();
+        BleHandler.of().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                CommunicationDataService.getInstance().cacheDataInit(new DBCallback() {
+                    @Override
+                    public void success() {
+                        Log.i("CacheScheduled", "刷新数据库成功");
+                    }
+
+                    @Override
+                    public void failed() {
+                        Log.i("CacheScheduled", "刷新数据库失败");
+                    }
+                });
+            }
+        }, 20000);
+    }
+
+    /**
+     * 初始化数据
+     */
+    public void initData() {
+        if (CommunicationDataCache.getInstance().getCacheMap().isEmpty()) {
+            CommunicationDataService.getInstance().cacheDataInit(new DBCallback() {
+                @Override
+                public void success() {
+
+                }
+
+                @Override
+                public void failed() {
+
+                }
+            });
+        }
+    }
+
+    /**
+     * 查询历史数据
+     *
+     * @param type     类型
+     * @param dateType 数据日期类型 1 天 2 周 3 月
+     */
+    public Object queryHistoryData(String type, Integer dateType, Integer index) {
+
+        HistoryDataTypeEnum typeEnum = HistoryDataTypeEnum.getType(type);
+
+        // 根据类型获取所有数据
+        switch (typeEnum) {
+            case STEP:
+            case BLOOD_PRESSURE:
+            case TEMPERATURE:
+            case HEART_RATE:
+            case BLOOD_OXYGEN:
+                return HistoryDataAnalysisUtil.getChartData(type, dateType, index);
+            case CALORIE:
+                return RespVO.success(HistoryDataAnalysisUtil.statisticalDataByDay(type, index));
+            default:
+                break;
+        }
+        return null;
+    }
+
+    private void generateTestData() {
+        List<CommunicationDataDO> doList = new ArrayList<>();
+        Random random = new Random();
+
+        for (int i = 0; i < 300; i++) {
+            Integer previousIntDate = DateUtils.getPreviousIntDate(i + 3);
+            CommunicationDataDO dataDO = new CommunicationDataDO();
+            dataDO.setType("04");
+
+            String[] list = new String[24];
+            for (int j = 0; j < 24; j++) {
+                int i1 = random.nextInt(500);
+                list[j] = String.valueOf(i1);
+            }
+
+            String join = String.join(",", list);
+            dataDO.setData(join);
+            dataDO.setDataDate(previousIntDate);
+            dataDO.setCompleteData(true);
+            doList.add(dataDO);
+        }
+
+        AppDatabase.getInstance().getCommunicationDataDAO().insert(doList.toArray(new CommunicationDataDO[0]));
+
+    }
 }

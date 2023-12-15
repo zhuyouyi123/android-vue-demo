@@ -47,7 +47,7 @@ export default {
     },
 
     axisLabelInterval: {
-      type: String,
+      type: Number,
     },
 
     // 柱形图间隔
@@ -110,7 +110,6 @@ export default {
   methods: {
     renderChart() {
       const chartDom = this.$el;
-
       if (
         this.myChart != null &&
         this.myChart != "" &&
@@ -170,41 +169,60 @@ export default {
         } else {
           // 如果是睡眠数据
           if (this.options.sleepData && this.options.sleepData.length > 0) {
-            for (let j = 0; j < e.data.length; j++) {
-              let sdv = e.data[j];
-              const d = this.options.sleepData[j];
-              if (d == 1) {
-                this.options.series[i].data[j] = !sdv ? 2000 : 5001;
-              } else if (d == 2) {
-                this.options.series[i].data[j] = !sdv ? 2000 : 5002;
-              } else if (d == 3) {
-                this.options.series[i].data[j] = !sdv ? 2000 : 5003;
-              } else {
-                this.options.series[i].data[j] = 2000;
-              }
-            }
-
-            e.itemStyle = {
-              normal: {
-                color: function (params) {
-                  // 根据数值设置颜色
-                  if (params.value === 5001) {
-                    return "#6C7AFF";
-                  } else if (params.value === 5002) {
-                    return "#AEB4FF";
-                  } else if (params.value === 5003) {
-                    return "#FED567";
-                  } else {
-                    return "#3641a1";
-                  }
-                },
-              },
-            };
+            // for (let j = 0; j < e.data.length; j++) {
+            //   let sdv = e.data[j];
+            //   const d = this.options.sleepData[j];
+            //   if (d == 1) {
+            //     this.options.series[i].data[j] = !sdv ? 2000 : 5001;
+            //   } else if (d == 2) {
+            //     this.options.series[i].data[j] = !sdv ? 2000 : 5002;
+            //   } else if (d == 3) {
+            //     this.options.series[i].data[j] = !sdv ? 2000 : 5003;
+            //   } else {
+            //     this.options.series[i].data[j] = 2000;
+            //   }
+            // }
+            // e.itemStyle = {
+            //   normal: {
+            //     color: function (params) {
+            //       // 根据数值设置颜色
+            //       if (params.value === 5001) {
+            //         return "#6C7AFF";
+            //       } else if (params.value === 5002) {
+            //         return "#AEB4FF";
+            //       } else if (params.value === 5003) {
+            //         return "#FED567";
+            //       } else {
+            //         return "#3641a1";
+            //       }
+            //     },
+            //   },
+            // };
           } else {
             if (!e.itemStyle || !e.itemStyle.color) {
-              e.itemStyle = {
-                color: "#1DA772",
-              };
+              this.options.color = "#1DA772";
+              this.options.barWidth = 8;
+              if (this.options.needSoar) {
+                e.stack = "Total";
+                e.type = "bar";
+                if (e.soar) {
+                  e.itemStyle = {
+                    borderColor: "transparent",
+                    color: "transparent",
+                  };
+                } else {
+                  e.itemStyle = {
+                    normal: {
+                      // 设置上边两个角为圆角，下边两个角为直角
+                      borderRadius: [10, 10, 10, 10],
+                    },
+                  };
+                }
+              } else {
+                e.itemStyle = {
+                  color: "#1DA772",
+                };
+              }
             }
           }
 
@@ -225,7 +243,7 @@ export default {
       this.options.xAxis.axisLabel = {
         interval:
           this.axisLabelInterval && this.axisLabelInterval > 0
-            ? parseInt(this.axisLabelInterval)
+            ? this.axisLabelInterval
             : "auto",
         // 隐藏刻度标签
         show: true,
@@ -299,10 +317,14 @@ export default {
             time +
             "</div>";
 
+          let toolTipValue = [];
           for (let i = 0; i < params.length; i++) {
             let seriesName = params[i].seriesName;
             let value = params[i].value;
-
+            toolTipValue.push(value);
+            if (that.options.needSoar && params.length == 2 && i == 1) {
+              value = parseFloat(value) + parseFloat(params[0].value);
+            }
             result +=
               '<div style="display: flex; align-items: center; margin-top: 5px;">';
             result +=
@@ -320,6 +342,8 @@ export default {
           }
 
           result += "</div>";
+
+          that.$emit("toolTipValueResponse", toolTipValue);
           return result;
         },
       };

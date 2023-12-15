@@ -66,7 +66,7 @@ public class CommandRetryScheduled {
 
     public void add(String command) {
         COMMAND_MAP.put(command, System.currentTimeMillis());
-        RETRY_TIMES_MAP.put(command, 5);
+        RETRY_TIMES_MAP.put(command, 2);
     }
 
     public void remove(String command) {
