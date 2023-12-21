@@ -1,13 +1,11 @@
 package com.seekcy.bracelet;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,13 +15,12 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
 import com.db.database.UserDatabase;
-import com.seekcy.bracelet.Receiver.call.CallViewModel;
+import com.seekcy.bracelet.receiver.call.CallViewModel;
 import com.seekcy.bracelet.utils.SdkUtil;
 
 public class AppInitTools extends AppCompatActivity {
@@ -113,20 +110,6 @@ public class AppInitTools extends AppCompatActivity {
             return false;
         }
         return true;
-    }
-
-    public static boolean showNotify(String title, String text, Context context) {
-        return showNotify(R.drawable.logo_48x48, title, text, context);
-    }
-
-    public int getStatusHeight() {
-        int result = 0;
-        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            result = getResources().getDimensionPixelSize(resourceId);
-
-        }
-        return result;
     }
 
     /**

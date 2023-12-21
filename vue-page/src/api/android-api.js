@@ -155,31 +155,6 @@ export default {
    * @param {*} params 
    * @returns 当天手表的一些信息 
    *  deviceInfo: {
-        battery: 0,
-        // 心率
-        heartRate: 0,
-        // 步数信息
-        stepInfo: {
-            stepNumber: 0,
-            mileage: 0,
-            calories: 0
-        },
-        // 佩戴状态
-        wearingStatus: false,
-        // 血液信息
-        bloodPressureInfo: {
-            // 血氧
-            bloodOxygen: 0,
-            // 收缩压
-            systolicPressure: '未知',
-            // 舒张压
-            diastolicPressure: '未知',
-            // 血液粘稠度
-            bloodViscosity: 0
-        },
-        model: "",
-        firmwareVersion: ""
-    },
    */
   getDeviceInfo(params) {
     return request("get", "communication/loading-device-info", params);
@@ -346,7 +321,7 @@ function request(type, path, params) {
       return;
     }
     if (res.errorCode == 0) {
-      console.log(`android-vue path:${path} res:${JSON.stringify(res)}`);
+      // console.log(`android-vue path:${path} res:${JSON.stringify(res)}`);
       resolve(res.data);
     } else {
       Toast.fail({ message: res.errorMsg[0], position: "top" })

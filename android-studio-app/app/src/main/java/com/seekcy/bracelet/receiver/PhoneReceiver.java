@@ -1,4 +1,4 @@
-package com.seekcy.bracelet.Receiver;
+package com.seekcy.bracelet.receiver;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -6,8 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-
-import com.seekcy.bracelet.Config;
 
 public class PhoneReceiver extends BroadcastReceiver {
 

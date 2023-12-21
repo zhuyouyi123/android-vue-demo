@@ -5,13 +5,9 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.entity.seek.BraceletDevice;
-import com.ble.blescansdk.ble.entity.seek.SeekStandardDevice;
 import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
-import com.ble.blescansdk.ble.proxy.Rproxy;
-import com.ble.blescansdk.ble.proxy.request.ConnectRequest;
 import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
-import com.db.database.UserDatabase;
 import com.db.database.daoobject.DeviceDO;
 import com.db.database.service.DeviceDataService;
 import com.google.gson.Gson;

@@ -857,6 +857,9 @@ public class HistoryDataAnalysisUtil {
         if (null == firstUseTime) {
             String firstTime = SharePreferenceUtil.getInstance().shareGet(SharePreferenceConstants.FIRST_USE_TIME);
             firstUseTime = Integer.parseInt(firstTime);
+            if (firstUseTime > 365) {
+                firstUseTime = 365;
+            }
         }
     }
 

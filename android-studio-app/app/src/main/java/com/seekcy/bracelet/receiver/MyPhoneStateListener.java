@@ -1,4 +1,4 @@
-package com.seekcy.bracelet.Receiver;
+package com.seekcy.bracelet.receiver;
 
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;

@@ -26,4 +26,12 @@ public interface CommunicationDataDAO {
 
     @Query("SELECT * FROM communication_data WHERE data_date=:date AND type=:type")
     CommunicationDataDO queryByDateAndType(Integer date, String type);
+
+    /**
+     * 根据时间删除数据 根据保留策略删除数据
+     *
+     * @param earliestDate 最早时间
+     */
+    @Query("DELETE FROM communication_data WHERE data_date < :earliestDate")
+    void removeEarliestDate(int earliestDate);
 }

@@ -15,15 +15,12 @@ import com.google.gson.JsonSyntaxException;
 import com.huawei.hms.hmsscankit.ScanUtil;
 import com.huawei.hms.ml.scan.HmsScan;
 import com.seekcy.bracelet.Config;
-import com.seekcy.bracelet.Receiver.call.CallViewModel;
+import com.seekcy.bracelet.receiver.call.CallViewModel;
 import com.seekcy.bracelet.callback.ConnectCallback;
 import com.seekcy.bracelet.connect.DeviceConnectHandle;
 import com.seekcy.bracelet.data.constants.ActiveForResultConstants;
-import com.seekcy.bracelet.data.constants.JsBridgeConstants;
 import com.seekcy.bracelet.data.constants.PermissionsRequestConstants;
-import com.seekcy.bracelet.data.constants.SharePreferenceConstants;
 import com.seekcy.bracelet.data.entity.bo.WatchQrCodeBO;
-import com.seekcy.bracelet.data.holder.DeviceHolder;
 import com.seekcy.bracelet.service.PermissionService;
 
 public class ActivityResultUtil {

@@ -4,7 +4,7 @@ package com.seekcy.bracelet.controller;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.seekcy.bracelet.annotation.AppController;
 import com.seekcy.bracelet.annotation.AppRequestMapper;
-import com.seekcy.bracelet.response.RespVO;
+import com.seekcy.bracelet.data.entity.vo.response.RespVO;
 
 @AppController(path = "share")
 public class ShareController {

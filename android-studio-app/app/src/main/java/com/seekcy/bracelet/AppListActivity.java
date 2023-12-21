@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.db.database.UserDatabase;
 import com.db.database.daoobject.NotificationAppListDO;
-import com.seekcy.bracelet.Receiver.service.NotificationMonitorService;
+import com.seekcy.bracelet.receiver.service.NotificationMonitorService;
 import com.seekcy.bracelet.data.entity.AppInfo;
 
 import java.util.ArrayList;

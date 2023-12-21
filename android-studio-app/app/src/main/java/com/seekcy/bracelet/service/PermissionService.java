@@ -3,9 +3,7 @@ package com.seekcy.bracelet.service;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.AppOpsManager;
 import android.bluetooth.BluetoothAdapter;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.provider.Settings;
@@ -22,7 +20,6 @@ import com.seekcy.bracelet.data.constants.JsBridgeConstants;
 import com.seekcy.bracelet.data.constants.PermissionsRequestConstants;
 import com.seekcy.bracelet.data.entity.vo.InitVO;
 import com.seekcy.bracelet.data.enums.PermissionTypeEnum;
-import com.seekcy.bracelet.response.RespVO;
 import com.seekcy.bracelet.utils.JsBridgeUtil;
 import com.seekcy.bracelet.utils.PermissionsUtil;
 

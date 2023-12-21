@@ -6,12 +6,11 @@ android {
     compileSdk 32
 
     defaultConfig {
-        //TODO 修改 App ID,不同的app使用不同的app ID
         applicationId "com.seekcy.bracelet"
         minSdk 21
         targetSdk 32
-        versionCode 2
-        versionName "0.0.1"
+        versionCode 3
+        versionName "0.0.3"
 
     }
 

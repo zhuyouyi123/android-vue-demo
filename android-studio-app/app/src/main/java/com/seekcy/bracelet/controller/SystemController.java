@@ -23,7 +23,7 @@ import com.seekcy.bracelet.annotation.AppController;
 import com.seekcy.bracelet.annotation.AppRequestMapper;
 import com.seekcy.bracelet.annotation.AppRequestMethod;
 import com.seekcy.bracelet.data.constants.PermissionsRequestConstants;
-import com.seekcy.bracelet.response.RespVO;
+import com.seekcy.bracelet.data.entity.vo.response.RespVO;
 import com.seekcy.bracelet.utils.DownloadUtil;
 
 import java.io.File;

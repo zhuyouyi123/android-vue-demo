@@ -4,13 +4,13 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
-import com.seekcy.bracelet.Receiver.call.CallViewModel;
-import com.seekcy.bracelet.Receiver.service.NotificationMonitorService;
+import com.seekcy.bracelet.receiver.call.CallViewModel;
+import com.seekcy.bracelet.receiver.service.NotificationMonitorService;
 import com.seekcy.bracelet.annotation.AppController;
 import com.seekcy.bracelet.annotation.AppRequestMapper;
 import com.seekcy.bracelet.data.entity.dto.ConfigurationSaveDTO;
 import com.seekcy.bracelet.data.entity.vo.ConfigurationVO;
-import com.seekcy.bracelet.response.RespVO;
+import com.seekcy.bracelet.data.entity.vo.response.RespVO;
 import com.seekcy.bracelet.service.ConfigurationService;
 
 import java.util.List;

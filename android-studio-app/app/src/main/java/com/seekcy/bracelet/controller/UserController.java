@@ -6,7 +6,7 @@ import com.seekcy.bracelet.annotation.AppController;
 import com.seekcy.bracelet.annotation.AppRequestMapper;
 import com.seekcy.bracelet.annotation.AppRequestMethod;
 import com.seekcy.bracelet.data.entity.dto.UserInfoConfigDTO;
-import com.seekcy.bracelet.response.RespVO;
+import com.seekcy.bracelet.data.entity.vo.response.RespVO;
 
 import java.util.Objects;
 

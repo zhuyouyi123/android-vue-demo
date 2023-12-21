@@ -1,4 +1,4 @@
-package com.seekcy.bracelet.Receiver.service;
+package com.seekcy.bracelet.receiver.service;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -22,7 +22,6 @@ import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.db.database.UserDatabase;
 import com.db.database.daoobject.ConfigurationDO;
 import com.db.database.daoobject.NotificationAppListDO;
-import com.db.database.enums.ConfigurationGroupEnum;
 import com.db.database.enums.ConfigurationTypeEnum;
 import com.seekcy.bracelet.Config;
 import com.seekcy.bracelet.data.enums.NotificationTypeEnum;

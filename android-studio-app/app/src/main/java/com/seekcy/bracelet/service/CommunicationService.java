@@ -32,7 +32,7 @@ import com.seekcy.bracelet.data.entity.vo.FirstTwoWeekAndMonthDataVO;
 import com.seekcy.bracelet.data.enums.AgreementEnum;
 import com.seekcy.bracelet.data.enums.HistoryDataTypeEnum;
 import com.seekcy.bracelet.data.holder.DeviceHolder;
-import com.seekcy.bracelet.response.RespVO;
+import com.seekcy.bracelet.data.entity.vo.response.RespVO;
 import com.seekcy.bracelet.scheduled.task.WriteCommandTask;
 import com.seekcy.bracelet.utils.DataConvertUtil;
 import com.seekcy.bracelet.utils.DateUtil;
@@ -102,33 +102,31 @@ public class CommunicationService {
 
     public void loadingTodayDeviceHistoryData() {
         for (HistoryDataTypeEnum typeEnum : HistoryDataTypeEnum.getAllEnable()) {
-            writeCommand(typeEnum, DateUtil.getCurrentDateHex(0));
+            addCommandList(typeEnum, DateUtil.getCurrentDateHex(0));
         }
     }
 
     public void loadingBeforeToday() {
         // 这边需要获取历史
-        for (int i = 1; i < 3; i++) {
+        for (int i = 1; i < 2; i++) {
             for (HistoryDataTypeEnum typeEnum : HistoryDataTypeEnum.getAllEnable()) {
                 // 如果缓存中存在了 并且数量一致 则不去获取
-                writeCommand(typeEnum, DateUtil.getCurrentDateHex(i));
+                addCommandList(typeEnum, DateUtil.getCurrentDateHex(i));
             }
             // 全天数据 只需要历史的
-            writeCommand(HistoryDataTypeEnum.TOTAL_DATA, DateUtil.getCurrentDateHex(i));
+            addCommandList(HistoryDataTypeEnum.TOTAL_DATA, DateUtil.getCurrentDateHex(i));
         }
     }
 
-    /**
-     * 写入命令
-     *
-     * @param typeEnum
-     * @param dateHex
-     */
-    private void writeCommand(HistoryDataTypeEnum typeEnum, String dateHex) {
+
+    private static final List<String> COMMAND_LIST = new ArrayList<>();
+
+    public void addCommandList(HistoryDataTypeEnum typeEnum, String dateHex) {
         List<String> instructions = HistoryDataTypeEnum.getInstructions(typeEnum, dateHex);
         String formatDate = DateUtils.formatDate(ProtocolUtil.hexStrToBytes(dateHex));
 
         List<String> needList = new ArrayList<>();
+
         for (int i = 0; i < instructions.size(); i++) {
             String instruction = instructions.get(i);
 
@@ -139,8 +137,16 @@ public class CommunicationService {
             }
         }
 
-        if (CollectionUtils.isNotEmpty(needList)) {
-            new WriteCommandTask(needList).execute();
+        COMMAND_LIST.addAll(needList);
+
+    }
+
+    /**
+     * 写入命令
+     */
+    private void writeCommand() {
+        if (CollectionUtils.isNotEmpty(COMMAND_LIST)) {
+            new WriteCommandTask(COMMAND_LIST).execute();
         }
     }
 
@@ -201,8 +207,10 @@ public class CommunicationService {
     }
 
     public void reloadCommand() {
+        COMMAND_LIST.clear();
         CommunicationService.getInstance().loadingTodayDeviceHistoryData();
         CommunicationService.getInstance().loadingBeforeToday();
+        CommunicationService.getInstance().writeCommand();
         BleHandler.of().postDelayed(new Runnable() {
             @Override
             public void run() {

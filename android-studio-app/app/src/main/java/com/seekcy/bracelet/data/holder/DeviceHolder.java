@@ -2,9 +2,7 @@ package com.seekcy.bracelet.data.holder;
 
 import com.ble.blescansdk.ble.entity.seek.BraceletDevice;
 import com.ble.dfuupgrade.MyBleManager;
-import com.seekcy.bracelet.data.holder.statistics.CalorieStatisticsInfo;
 import com.seekcy.bracelet.data.holder.statistics.StatisticsInfo;
-import com.seekcy.bracelet.data.holder.statistics.StepStatisticsInfo;
 
 import java.util.Objects;
 

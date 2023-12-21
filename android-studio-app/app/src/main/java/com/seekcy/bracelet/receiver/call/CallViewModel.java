@@ -1,12 +1,8 @@
-package com.seekcy.bracelet.Receiver.call;
+package com.seekcy.bracelet.receiver.call;
 
 import android.content.Context;
-import android.os.Build;
-import android.telecom.TelecomManager;
 import android.telephony.TelephonyManager;
 import android.widget.Toast;
-
-import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;

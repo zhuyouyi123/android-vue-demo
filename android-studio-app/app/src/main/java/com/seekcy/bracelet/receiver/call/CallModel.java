@@ -1,4 +1,4 @@
-package com.seekcy.bracelet.Receiver.call;
+package com.seekcy.bracelet.receiver.call;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;

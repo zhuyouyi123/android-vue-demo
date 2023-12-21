@@ -7,9 +7,6 @@ import androidx.annotation.RequiresApi;
 import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
 import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
-import com.ble.dfuupgrade.DfuUpgradeHandle;
-import com.ble.dfuupgrade.MyBleManager;
-import com.ble.dfuupgrade.callback.ConCallback;
 import com.db.database.AppDatabase;
 import com.db.database.service.AllDayDataService;
 import com.seekcy.bracelet.Config;
@@ -26,7 +23,7 @@ import com.seekcy.bracelet.data.entity.vo.FirstTwoWeekAndMonthDataVO;
 import com.seekcy.bracelet.data.entity.vo.InitVO;
 import com.seekcy.bracelet.data.enums.AgreementEnum;
 import com.seekcy.bracelet.data.holder.DeviceHolder;
-import com.seekcy.bracelet.response.RespVO;
+import com.seekcy.bracelet.data.entity.vo.response.RespVO;
 import com.seekcy.bracelet.service.CommunicationService;
 import com.seekcy.bracelet.service.PermissionService;
 import com.seekcy.bracelet.utils.DataConvertUtil;
@@ -75,7 +72,7 @@ public class CommunicationController {
             loadingDeviceInfo();
             if (Boolean.TRUE.equals(reload)) {
                 // 防止刷新太快
-                if (System.currentTimeMillis() - refreshTime < 5000) {
+                if (System.currentTimeMillis() - refreshTime < 10000) {
                     return RespVO.success(initVO);
                 }
                 refreshTime = System.currentTimeMillis();

@@ -4,7 +4,7 @@ import com.seekcy.bracelet.annotation.AppController;
 import com.seekcy.bracelet.annotation.AppRequestMapper;
 import com.seekcy.bracelet.annotation.AppRequestMethod;
 import com.seekcy.bracelet.data.entity.vo.device.DeviceVO;
-import com.seekcy.bracelet.response.RespVO;
+import com.seekcy.bracelet.data.entity.vo.response.RespVO;
 import com.seekcy.bracelet.service.DeviceService;
 
 @AppController(path = "device")

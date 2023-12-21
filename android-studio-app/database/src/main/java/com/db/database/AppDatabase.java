@@ -29,6 +29,11 @@ public abstract class AppDatabase extends RoomDatabase {
      */
     private static AppDatabase INSTANCE;
 
+    /**
+     * 数据保留策略
+     */
+    public static final int DATA_RETENTION_POLICY = 365;
+
     public static synchronized AppDatabase getInstance() {
         return INSTANCE;
     }
@@ -44,5 +49,8 @@ public abstract class AppDatabase extends RoomDatabase {
                 //.allowMainThreadQueries()
                 //                    .addMigrations(AppDatabase.BUILD_CONFIG_1_2)
                 .build();
+
+        // Completable.fromAction(() -> INSTANCE.getCommunicationDataDAO().removeEarliestDate(DateUtils.getPreviousIntDate(DATA_RETENTION_POLICY))).subscribeOn(Schedulers.io())
+        //         .subscribe();
     }
 }

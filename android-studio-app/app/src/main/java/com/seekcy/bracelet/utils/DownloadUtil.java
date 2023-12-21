@@ -1,6 +1,6 @@
 package com.seekcy.bracelet.utils;
 
-import com.seekcy.bracelet.response.RespVO;
+import com.seekcy.bracelet.data.entity.vo.response.RespVO;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.Objects;
 
 /**
  * @author zhuyouyi

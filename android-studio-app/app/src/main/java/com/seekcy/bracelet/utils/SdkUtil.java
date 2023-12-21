@@ -43,8 +43,6 @@ public class SdkUtil {
 
     private static final String TAG = SdkUtil.class.getSimpleName();
 
-    private static volatile boolean canExecute = true;
-
     @SuppressLint("StaticFieldLeak")
     private static MyBleManager bleManager = null;
 
@@ -66,17 +64,6 @@ public class SdkUtil {
         BleSdkManager.getBleOptions().uuid_services_extra = new UUID[5];
 
         BleSdkManager.getBleOptions().uuid_services_extra[0] = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb");
-        // BleSdkManager.getBleOptions().uuid_services_extra[1] = UUID.fromString("00001800-0000-1000-8000-00805f9b34fb");
-        // BleSdkManager.getBleOptions().uuid_services_extra[2] = UUID.fromString("00001801-0000-1000-8000-00805f9b34fb");
-        // BleSdkManager.getBleOptions().uuid_services_extra[1] = UUID.fromString("000180d-0000-1000-8000-00805f9b34fb");
-        // BleSdkManager.getBleOptions().uuid_services_extra[4] = UUID.fromString("0000190e-0000-1000-8000-00805f9b34fb");
-        //
-        // BleSdkManager.getBleOptions().uuid_service = UUID.fromString("000180d-0000-1000-8000-00805f9b34fb");
-
-        // 0000180d-0000-1000-8000-00805f9b34fb
-        // 00002a37-0000-1000-8000-00805f9b34fb
-        // 00002a38-0000-1000-8000-00805f9b34fb
-
         requestPermissions();
     }
 
@@ -102,55 +89,6 @@ public class SdkUtil {
         PermissionsUtil.requestBasePermissions(requestPermissions);
     }
 
-    public static void setCanExecute(boolean b) {
-        canExecute = b;
-    }
-
-
-    public interface Callback {
-
-        void result(BraceletDevice device);
-
-        void failed(int errorCode);
-
-    }
-
-    public static void scan(Callback callback) {
-
-        BleSdkManager.getInstance().startScan(new BleScanCallback<BraceletDevice>() {
-            @Override
-            public void onStatusChange(boolean state) {
-                LogUtil.info("设备扫描状态：" + state);
-            }
-
-            @Override
-            public void onScanFailed(int errorCode) {
-                callback.failed(errorCode);
-                LogUtil.info("设备扫描出错：" + errorCode);
-            }
-
-            @Override
-            public void onLeScan(BraceletDevice device, int rssi, byte[] scanRecord) {
-                LogUtil.info(TAG, "扫描到设备" + device);
-                callback.result(device);
-                stopScan();
-            }
-
-            @Override
-            public void onLeScan(List<BraceletDevice> device) {
-
-            }
-
-            @Override
-            public void onRssiMax(BraceletDevice device, int rssi) {
-
-            }
-        });
-    }
-
-    public static void stopScan() {
-        BleSdkManager.getInstance().stopScan();
-    }
 
     public static void connect(BraceletDevice device, ConnectCallback callback) {
         DeviceHolder.DEVICE = device;
@@ -195,9 +133,6 @@ public class SdkUtil {
 
 
     public static void retryWriteCommand(String hex) {
-        if (!canExecute) {
-            return;
-        }
         if (StringUtils.isBlank(hex)) {
             return;
         }
@@ -224,9 +159,6 @@ public class SdkUtil {
     }
 
     public static void writeCommand(byte[] bytes) {
-        if (!canExecute) {
-            return;
-        }
         CommandRetryScheduled.getInstance().add(ProtocolUtil.byteArrToHexStr(bytes));
         if (Objects.isNull(bleManager)) {
             bleManager = DeviceHolder.getInstance().getBleManager();

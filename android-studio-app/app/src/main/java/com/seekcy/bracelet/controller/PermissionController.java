@@ -9,10 +9,8 @@ import com.seekcy.bracelet.annotation.AppRequestMapper;
 import com.seekcy.bracelet.annotation.AppRequestMethod;
 import com.seekcy.bracelet.data.entity.vo.InitVO;
 import com.seekcy.bracelet.data.enums.PermissionTypeEnum;
-import com.seekcy.bracelet.response.RespVO;
+import com.seekcy.bracelet.data.entity.vo.response.RespVO;
 import com.seekcy.bracelet.service.PermissionService;
-
-import java.util.Objects;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 @AppController(path = "permission")

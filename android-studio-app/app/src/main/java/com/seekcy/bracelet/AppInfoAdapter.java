@@ -12,7 +12,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.db.database.daoobject.NotificationAppListDO;
 import com.seekcy.bracelet.data.entity.AppInfo;
 
 import java.util.ArrayList;
@@ -42,18 +41,6 @@ public class AppInfoAdapter extends ArrayAdapter<AppInfo> {
 
     public AppInfoAdapter(Context context, List<AppInfo> appInfoList) {
         super(context, 0, appInfoList);
-    }
-
-    public AppInfoAdapter(Context context, List<AppInfo> appInfoList, Map<String, String> map) {
-        super(context, 0, appInfoList);
-        initSelectedPositions(map);
-    }
-
-    private void initSelectedPositions(Map<String, String> map) {
-        // for (int i = 0; i < selectedAppList.size(); i++) {
-        //     AppInfo appInfo = selectedAppList.get(i);
-        //     clickedPositionsMap.put(i, appInfo);
-        // }
     }
 
     @NonNull

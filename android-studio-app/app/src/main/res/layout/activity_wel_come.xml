@@ -20,7 +20,7 @@
             android:id="@+id/appImage"
             android:layout_width="107dp"
             android:layout_height="109dp"
-            android:src="@drawable/logo_48x48" />
+            android:src="@mipmap/ic_launcher" />
 
         <TextView
             android:layout_width="wrap_content"

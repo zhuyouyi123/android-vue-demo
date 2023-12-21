@@ -1,5 +1,10 @@
 package com.seekcy.bracelet;
 
+import android.content.Context;
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
+
 import com.seekcy.bracelet.annotation.AppAutowired;
 import com.seekcy.bracelet.annotation.AppController;
 import com.seekcy.bracelet.annotation.AppRequestMapper;
@@ -9,36 +14,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.zip.Deflater;
-
-import android.content.Context;
-import android.os.Build;
-import android.util.Log;
-
-import androidx.annotation.RequiresApi;
 
 import dalvik.system.DexFile;
 

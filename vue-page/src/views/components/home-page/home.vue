@@ -426,6 +426,7 @@ export default {
     },
     init(needUpdate) {
       this.queryMenuCard();
+      return
 
       // 查询首页卡片显示
       deviceData

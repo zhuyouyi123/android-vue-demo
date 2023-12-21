@@ -1,4 +1,4 @@
-package com.seekcy.bracelet.response;
+package com.seekcy.bracelet.data.entity.vo.response;
 
 import java.util.Arrays;
 import java.util.List;

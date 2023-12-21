@@ -9,8 +9,8 @@ import com.db.database.daoobject.ConfigurationDO;
 import com.db.database.enums.ConfigurationGroupEnum;
 import com.db.database.enums.ConfigurationTypeEnum;
 import com.db.database.service.ConfigurationDataService;
-import com.seekcy.bracelet.Receiver.call.CallViewModel;
-import com.seekcy.bracelet.Receiver.service.NotificationMonitorService;
+import com.seekcy.bracelet.receiver.call.CallViewModel;
+import com.seekcy.bracelet.receiver.service.NotificationMonitorService;
 import com.seekcy.bracelet.data.entity.dto.ConfigurationSaveDTO;
 import com.seekcy.bracelet.data.entity.vo.ConfigurationVO;
 
