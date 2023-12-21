@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         //TODO 修改 App ID,不同的app使用不同的app ID
-        applicationId "com.order.management"
+        applicationId "com.seekcy.bracelet"
         minSdk 21
         targetSdk 32
         versionCode 2

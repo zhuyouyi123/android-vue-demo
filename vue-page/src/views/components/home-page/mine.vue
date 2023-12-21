@@ -148,7 +148,6 @@
 
 <script>
 import { Toast, Popup, Notify, Dialog } from "vant";
-import code from "../../../store/code";
 import customNavBar from "../custom/customNavBar.vue";
 
 export default {
@@ -399,7 +398,7 @@ export default {
       if (type == "DFU_FIRMWARE") {
         let data = this.getDfuUpdate(onlyResult);
         if (!data.result) {
-          return this.lastVersionTips();
+          return this.lastVersionTips(onlyResult);
         }
         url = `${urlPath}${type}/${data.version}`;
       } else if (type == "ANDROID_APP") {
