@@ -117,5 +117,14 @@ export default {
         const diffTime = Math.abs(d1 - d2);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return diffDays;
+    },
+
+    convertMinutesToTime(minutes) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+
+        // 使用padStart()方法来确保小时和分钟始终是两位数
+        const formattedTime = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:00`;
+        return formattedTime;
     }
 }

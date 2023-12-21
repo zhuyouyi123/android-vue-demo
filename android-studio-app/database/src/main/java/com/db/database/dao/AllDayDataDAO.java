@@ -15,6 +15,9 @@ public interface AllDayDataDAO {
     @Query("SELECT * FROM all_day_data WHERE date_time=:dateTime LIMIT 1")
     AllDayDataDO queryByDate(Integer dateTime);
 
+    @Query("SELECT * FROM all_day_data")
+    List<AllDayDataDO> queryAll();
+
     @Insert
     void insert(AllDayDataDO allDayDataDO);
 

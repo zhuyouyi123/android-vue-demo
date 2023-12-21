@@ -243,8 +243,12 @@ export default {
           this.realData = value[0];
           break;
         case "07":
-          this.realData =
-            value[0] + "-" + (parseInt(value[0]) + parseInt(value[1]));
+          if (this.timeActive != 0) {
+            this.realData =
+              value[0] + "-" + (parseInt(value[0]) + parseInt(value[1]));
+          } else {
+            this.realData = value[0];
+          }
           break;
         case "09":
           this.realData = value[0];
@@ -258,6 +262,7 @@ export default {
           }
           break;
         case "0E":
+          this.realData = value[0] + "-" + value[1];
           break;
         default:
           break;

@@ -5,6 +5,7 @@ import com.ble.blescansdk.ble.utils.ProtocolUtil;
 public enum NotificationTypeEnum {
 
     MMS(0x00, "MMS", "短信消息", "com.android.mms"),
+    MMS_SERVICE(0x00, "MMS", "短信消息", "com.android.mms.service"),
     HONOR_MMS(0x00, "HONOR_MMS", "荣耀短信消息", "com.hihonor.mms"),
     WX(0x01, "WX", "微信消息", "com.tencent.mm"),
     QQ(0x02, "QQ", "QQ消息", "com.tencent.mobileqq"),

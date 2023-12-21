@@ -34,7 +34,8 @@ dependencies {
     implementation project(path: ':database')
 
     implementation 'com.google.code.gson:gson:2.8.7'
-    implementation rootProject.appcompat
+    api rootProject.appcompat
     implementation rootProject.material
+    implementation project(path: ':dfuupgrade')
 
 }

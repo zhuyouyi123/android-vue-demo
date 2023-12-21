@@ -76,6 +76,7 @@ export default {
   },
 
   mounted() {
+    this.$deviceHolder.routerPath = "mine";
     this.queryPermissionExist();
     this.queryNotificationConfig();
     this.start();

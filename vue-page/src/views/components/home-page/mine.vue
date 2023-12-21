@@ -15,7 +15,11 @@
             <van-image
               :src="require('../../../assets/image/mine/star-icon.svg')"
             ></van-image>
-            <div class="day-num">已达标202天</div>
+
+            <div class="day-num" v-if="complianceDays > 0">
+              已达标{{ complianceDays }}天
+            </div>
+            <div class="day-num" v-else>暂无达标天数</div>
           </div>
         </div>
       </div>
@@ -24,7 +28,7 @@
         <div class="null-box"></div>
         <van-cell
           v-show="device"
-          title="X15X手环"
+          :title="`${name}手环`"
           :value="`剩余电量${battery}%`"
           size="large"
           center
@@ -41,6 +45,7 @@
       <van-cell-group inset>
         <van-cell title="来电提醒" size="large" to="/mine/incall" is-link>
           <van-image
+            class="l-p-l"
             slot="icon"
             :src="
               require('../../../assets/image/braceletconfig/incoming-call-icon.svg')
@@ -55,6 +60,7 @@
           is-link
         >
           <van-image
+            class="l-p-l"
             slot="icon"
             :src="
               require('../../../assets/image/braceletconfig/app-notice-icon.svg')
@@ -64,6 +70,7 @@
         <!-- 短信提醒 -->
         <van-cell title="短信提醒" size="large" to="/mine/sms" is-link>
           <van-image
+            class="l-p-l"
             slot="icon"
             :src="
               require('../../../assets/image/braceletconfig/text-message.icon.svg')
@@ -73,8 +80,14 @@
       </van-cell-group>
 
       <van-cell-group inset class="l-m-t">
-        <van-cell title="固件更新" size="large" is-link>
+        <van-cell
+          title="固件更新"
+          size="large"
+          is-link
+          @click="checkNeedUpdate('DFU_FIRMWARE', false)"
+        >
           <van-image
+            class="l-p-l"
             slot="icon"
             :src="
               require('../../../assets/image/braceletconfig/firmware-icon.svg')
@@ -82,8 +95,9 @@
           ></van-image>
         </van-cell>
         <!-- App通知 -->
-        <van-cell title="恢复出厂设置" size="large" is-link>
+        <van-cell title="恢复出厂设置" size="large" is-link @click="reset">
           <van-image
+            class="l-p-l"
             slot="icon"
             :src="
               require('../../../assets/image/braceletconfig/reset-icon.svg')
@@ -93,8 +107,14 @@
       </van-cell-group>
 
       <van-cell-group inset class="l-m-t">
-        <van-cell title="检查更新" size="large" is-link>
+        <van-cell
+          title="检查更新"
+          size="large"
+          is-link
+          @click="checkNeedUpdate('ANDROID_APP', false)"
+        >
           <van-image
+            class="l-p-l"
             slot="icon"
             :src="
               require('../../../assets/image/braceletconfig/firmware-icon.svg')
@@ -102,30 +122,75 @@
           ></van-image>
         </van-cell>
       </van-cell-group>
+
+      <van-cell-group inset class="l-m-t" v-show="device">
+        <van-cell title="解除绑定" size="large" is-link @click="unbind">
+          <van-image
+            width=".85rem"
+            height=".85rem"
+            slot="icon"
+            :src="require('../../../assets/image/mine/unbind-icon.svg')"
+          ></van-image>
+        </van-cell>
+      </van-cell-group>
     </div>
+
+    <!--  加载弹窗 -->
+    <van-overlay z-index="11" :show="overlayShow">
+      <div class="wrapper b-d-c" @click.stop>
+        <div class="block b-d-c">
+          <van-loading size="24px" vertical> {{ loadingText }}</van-loading>
+        </div>
+      </div>
+    </van-overlay>
   </div>
 </template>
 
 <script>
-import { Toast, Popup } from "vant";
+import { Toast, Popup, Notify, Dialog } from "vant";
 import code from "../../../store/code";
 import customNavBar from "../custom/customNavBar.vue";
+
 export default {
-  components: { customNavBar, Popup },
+  components: {
+    customNavBar,
+    Popup,
+    [Dialog.Component.name]: Dialog.Component,
+  },
   data() {
     return {
       username: "未设置",
       battery: 0,
       device: null,
+      // 遮罩
+      overlayShow: false,
+      loadingText: "加载中...",
+      // 达标天数
+      complianceDays: 0,
+      name: "",
+      canShow: false,
+
+      updateState: {
+        ANDROID_APP: false,
+        DFU_FIRMWARE: false,
+        OTA_FIRMWARE: false,
+      },
     };
   },
 
   mounted() {
     window.addEventListener("commonAndroidEvent", this.callJs);
 
-    this.readBattery();
-    this.getUserInfo();
-    this.queryDevice();
+    setTimeout(() => {
+      this.readBattery();
+      this.getUserInfo();
+      this.queryDevice();
+      this.queryComplianceDays();
+    }, 20);
+
+    setTimeout(() => {
+      this.checkAllUpdate();
+    }, 200);
   },
 
   destroyed() {
@@ -133,17 +198,64 @@ export default {
   },
 
   methods: {
+    checkAllUpdate() {
+      this.checkNeedUpdate("ANDROID_APP", true).then((res) => {
+        console.log(JSON.stringify(res));
+      });
+
+      this.checkNeedUpdate("DFU_FIRMWARE", true).then((res) => {
+        console.log(JSON.stringify(res));
+      });
+    },
+
     callJs(e) {
       let eventName = e.data.eventName;
       let data = e.data.data;
       switch (eventName) {
         case "DEVICE_BINDING_STATUS":
-          setTimeout(() => {
-            this.queryDevice();
-          }, 100);
+          switch (data) {
+            case 3001:
+              if (this.device) {
+                return;
+              }
+              if (!this.canShow) {
+                return;
+              }
+              this.overlayShow = true;
+              this.loadingText = "正在连接中...";
+              break;
+            case 3002:
+              this.loadingText = "设备连接成功";
+              break;
+            case 3003:
+              this.loadingText = "设备连接失败";
+              this.overlayShow = false;
+              break;
+            case 3004:
+              this.loadingText = "正在准备初始化...";
+              break;
+            case 3005:
+              this.loadingText = "初始化中，请稍等...";
+              setTimeout(() => {
+                this.queryDevice();
+              }, 2000);
+
+              setTimeout(() => {
+                if (!this.device) {
+                  this.queryDevice();
+                }
+                this.overlayShow = false;
+              }, 8000);
+              break;
+          }
+
           break;
         case "DEVICE_REAL_TIME":
           this.readBattery();
+          this.setName();
+          break;
+        case "FIRMWARE_UPGRADE_KEY":
+          this.handleFirmwareUpgrade(data);
           break;
       }
     },
@@ -153,8 +265,34 @@ export default {
         return;
       }
 
+      this.canShow = true;
       this.$androidApi.startScanQr();
-      // this.$androidApi.connectScanCode();
+    },
+
+    reset() {
+      if (!this.device) {
+        Toast.fail({ message: "请先绑定设备", position: "top" });
+        return;
+      }
+      Dialog.alert({
+        title: "提示",
+        message: "确认将设备恢复到出厂设置吗？未同步数据可能会丢失。",
+        showCancelButton: true,
+        messageAlign: "left",
+      })
+        .then(() => {
+          Dialog.alert({
+            title: "提示",
+            message: "点击确定，设备将恢复出厂设置",
+            showCancelButton: true,
+            messageAlign: "left",
+          })
+            .then(() => {
+              this.$androidApi.reset();
+            })
+            .catch(() => {});
+        })
+        .catch(() => {});
     },
 
     readBattery() {
@@ -175,15 +313,260 @@ export default {
         if (!data) {
           return;
         }
+        this.setName();
         this.device = data;
       });
     },
 
-    test() {
-      this.$androidApi.test({
-        data: code.BATTERY_CODE,
-        isByte: true,
+    setName() {
+      if (!this.name && this.$deviceHolder.deviceInfo.model) {
+        this.name = this.$deviceHolder.deviceInfo.model;
+      } else {
+        this.name = "";
+      }
+    },
+
+    unbind() {
+      Dialog.alert({
+        title: "提示",
+        confirmButtonText: "知道了",
+        showCancelButton: true,
+        confirmButtonText: "解除绑定",
+        message: "是否解除绑定，如设备未连接，未同步数据可能会丢失",
+      })
+        .then((_) => {
+          this.$androidApi.unbindDevice().then((res) => {
+            if (res) {
+              Toast({ message: "解除绑定成功", position: "top" });
+              this.device = null;
+              this.$deviceHolder.deviceInfo = {};
+              this.$deviceHolder.deviceInfo = this.$deviceHolder.initDeviceInfo;
+              this.queryDevice();
+            }
+          });
+        })
+        .catch(() => {});
+    },
+
+    /**
+     * 查询达标天数
+     */
+    queryComplianceDays() {
+      this.$androidApi.queryComplianceDays().then((res) => {
+        this.complianceDays = res.complianceDays;
       });
+    },
+
+    lastVersionTips(noTips) {
+      if (!noTips) {
+        Toast({ message: "当前是最新版", position: "top" });
+      }
+      return {
+        result: false,
+      };
+    },
+
+    getDfuUpdate(noTips) {
+      let deviceInfo = this.$deviceHolder.deviceInfo;
+      if (!deviceInfo || !deviceInfo.firmwareVersion) {
+        return this.lastVersionTips(noTips);
+      }
+
+      let split = String(deviceInfo.firmwareVersion).split("_");
+      if (split.length != 2 || !split[1]) {
+        return this.lastVersionTips(noTips);
+      }
+
+      if (!navigator.onLine) {
+        return this.lastVersionTips(noTips);
+      }
+
+      return {
+        result: true,
+        version: split[1],
+      };
+    },
+
+    /**
+     *
+     * @param {只需要结果，需要更新也不去 只返回结果 不弹窗} onlyResult
+     */
+    async checkNeedUpdate(type, onlyResult) {
+      // ANDROID_APP   DFU_FIRMWARE
+      let urlPath =
+        "http://172.16.31.158:40001/api-node/app/file-download/BCG_WRISTBAND/";
+      let url;
+      if (type == "DFU_FIRMWARE") {
+        let data = this.getDfuUpdate(onlyResult);
+        if (!data.result) {
+          return this.lastVersionTips();
+        }
+        url = `${urlPath}${type}/${data.version}`;
+      } else if (type == "ANDROID_APP") {
+        let version = await this.checkAppUpdate();
+        url = `${urlPath}${type}/${version}`;
+      }
+
+      let res = await this.fetchData(url);
+      if (!res || !res.data) {
+        return this.lastVersionTips(onlyResult);
+      }
+      let resData = res.data;
+      if (!resData.needUpdate) {
+        return this.lastVersionTips(onlyResult);
+      }
+
+      if (onlyResult) {
+        return {
+          result: true,
+        };
+      }
+
+      let fileSize = (resData.fileSize / (1024 * 1024)).toFixed(2) + "MB";
+
+      Dialog.confirm({
+        title: "有新版本可用",
+        message: `文件名称：${resData.fileName}\n文件大小：${fileSize}\n`,
+        confirmButtonText: "立即更新",
+        showCancelButton: true,
+        cancelButtonText: "稍后再说",
+        messageAlign: "left",
+      })
+        .then(() => {
+          this.overlayShow = true;
+          this.loadingText = "文件下载中，请稍等...";
+          if (type == "DFU_FIRMWARE" || type == "ANDROID_APP") {
+            setTimeout(() => {
+              this.fileUpdateHandle(type, resData.fileName);
+            }, 500);
+          }
+        })
+        .catch(() => {});
+    },
+
+    getAppUpdate() {},
+    /**
+     * 查询App版本
+     */
+    async checkAppUpdate() {
+      let res = await this.$androidApi.queryAppVersion();
+      return res;
+    },
+
+    /**
+     * 文件更新处理
+     */
+
+    fileUpdateHandle(type, fileName) {
+      let params = {
+        fileType: type,
+        fileName: fileName,
+      };
+
+      this.$androidApi
+        .downloadFile(params)
+        .then(() => {
+          this.loadingText = "文件下载成功...";
+          if (type == "DFU_FIRMWARE") {
+            this.enterFirmwareUpgrade();
+          } else if (type == "ANDROID_APP") {
+            this.installApp();
+          }
+        })
+        .catch(() => {
+          this.loadingText = "升级失败";
+          setTimeout(() => {
+            this.overlayShow = false;
+          }, 1000);
+        });
+    },
+
+    /**
+     * 进入固件升级
+     */
+    enterFirmwareUpgrade() {
+      this.$androidApi
+        .writeCommand("B1")
+        .then(() => {
+          setTimeout(() => {
+            this.$androidApi.startDfuUpgrade();
+            this.loadingText = "准备连接...";
+          }, 1000);
+        })
+        .catch(() => {
+          this.loadingText = "升级失败";
+          setTimeout(() => {
+            this.overlayShow = false;
+          }, 1000);
+        });
+      setTimeout(() => {
+        this.loadingText = "升级准备中...";
+      }, 500);
+    },
+
+    installApp() {
+      setTimeout(() => {
+        this.overlayShow = false;
+        this.$androidApi.installApp();
+      }, 1000);
+    },
+
+    handleFirmwareUpgrade(data) {
+      console.log(JSON.stringify(data));
+      let needClose = false;
+      switch (data.key) {
+        case "UPGRADE_FAILED":
+          this.loadingText = "升级失败";
+          needClose = true;
+          break;
+        case "START_UPGRADE":
+          this.loadingText = "开始升级...";
+          break;
+        case "END_UPGRADE":
+          this.loadingText = "升级结束...";
+          break;
+        case "UPGRADE_SUCCESS":
+          this.loadingText = "升级成功...";
+          needClose = true;
+          break;
+        case "UPGRADING":
+          this.loadingText = `升级中 ${data.value}%...`;
+          break;
+        case "CONNECTING":
+          this.loadingText = "连接中...";
+          break;
+        case "CONNECT_SUCCESS":
+          this.loadingText = "连接成功...";
+          break;
+        default:
+          break;
+      }
+
+      if (needClose) {
+        setTimeout(() => {
+          this.overlayShow = false;
+        }, 1000);
+      }
+    },
+
+    // 调用接口
+    async fetchData(url) {
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await response.json();
+        // 在这里处理返回的数据
+        console.log(data);
+        return data;
+      } catch (error) {
+        // 在这里处理错误
+        console.error("Fetch error:", error);
+        return null;
+      }
     },
   },
 };
@@ -288,7 +671,21 @@ export default {
         height: 0.63rem;
         padding-right: 0.2rem;
       }
+      .l-p-l {
+        padding-right: 0.3rem;
+        padding-left: 0.1rem;
+      }
     }
+  }
+  .wrapper {
+    height: 100%;
+  }
+
+  .block {
+    width: 3rem;
+    height: 120px;
+    background-color: #fff;
+    border-radius: 0.1rem;
   }
 }
 </style>

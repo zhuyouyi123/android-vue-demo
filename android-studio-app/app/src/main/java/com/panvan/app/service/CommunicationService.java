@@ -9,25 +9,35 @@ import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
+import com.ble.dfuupgrade.DfuUpgradeHandle;
+import com.ble.dfuupgrade.callback.IDfuProgressCallback;
+import com.ble.dfuupgrade.enums.FirmwareUpgradeStatusEnum;
 import com.db.database.AppDatabase;
 import com.db.database.cache.CommunicationDataCache;
 import com.db.database.callback.DBCallback;
 import com.db.database.daoobject.CommunicationDataDO;
+import com.db.database.daoobject.DeviceDO;
 import com.db.database.service.CommunicationDataService;
 import com.db.database.service.RealTimeDataService;
 import com.db.database.utils.DateUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.panvan.app.Config;
+import com.panvan.app.data.constants.JsBridgeConstants;
 import com.panvan.app.data.constants.SharePreferenceConstants;
+import com.panvan.app.data.entity.vo.CurrDayLastInfoVO;
 import com.panvan.app.data.entity.vo.DeviceInfoVO;
+import com.panvan.app.data.entity.vo.FirmwaresUpgradeVO;
+import com.panvan.app.data.entity.vo.FirstTwoWeekAndMonthDataVO;
 import com.panvan.app.data.enums.AgreementEnum;
 import com.panvan.app.data.enums.HistoryDataTypeEnum;
 import com.panvan.app.data.holder.DeviceHolder;
-import com.panvan.app.data.holder.statistics.StepStatisticsInfo;
 import com.panvan.app.response.RespVO;
 import com.panvan.app.scheduled.task.WriteCommandTask;
+import com.panvan.app.utils.DataConvertUtil;
 import com.panvan.app.utils.DateUtil;
 import com.panvan.app.utils.HistoryDataAnalysisUtil;
+import com.panvan.app.utils.JsBridgeUtil;
 import com.panvan.app.utils.LogUtil;
 import com.panvan.app.utils.SdkUtil;
 import com.panvan.app.utils.StringUtils;
@@ -38,7 +48,6 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class CommunicationService {
@@ -53,11 +62,35 @@ public class CommunicationService {
         return INSTANCE;
     }
 
+    /**
+     * 统计前两周数据
+     *
+     * @return
+     */
+    public FirstTwoWeekAndMonthDataVO statisticalFirstTwoWeekAndMonthData() {
+        // 第一次使用时间
+        HistoryDataAnalysisUtil.setFirstUseTime();
+        Integer currWeek = HistoryDataAnalysisUtil.getStepAveByDateType(true, 0);
+        Integer lastWeek = HistoryDataAnalysisUtil.getStepAveByDateType(true, 1);
+
+        Integer currMonth = HistoryDataAnalysisUtil.getStepAveByDateType(false, 0);
+        Integer lastMonth = HistoryDataAnalysisUtil.getStepAveByDateType(false, 1);
+        FirstTwoWeekAndMonthDataVO vo = new FirstTwoWeekAndMonthDataVO();
+        vo.setCurrWeek(currWeek);
+        vo.setLastWeek(lastWeek);
+        vo.setCurrMonth(currMonth);
+        vo.setLastMonth(lastMonth);
+
+        return vo;
+    }
+
     public void loadingDeviceHolder() {
         // 读取电量
         try {
-            readBattery();
+            SdkUtil.writeCommand(AgreementEnum.DEVICE_INFO.getRequestCommand(null));
             TimeUnit.MILLISECONDS.sleep(100);
+            readBattery();
+            TimeUnit.MILLISECONDS.sleep(500);
             readRealTime();
             TimeUnit.MILLISECONDS.sleep(100);
             timing();
@@ -75,7 +108,7 @@ public class CommunicationService {
 
     public void loadingBeforeToday() {
         // 这边需要获取历史
-        for (int i = 1; i < 2; i++) {
+        for (int i = 1; i < 3; i++) {
             for (HistoryDataTypeEnum typeEnum : HistoryDataTypeEnum.getAllEnable()) {
                 // 如果缓存中存在了 并且数量一致 则不去获取
                 writeCommand(typeEnum, DateUtil.getCurrentDateHex(i));
@@ -128,16 +161,18 @@ public class CommunicationService {
      * 保存实时信息
      */
     public void saveRealTimeInfo() {
-        BleHandler.of().post(() -> {
-            DeviceHolder.DeviceInfo info = DeviceHolder.getInstance().getInfo();
-            RealTimeDataService.getInstance().save(GSON.toJson(info));
-        });
+        DeviceHolder.DeviceInfo info = DeviceHolder.getInstance().getInfo();
+        RealTimeDataService.getInstance().save(GSON.toJson(info));
     }
 
     /**
      * 获取deviceInfo
      */
     public DeviceInfoVO getDeviceInfo() {
+        DeviceDO deviceDO = DeviceService.getInstance().queryInUseDeviceDO();
+        if (Objects.isNull(deviceDO)) {
+            return null;
+        }
         String paramsJson = SharePreferenceUtil.getInstance().shareGet(SharePreferenceConstants.DEVICE_HOLDER_KEY);
         if (StringUtils.isBlank(paramsJson)) {
             paramsJson = RealTimeDataService.getInstance().query();
@@ -149,10 +184,14 @@ public class CommunicationService {
 
         try {
             DeviceHolder.DeviceInfo deviceInfo = new Gson().fromJson(paramsJson, DeviceHolder.DeviceInfo.class);
-
+            if (StringUtils.isBlank(deviceInfo.getModel())) {
+                deviceInfo.setModel(deviceDO.getModel());
+                deviceInfo.setFirmwareVersion(deviceDO.getFirmwareVersion());
+            }
             LogUtil.info("设备信息时间：" + deviceInfo.getTime());
 
             if (deviceInfo.getTime() > DateUtil.getTodayStartTime()) {
+                DeviceHolder.getInstance().setInfo(deviceInfo);
                 return new DeviceInfoVO(deviceInfo);
             }
         } catch (JsonSyntaxException e) {
@@ -251,5 +290,116 @@ public class CommunicationService {
 
         AppDatabase.getInstance().getCommunicationDataDAO().insert(doList.toArray(new CommunicationDataDO[0]));
 
+    }
+
+    public CurrDayLastInfoVO queryCurrDayLastInfo() {
+
+        CurrDayLastInfoVO vo = new CurrDayLastInfoVO();
+        ConcurrentMap<String, CommunicationDataDO> map = CommunicationDataCache.get(DateUtils.getPreviousIntDate());
+        vo.setBloodOxygen(Double.valueOf(getLastValue(map.get(HistoryDataTypeEnum.BLOOD_OXYGEN.getKeyDes()), false, false)).intValue());
+        vo.setTemperature(getLastValue(map.get(HistoryDataTypeEnum.TEMPERATURE.getKeyDes()), false, false));
+        vo.setHighPressure(Double.valueOf(getLastValue(map.get(HistoryDataTypeEnum.BLOOD_PRESSURE.getKeyDes()), true, false)).intValue());
+        vo.setLowPressure(Double.valueOf(getLastValue(map.get(HistoryDataTypeEnum.BLOOD_PRESSURE.getKeyDes()), true, true)).intValue());
+
+        CommunicationDataDO communicationDataDO = map.get(HistoryDataTypeEnum.HEART_RATE.getKeyDes());
+        vo.setHeartRate(Double.valueOf(getLastValue(communicationDataDO, false, false)).intValue());
+        vo.setHeartRateList(DataConvertUtil.getHeartRateStringToxIntList(communicationDataDO));
+        return vo;
+    }
+
+
+    private double getLastValue(CommunicationDataDO communicationDataDO, boolean needParity, boolean isEvenNumber) {
+        if (Objects.isNull(communicationDataDO)) {
+            return 0.0;
+        }
+        String data = communicationDataDO.getData();
+        String[] numbers = data.split(",");
+
+        for (int i = numbers.length - 1; i >= 0; i--) {
+            if (needParity && ((isEvenNumber && i % 2 != 0) || (!isEvenNumber && i % 2 == 0))) {
+                continue;
+            }
+            double num = Double.parseDouble(numbers[i]);
+            if (num != 0) {
+                return num;
+            }
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * dfu固件升级
+     */
+    public void startDufUpgrade() {
+        String address = StringUtils.incrementMacAddress(DeviceHolder.DEVICE.getAddress());
+        DfuUpgradeHandle.getInstance().start(Config.mainContext, address, new IDfuProgressCallback() {
+            @Override
+            public void onDfuCompleted(String deviceAddress) {
+                Log.i(TAG, "升级成功" + deviceAddress);
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.UPGRADE_SUCCESS.getKey()));
+                reconnect();
+            }
+
+            @Override
+            public void onDfuAborted(String deviceAddress) {
+                Log.i(TAG, "升级失败" + deviceAddress);
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.failed(FirmwareUpgradeStatusEnum.UPGRADE_FAILED.getKey(), "升级失败"));
+                reconnect();
+            }
+
+            @Override
+            public void onError(String deviceAddress, int error, int errorType, String message) {
+                Log.e(TAG, "升级错误 : " + message);
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.failed(FirmwareUpgradeStatusEnum.UPGRADE_FAILED.getKey(), message));
+                reconnect();
+            }
+
+            @Override
+            public void onProgressChanged(String deviceAddress, int percent, float speed, float avgSpeed, int currentPart, int partsTotal) {
+                Log.i(TAG, "升级进度" + deviceAddress + "" + (50 + (percent / 2)));
+                Log.i(TAG, "升级进度" + deviceAddress + "" + percent);
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.UPGRADING.getKey(), percent));
+            }
+
+            @Override
+            public void onDfuProcessStarted(String deviceAddress) {
+                Log.i(TAG, "升级开始" + deviceAddress);
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.START_UPGRADE.getKey()));
+            }
+
+            @Override
+            public void onDeviceConnecting(String deviceAddress) {
+                Log.i(TAG, "升级连接中" + deviceAddress);
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.CONNECTING.getKey()));
+            }
+
+            @Override
+            public void onDeviceConnected(String deviceAddress) {
+                Log.i(TAG, "升级连接成功" + deviceAddress);
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.CONNECT_SUCCESS.getKey()));
+            }
+
+            @Override
+            public void onDeviceDisconnecting(String deviceAddress) {
+                Log.i(TAG, "升级断开连接" + deviceAddress);
+                reconnect();
+            }
+
+            @Override
+            public void onDeviceDisconnected(String deviceAddress) {
+                Log.i(TAG, "设备未连接" + deviceAddress);
+            }
+        });
+    }
+
+    /**
+     * 重新连接设备
+     */
+    private void reconnect() {
+        BleHandler.of().postDelayed(() -> {
+            DfuUpgradeHandle.getInstance().dispose(Config.mainContext);
+            DeviceHolder.getInstance().getBleManager().connectToDevice();
+        }, 5000);
     }
 }

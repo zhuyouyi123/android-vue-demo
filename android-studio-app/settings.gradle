@@ -4,6 +4,10 @@ pluginManagement {
         google()
         mavenCentral()
         maven {url 'https://developer.huawei.com/repo/'}
+        maven {
+            url "https://raw.github.com/NordicSemiconductor/Android-DFU-Library/mvn-repo/"
+        }
+
     }
 }
 dependencyResolutionManagement {
@@ -12,9 +16,14 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven {url 'https://developer.huawei.com/repo/'}
+        maven {
+            url "https://raw.github.com/NordicSemiconductor/Android-DFU-Library/mvn-repo/"
+        }
+
     }
 }
 rootProject.name = "Android-vue"
 include ':app'
 include ':scancode'
 include ':database'
+include ':dfuupgrade'

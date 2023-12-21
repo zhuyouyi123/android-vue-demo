@@ -75,7 +75,7 @@ export default {
 
   components: { customNavBar, customSwipe },
 
-  mounted() {},
+  mounted() {this.$deviceHolder.routerPath = "home";},
 
   methods: {
     extendedInfoResponse(extendedInfo) {

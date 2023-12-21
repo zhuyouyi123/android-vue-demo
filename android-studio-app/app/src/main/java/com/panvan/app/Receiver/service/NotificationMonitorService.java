@@ -85,12 +85,16 @@ public class NotificationMonitorService extends NotificationListenerService {
 
         NotificationTypeEnum typeEnum = NotificationTypeEnum.getPacket(sbn.getPackageName());
 
-        if (Objects.nonNull(typeEnum) && NotificationTypeEnum.MMS == typeEnum) {
+        boolean isMms = sbn.getPackageName().contains("mms");
+
+        if (Objects.nonNull(typeEnum) && isMms) {
             if (!SMS_ENABLE) {
                 return;
             }
-        } else if (!NOTIFY_ENABLE) {
-            return;
+        } else {
+            if (!NOTIFY_ENABLE) {
+                return;
+            }
         }
 
         String title;

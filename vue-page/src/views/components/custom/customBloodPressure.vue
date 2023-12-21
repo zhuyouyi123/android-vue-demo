@@ -44,7 +44,6 @@ export default {
 
       //   let diff = i + this.level - Math.round(this.bloodPressure);
       let diff = this.bloodPressure - this.level;
-      console.log(diff);
 
       if (diff <= 3) {
         if (i <= 3) {

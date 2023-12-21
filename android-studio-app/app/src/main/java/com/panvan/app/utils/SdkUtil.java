@@ -2,6 +2,9 @@ package com.panvan.app.utils;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.os.Build;
 
 import com.ble.blescansdk.ble.BleSdkManager;
@@ -11,13 +14,17 @@ import com.ble.blescansdk.ble.entity.seek.BraceletDevice;
 import com.ble.blescansdk.ble.enums.BleScanLevelEnum;
 import com.ble.blescansdk.ble.enums.ManufacturerEnum;
 import com.ble.blescansdk.ble.queue.retry.RetryDispatcher;
+import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.ble.blescansdk.ble.utils.ThreadUtils;
+import com.ble.dfuupgrade.MyBleManager;
+import com.ble.dfuupgrade.callback.ConCallback;
 import com.db.database.UserDatabase;
 import com.db.database.daoobject.DeviceDO;
 import com.db.database.service.DeviceDataService;
 import com.panvan.app.Config;
+import com.panvan.app.callback.BleNotifyCallback;
 import com.panvan.app.callback.ConnectCallback;
 import com.panvan.app.callback.NotifyCallback;
 import com.panvan.app.callback.WriteCallback;
@@ -25,14 +32,21 @@ import com.panvan.app.data.constants.JsBridgeConstants;
 import com.panvan.app.data.constants.SharePreferenceConstants;
 import com.panvan.app.data.holder.DeviceHolder;
 import com.panvan.app.scheduled.CommandRetryScheduled;
+import com.panvan.app.service.DeviceService;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class SdkUtil {
 
     private static final String TAG = SdkUtil.class.getSimpleName();
+
+    private static volatile boolean canExecute = true;
+
+    @SuppressLint("StaticFieldLeak")
+    private static MyBleManager bleManager = null;
 
     public static void init() {
         BleSdkManager.getInstance().init(Config.mainContext);
@@ -42,8 +56,8 @@ public class SdkUtil {
                 .setContinuousScanning(false)
                 .setBleScanLevel(BleScanLevelEnum.SCAN_MODE_LOW_LATENCY)
                 .setDatabaseSupport(true)
-                // .setConnectFailedRetryCount(5)
-                // .setConnectTimeout(3000)
+                .setConnectFailedRetryCount(5)
+                .setConnectTimeout(3000)
                 .setEncryption(false)
                 .setDatabaseSupport(false)
                 .setLogSwitch(true)
@@ -74,17 +88,22 @@ public class SdkUtil {
                     android.Manifest.permission.BLUETOOTH_CONNECT,
                     android.Manifest.permission.ACCESS_COARSE_LOCATION,
                     android.Manifest.permission.ACCESS_FINE_LOCATION,
-
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
             };
         } else {
             requestPermissions = new String[]{
                     android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_FINE_LOCATION
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
             };
 
         }
 
         PermissionsUtil.requestBasePermissions(requestPermissions);
+    }
+
+    public static void setCanExecute(boolean b) {
+        canExecute = b;
     }
 
 
@@ -115,7 +134,6 @@ public class SdkUtil {
                 LogUtil.info(TAG, "扫描到设备" + device);
                 callback.result(device);
                 stopScan();
-
             }
 
             @Override
@@ -135,42 +153,39 @@ public class SdkUtil {
     }
 
     public static void connect(BraceletDevice device, ConnectCallback callback) {
-
         DeviceHolder.DEVICE = device;
+        DeviceHolder.DEVICE.setConnectState(DeviceHolder.CONNECTING);
+        MyBleManager.getInstance(Config.mainContext).init(device.getAddress(),
+                new ConCallback() {
+                    @Override
+                    public void success(BluetoothGatt gatt) {
+                        DeviceHolder.DEVICE.setConnectState(DeviceHolder.CONNECTED);
+                        DeviceHolder.getInstance().getInfo();
+                        JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BINDING_STATUS, JsBridgeConstants.BINDING_STATUS_CONNECTED);
+                        // 保存 设备MAC
+                        SharePreferenceUtil.getInstance().shareSet(SharePreferenceConstants.DEVICE_ADDRESS_KEY, device.getAddress());
+                        callback.success(device.getAddress());
+                    }
 
-        DeviceHolder.getInstance().setConnectStatus(DeviceHolder.CONNECTING);
+                    @Override
+                    public void failed() {
+                        DeviceHolder.DEVICE.setConnectState(DeviceHolder.CONNECT_FAILED);
+                        JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BINDING_STATUS, JsBridgeConstants.BINDING_STATUS_UN_CONNECTED);
+                        callback.failed();
+                    }
 
-        BleSdkManager.getInstance().connect(device, new BleConnectCallback<BraceletDevice>() {
-            @Override
-            public void onConnectChange(BraceletDevice device, int status) {
-            }
+                    @Override
+                    public void timeout(boolean result) {
+                        if (!result) {
+                            DeviceHolder.DEVICE.setConnectState(DeviceHolder.CONNECT_FAILED);
+                            JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BINDING_STATUS, JsBridgeConstants.BINDING_STATUS_UN_CONNECTED);
+                        }
+                    }
+                }, BleNotifyCallback.getInstance(), true
+        );
 
-            @Override
-            public void onConnectSuccess(BraceletDevice device) {
-                callback.success(device.getAddress());
-
-                DeviceHolder.getInstance().setConnectStatus(DeviceHolder.CONNECTED);
-                JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BINDING_STATUS, JsBridgeConstants.BINDING_STATUS_CONNECTED);
-                // 保存 设备MAC
-                SharePreferenceUtil.getInstance().shareSet(SharePreferenceConstants.DEVICE_ADDRESS_KEY, device.getAddress());
-
-                BleSdkManager.getInstance().startNotify(device, NotifyCallback.getInstance());
-
-            }
-
-            @Override
-            public void onConnectFailed(BraceletDevice device, int errorCode) {
-                int retryCount = RetryDispatcher.getInstance().getRetryCountByAddress(device.getAddress());
-
-                if (retryCount > 0) {
-                    return;
-                }
-                callback.failed();
-
-                DeviceHolder.getInstance().setConnectStatus(DeviceHolder.CONNECT_FAILED);
-                JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BINDING_STATUS, JsBridgeConstants.BINDING_STATUS_UN_CONNECTED);
-            }
-        });
+        MyBleManager.getInstance(Config.mainContext).connectToDevice();
+        DeviceHolder.getInstance().setBleManager(MyBleManager.getInstance(Config.mainContext));
     }
 
     @SuppressLint("RestrictedApi")
@@ -178,24 +193,47 @@ public class SdkUtil {
         ThreadUtils.ui(runnable);
     }
 
-    private static final Object OBJECT = new Object();
-
 
     public static void retryWriteCommand(String hex) {
+        if (!canExecute) {
+            return;
+        }
         if (StringUtils.isBlank(hex)) {
             return;
         }
-        BleSdkManager.getInstance().write(DeviceHolder.DEVICE, ProtocolUtil.hexStrToBytes(hex), WriteCallback.getInstance());
+
+        if (Objects.isNull(bleManager)) {
+            bleManager = DeviceHolder.getInstance().getBleManager();
+            if (Objects.isNull(bleManager)) {
+                return;
+            }
+        }
+        bleManager.write(ProtocolUtil.hexStrToBytes(hex));
+        // BleSdkManager.getInstance().write(DeviceHolder.DEVICE, ProtocolUtil.hexStrToBytes(hex), WriteCallback.getInstance());
     }
 
     public static void writeCommand(String hex) {
-        LogUtil.info("写入数据:"+hex);
         CommandRetryScheduled.getInstance().add(hex);
-        BleSdkManager.getInstance().write(DeviceHolder.DEVICE, ProtocolUtil.hexStrToBytes(hex), WriteCallback.getInstance());
+        if (Objects.isNull(bleManager)) {
+            bleManager = DeviceHolder.getInstance().getBleManager();
+            if (Objects.isNull(bleManager)) {
+                return;
+            }
+        }
+        bleManager.write(ProtocolUtil.hexStrToBytes(hex));
     }
 
     public static void writeCommand(byte[] bytes) {
+        if (!canExecute) {
+            return;
+        }
         CommandRetryScheduled.getInstance().add(ProtocolUtil.byteArrToHexStr(bytes));
-        BleSdkManager.getInstance().write(DeviceHolder.DEVICE, bytes, WriteCallback.getInstance());
+        if (Objects.isNull(bleManager)) {
+            bleManager = DeviceHolder.getInstance().getBleManager();
+            if (Objects.isNull(bleManager)) {
+                return;
+            }
+        }
+        bleManager.write(bytes);
     }
 }

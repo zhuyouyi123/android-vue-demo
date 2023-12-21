@@ -8,9 +8,7 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
-import com.db.database.callback.DBCallback;
 import com.db.database.daoobject.DeviceDO;
-import com.db.database.service.CommunicationDataService;
 import com.db.database.service.DeviceDataService;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -21,19 +19,18 @@ import com.panvan.app.Receiver.call.CallViewModel;
 import com.panvan.app.callback.ConnectCallback;
 import com.panvan.app.connect.DeviceConnectHandle;
 import com.panvan.app.data.constants.ActiveForResultConstants;
+import com.panvan.app.data.constants.JsBridgeConstants;
 import com.panvan.app.data.constants.PermissionsRequestConstants;
+import com.panvan.app.data.constants.SharePreferenceConstants;
 import com.panvan.app.data.entity.bo.WatchQrCodeBO;
-import com.panvan.app.service.CommunicationService;
+import com.panvan.app.data.holder.DeviceHolder;
 import com.panvan.app.service.PermissionService;
 
 public class ActivityResultUtil {
 
     private static final String TAG = ActivityResultUtil.class.getSimpleName();
 
-
     public static void handleResult(int requestCode, int resultCode, Intent data) {
-
-
         switch (requestCode) {
             case ActiveForResultConstants.SCAN_QR_CODE_REQUEST_CODE:
                 if (null == data) {
@@ -55,23 +52,10 @@ public class ActivityResultUtil {
                                 deviceDO.setAddress(address);
                                 deviceDO.setInUse(true);
                                 DeviceDataService.getInstance().saveDevice(deviceDO);
-                                CommunicationDataService.getInstance().cacheDataInit(new DBCallback() {
-                                    @Override
-                                    public void success() {
-                                        CommunicationService.getInstance().reloadCommand();
-                                    }
-
-                                    @Override
-                                    public void failed() {
-                                        CommunicationService.getInstance().reloadCommand();
-                                    }
-                                });
-
                             }
 
                             @Override
                             public void failed() {
-
                             }
                         });
 

@@ -6,6 +6,7 @@ import android.util.Log;
 import com.db.database.AppDatabase;
 import com.db.database.cache.CommunicationDataCache;
 import com.db.database.callback.DBCallback;
+import com.db.database.daoobject.AllDayDataDO;
 import com.db.database.daoobject.CommunicationDataDO;
 import com.db.database.daoobject.RealTimeDataDO;
 import com.db.database.enums.CommunicationTypeEnum;
@@ -36,8 +37,14 @@ public class CommunicationDataService {
     public void cacheDataInit(DBCallback dbCallback) {
         try {
             Completable.fromAction(() -> {
+                        if (Objects.isNull(AppDatabase.getInstance())) {
+                            return;
+                        }
                         List<CommunicationDataDO> list = AppDatabase.getInstance().getCommunicationDataDAO().queryAll();
                         CommunicationDataCache.getInstance().init(list, dbCallback);
+
+                        List<AllDayDataDO> allDayDataDOList = AppDatabase.getInstance().getAllDayDataDAO().queryAll();
+                        CommunicationDataCache.getInstance().initAllDay(allDayDataDOList);
                     }).subscribeOn(Schedulers.io())
                     .subscribe();
         } catch (Exception e) {

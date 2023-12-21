@@ -1,6 +1,7 @@
 package com.panvan.app.data.holder;
 
 import com.ble.blescansdk.ble.entity.seek.BraceletDevice;
+import com.ble.dfuupgrade.MyBleManager;
 import com.panvan.app.data.holder.statistics.CalorieStatisticsInfo;
 import com.panvan.app.data.holder.statistics.StatisticsInfo;
 import com.panvan.app.data.holder.statistics.StepStatisticsInfo;
@@ -21,8 +22,7 @@ public class DeviceHolder {
 
     private static DeviceHolder INSTANCE = null;
 
-
-    private int connectStatus = NOT_CONNECTED;
+    private MyBleManager bleManager;
 
     private DeviceInfo info;
 
@@ -64,6 +64,14 @@ public class DeviceHolder {
         this.calorieStatisticsInfo = calorieStatisticsInfo;
     }
 
+    public MyBleManager getBleManager() {
+        return bleManager;
+    }
+
+    public void setBleManager(MyBleManager bleManager) {
+        this.bleManager = bleManager;
+    }
+
     public static class DeviceInfo {
         private long time;
 
@@ -90,6 +98,10 @@ public class DeviceHolder {
          * 血液相关
          */
         private BloodPressureInfo bloodPressureInfo = new BloodPressureInfo();
+
+        private String model;
+
+        private String firmwareVersion;
 
         public int getBattery() {
             return battery;
@@ -152,12 +164,29 @@ public class DeviceHolder {
         public void setTime(long time) {
             this.time = time;
         }
+
+        public String getModel() {
+            return model;
+        }
+
+        public void setModel(String model) {
+            this.model = model;
+        }
+
+        public String getFirmwareVersion() {
+            return firmwareVersion;
+        }
+
+        public void setFirmwareVersion(String firmwareVersion) {
+            this.firmwareVersion = firmwareVersion;
+        }
     }
 
     public static class StepInfo {
         private int stepNumber = 0;
         private int mileage = 0;
         private int calories = 0;
+        private int useTime = 0;
 
         public int getStepNumber() {
             return stepNumber;
@@ -181,6 +210,14 @@ public class DeviceHolder {
 
         public void setCalories(int calories) {
             this.calories = calories;
+        }
+
+        public int getUseTime() {
+            return useTime;
+        }
+
+        public void setUseTime(int useTime) {
+            this.useTime = useTime;
         }
     }
 
@@ -237,15 +274,6 @@ public class DeviceHolder {
         public void setBloodViscosity(int bloodViscosity) {
             this.bloodViscosity = bloodViscosity;
         }
-    }
-
-
-    public int connectStatus() {
-        return connectStatus;
-    }
-
-    public void setConnectStatus(int connectStatus) {
-        this.connectStatus = connectStatus;
     }
 
     public DeviceInfo getInfo() {

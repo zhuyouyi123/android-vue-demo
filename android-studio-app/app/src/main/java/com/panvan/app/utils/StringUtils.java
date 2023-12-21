@@ -36,5 +36,18 @@ public class StringUtils {
     }
 
 
+    public static String incrementMacAddress(String macAddress) {
+        String[] parts = macAddress.split(":");
+        int lastPart = Integer.parseInt(parts[5], 16); // Convert the last part to decimal
+        lastPart = (lastPart + 1) & 0xFF; // Increment and ensure it's within a byte
+
+        // Convert back to hexadecimal and format as a MAC address
+        parts[5] = String.format("%02X", lastPart);
+
+        // Join the parts back together
+        return String.join(":", parts);
+    }
+
+
 
 }

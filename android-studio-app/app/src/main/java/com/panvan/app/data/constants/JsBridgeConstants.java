@@ -43,12 +43,7 @@ public class JsBridgeConstants {
     public static final String DEVICE_REAL_TIME = "DEVICE_REAL_TIME";
 
     /**
-     * 步数历史数据
+     * 固件升级
      */
-    public static final String STEP_HISTORY_DATA = "STEP_HISTORY_DATA";
-    /**
-     * 卡路里
-     */
-    public static final String CALORIE_HISTORY_DATA = "CALORIE_HISTORY_DATA";
-
+    public static final String FIRMWARE_UPGRADE_KEY = "FIRMWARE_UPGRADE_KEY";
 }

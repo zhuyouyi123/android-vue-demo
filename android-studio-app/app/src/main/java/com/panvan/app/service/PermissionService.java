@@ -2,11 +2,15 @@ package com.panvan.app.service;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.AppOpsManager;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.provider.Settings;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -16,7 +20,9 @@ import com.panvan.app.Config;
 import com.panvan.app.data.constants.ActiveForResultConstants;
 import com.panvan.app.data.constants.JsBridgeConstants;
 import com.panvan.app.data.constants.PermissionsRequestConstants;
+import com.panvan.app.data.entity.vo.InitVO;
 import com.panvan.app.data.enums.PermissionTypeEnum;
+import com.panvan.app.response.RespVO;
 import com.panvan.app.utils.JsBridgeUtil;
 import com.panvan.app.utils.PermissionsUtil;
 
@@ -25,6 +31,9 @@ import java.util.Objects;
 public class PermissionService {
 
     private static PermissionService INSTANCE = null;
+
+    // 获取 BluetoothAdapter 对象
+    private static final BluetoothAdapter BLUETOOTH_ADAPTER = BluetoothAdapter.getDefaultAdapter();
 
     public static PermissionService getInstance() {
         if (Objects.isNull(INSTANCE)) {
@@ -56,6 +65,19 @@ public class PermissionService {
             JsBridgeUtil.pushEvent(JsBridgeConstants.POPUP_SHOW, "为了扫描设备二维码，APP需要使用摄像头，需要获取拍摄照片、录制视频的权限。");
         }
     }
+
+    public void openLocateService() {
+        new AlertDialog.Builder(Config.mainContext)
+                .setTitle("获取位置信息失败")
+                .setMessage("未开启位置信息，是否前往开启")
+                .setNegativeButton("取消", (dialog, which) -> Toast.makeText(Config.mainContext, "未开启位置信息，无法使用本服务", Toast.LENGTH_SHORT).show())
+                .setPositiveButton("确定", (dialogInterface, i) -> {
+                    Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    ((Activity) Config.mainContext).startActivityForResult(intent, 1);
+                    dialogInterface.dismiss();
+                }).show();
+    }
+
 
     public void requestCameraPermission() {
         Activity activity = (Activity) Config.mainContext;
@@ -103,5 +125,12 @@ public class PermissionService {
             Activity activity = (Activity) Config.mainContext;
             ActivityCompat.requestPermissions(activity, strings, typeEnum.getRequestCode());
         }
+    }
+
+    public InitVO checkPermission() {
+        InitVO initVO = new InitVO();
+        initVO.setBluetoothEnable(null != BLUETOOTH_ADAPTER && BLUETOOTH_ADAPTER.isEnabled());
+        initVO.setLocateEnable(PermissionsUtil.checkLocationPermission());
+        return initVO;
     }
 }

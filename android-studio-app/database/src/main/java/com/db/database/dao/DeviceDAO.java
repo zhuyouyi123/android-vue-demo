@@ -17,6 +17,9 @@ public interface DeviceDAO {
     @Update
     void update(DeviceDO... deviceArr);
 
+    @Query("UPDATE device SET model=:model AND firmware_version=:version WHERE in_use = 1")
+    void updateVerAndFirmware(String model, String version);
+
     @Query("SELECT * FROM device WHERE in_use = 1")
     DeviceDO queryInUse();
 

@@ -2,6 +2,7 @@ package com.panvan.app.utils;
 
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
+import com.db.database.daoobject.CommunicationDataDO;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -9,9 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class DataConvertUtil {
     private static final DecimalFormat df = new DecimalFormat("#0.0");
+    private static final DecimalFormat DF_INT = new DecimalFormat("#");
 
     public static byte[] mergeBytes(byte[] array1, byte[] array2) {
         byte[] mergedArray = new byte[array1.length + array2.length];
@@ -209,6 +212,12 @@ public class DataConvertUtil {
         return Double.parseDouble(df.format(d));
     }
 
+    public static int roundedDoubleToInt(double d) {
+        DF_INT.setRoundingMode(RoundingMode.HALF_UP);
+        // 调用 format 方法格式化数字并返回结果
+        return Integer.parseInt(DF_INT.format(d));
+    }
+
     public static String roundedDoubleToString(double d) {
         // 调用 setRoundingMode 方法设置四舍五入模式
         df.setRoundingMode(RoundingMode.HALF_UP);
@@ -335,5 +344,40 @@ public class DataConvertUtil {
             }
         }
         return count;
+    }
+
+    public static List<Integer> getHeartRateStringToxIntList(CommunicationDataDO communicationDataDO) {
+        if (Objects.isNull(communicationDataDO)) {
+            List<Integer> list = new ArrayList<>();
+            for (int i = 0; i < 288; i++) {
+                list.add(0);
+            }
+            return list;
+        }
+        String[] split = communicationDataDO.getData().split(",");
+        return convertStringToInt(Arrays.asList(split), false);
+    }
+
+    /**
+     * 计算最大值
+     *
+     * @param doList
+     * @return
+     */
+    public static String calcDOMaxValue(List<CommunicationDataDO> doList, boolean isMax, boolean needDouble) {
+        if (CollectionUtils.isNotEmpty(doList)) {
+            List<String> list = new ArrayList<>();
+
+            for (CommunicationDataDO communicationDataDO : doList) {
+                String[] split = communicationDataDO.getData().split(",");
+                list.addAll(Arrays.asList(split));
+            }
+            if (isMax) {
+                return getListStringMax(list, needDouble);
+            }
+
+            return getListStringMin(list, needDouble);
+        }
+        return "0";
     }
 }

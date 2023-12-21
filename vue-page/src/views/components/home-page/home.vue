@@ -2,6 +2,7 @@
 <template>
   <div class="home">
     <custom-nav-bar title="首页"> </custom-nav-bar>
+
     <div class="page-content">
       <van-pull-refresh v-model="loading" @refresh="onRefresh">
         <!-- 头部 步数信息 -->
@@ -99,7 +100,7 @@
               <div
                 class="arrow"
                 :style="{
-                  'padding-left': `${(bloodOxygenSaturation / 100) * 2.24}rem`,
+                  'padding-left': `${(pageInfo.bloodOxygen / 100) * 2.24}rem`,
                 }"
               >
                 <van-icon color="#909998" name="location" />
@@ -110,7 +111,7 @@
               </div>
             </div>
             <div class="time-unit">
-              <span>{{ bloodOxygenSaturation }}%</span>
+              <span>{{ pageInfo.bloodOxygen }}%</span>
             </div>
           </div>
 
@@ -122,8 +123,8 @@
           >
             <div class="home-title">心率</div>
             <echarts-component
-              :options="$testCharts.heartRateData"
-              :width="chartsWidth"
+              :options="heartRateData"
+              :width="200"
               :height="chartsHeight"
               yAxisHide
               xAxisHide
@@ -131,7 +132,9 @@
               areaStyleGradientBcg
               :lineStyleColor="['#EC526A']"
             />
-            <div class="time-unit"><span>64</span> 次/分钟</div>
+            <div class="time-unit">
+              <span>{{ pageInfo.heartRate }}</span> 次/分钟
+            </div>
           </div>
 
           <!-- 压力 -->
@@ -200,7 +203,18 @@
             @click="$router.push('/temperature')"
           >
             <div class="home-title">体温</div>
-            <div class="temperature-chart"></div>
+            <div class="temperature-chart b-d-c">
+              <div class="info-box">
+                <van-image
+                  width=".56rem"
+                  height=".56rem"
+                  :src="
+                    require('../../../assets/image/home/temperature-icon.svg')
+                  "
+                ></van-image>
+                {{ pageInfo.temperature }}
+              </div>
+            </div>
           </div>
 
           <!-- 血压 -->
@@ -215,20 +229,26 @@
               <div class="blood-pressure-box">
                 高压
                 <div class="blood-pressure-num">
-                  {{ deviceInfo.bloodPressureInfo.systolicPressure }}
+                  {{ pageInfo.highPressure }}
                 </div>
                 mmHg
               </div>
-              <custom-blood-pressure :level="110" :blood-pressure="140">
+              <custom-blood-pressure
+                :level="110"
+                :blood-pressure="pageInfo.highPressure"
+              >
               </custom-blood-pressure>
               <div class="blood-pressure-box">
                 低压
                 <div class="blood-pressure-num">
-                  {{ deviceInfo.bloodPressureInfo.diastolicPressure }}
+                  {{ pageInfo.lowPressure }}
                 </div>
                 mmHg
               </div>
-              <custom-blood-pressure :level="70" :blood-pressure="90">
+              <custom-blood-pressure
+                :level="70"
+                :blood-pressure="pageInfo.lowPressure"
+              >
               </custom-blood-pressure>
             </div>
           </div>
@@ -261,7 +281,7 @@
           </div>
 
           <!-- 编辑数据 -->
-          <van-button class="edit-button" to="/homeConfig">编辑数据</van-button>
+          <!-- <van-button class="edit-button" to="/homeConfig">编辑数据</van-button> -->
         </div>
       </van-pull-refresh>
     </div>
@@ -274,6 +294,7 @@ import customBloodPressure from "../custom/customBloodPressure.vue";
 import dashboard from "@/components/Charts/dashboard.vue";
 import customNavBar from "../custom/customNavBar.vue";
 import deviceData from "@/store/deviceData";
+import { Toast } from "vant";
 export default {
   components: {
     echartsComponent,
@@ -288,15 +309,15 @@ export default {
       // 首页卡片显示
       homeCard: [
         { enable: true, type: "STEP" },
-        { enable: true, type: "SLEEP" },
+        { enable: false, type: "SLEEP" },
         { enable: true, type: "BLOOD_OXYGEN_SATURATION" },
         { enable: true, type: "HEART_RATE" },
-        { enable: true, type: "PRESSURE" },
-        { enable: true, type: "CALORIE" },
+        { enable: false, type: "PRESSURE" },
+        { enable: false, type: "CALORIE" },
         { enable: true, type: "TEMPERATURE" },
         { enable: true, type: "BLOOD_PRESSURE" },
-        { enable: true, type: "SPORT_RECORDS" },
-        { enable: true, type: "FATIGUE" },
+        { enable: false, type: "SPORT_RECORDS" },
+        { enable: false, type: "FATIGUE" },
       ],
       homeCardMap: new Map(),
       // 步数进度
@@ -328,6 +349,51 @@ export default {
       },
 
       refreshInterval: null,
+      pageInfo: {
+        bloodOxygen: 0,
+        temperature: 0,
+        highPressure: 0,
+        lowPressure: 0,
+        heartRate: 0,
+      },
+      heartRateData: {
+        xAxis: {
+          data: [
+            10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10,
+            30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30,
+            10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10,
+            30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30,
+            10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10,
+            30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 30, 10, 50,
+            50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+            50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+            50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+            50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+            50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+            50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+            50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+            50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+            50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+            50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+            50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+          ],
+        },
+        series: [
+          {
+            data: [],
+          },
+        ],
+
+        grid: {
+          top: "1%",
+          left: "5%",
+          bottom: "0",
+        },
+      },
+      permissions: {
+        bluetoothEnable: true,
+        locateEnable: true,
+      },
     };
   },
 
@@ -335,8 +401,7 @@ export default {
 
   mounted() {
     window.addEventListener("commonAndroidEvent", this.callJs);
-    this.init();
-    this.updatePageInfo();
+    this.init(false);
   },
 
   destroyed() {
@@ -347,29 +412,59 @@ export default {
   },
 
   methods: {
-    init() {
-      // 查询首页卡片显示
-      this.queryMenuCard();
-      // 查询目标值
-      deviceData.querySportTarget().then((res) => {
-        this.stepTarget = res.stepTarget;
-        this.calorieTarget = res.calorieTarget;
-      });
-      deviceData.queryRealInfo().then((res) => {
-        this.deviceInfo = res;
-        this.calcUpdateTimeDiff();
-      });
+    showTips() {
+      if (!this.permissions.bluetoothEnable) {
+        Toast.fail({ message: "当前蓝牙未打开", position: "top" });
+        return false;
+      }
+      if (!this.permissions.locateEnable) {
+        Toast.fail({ message: "位置服务未打开", position: "top" });
+        return false;
+      }
 
-      this.monitorUpdateTime();
+      return true;
+    },
+    init(needUpdate) {
+      this.queryMenuCard();
+
+      // 查询首页卡片显示
+      deviceData
+        .queryRealInfo()
+        .then((res) => {
+          if (!res) {
+            this.deviceInfo = this.$deviceHolder.initDeviceInfo;
+            return;
+          } else {
+            this.deviceInfo = res;
+          }
+
+          this.updatePageInfo();
+
+          this.calcUpdateTimeDiff();
+          // 查询目标值
+          deviceData.querySportTarget().then((res) => {
+            this.stepTarget = res.stepTarget;
+            this.calorieTarget = res.calorieTarget;
+          });
+          this.monitorUpdateTime();
+        })
+        .catch(() => {});
+
       // 设备连接初始化
-      this.$androidApi.init();
+      this.$androidApi.init(needUpdate).then((res) => {
+        this.permissions = { ...res };
+        this.showTips();
+      });
     },
 
     onRefresh() {
-      this.$androidApi.init();
+      this.init(true);
       setTimeout(() => {
         this.loading = false;
       }, 3000);
+      setTimeout(() => {
+        this.updatePageInfo();
+      }, 8000);
     },
 
     callJs(e) {
@@ -400,7 +495,11 @@ export default {
               setTimeout(() => {
                 this.refreshTime = "刚刚";
                 this.refreshTimeLoading = false;
-              }, 500);
+              }, 3000);
+              setTimeout(() => {
+                this.updatePageInfo();
+              }, 8000);
+
               break;
             case 3006:
               this.refreshTime = "连接错误";
@@ -423,11 +522,11 @@ export default {
      * 查询首页卡片
      */
     queryMenuCard() {
-      this.$androidApi.queryConfigurationByGroup("HOME_CARD").then((data) => {
-        this.homeCard = data;
-        this.homeCardMap = new Map();
-        data.forEach((e) => this.homeCardMap.set(e.type, e.enable));
-      });
+      // this.$androidApi.queryConfigurationByGroup("HOME_CARD").then((data) => {
+      // this.homeCard = data;
+      this.homeCardMap = new Map();
+      this.homeCard.forEach((e) => this.homeCardMap.set(e.type, e.enable));
+      // });
     },
 
     /**
@@ -442,7 +541,12 @@ export default {
       }
     },
 
-    updatePageInfo() {},
+    updatePageInfo() {
+      deviceData.queryCurrDayLastInfo().then((res) => {
+        this.pageInfo = { ...res };
+        this.heartRateData.series[0].data = res.heartRateList;
+      });
+    },
 
     monitorUpdateTime() {
       if (!this.refreshInterval) {
@@ -475,6 +579,18 @@ export default {
 </script>
 <style lang="scss" scoped>
 .home {
+  .van-cell-group {
+    .van-cell {
+      display: flex;
+      align-items: center;
+      .van-image {
+        width: 0.63rem;
+        height: 0.63rem;
+        padding-right: 0.2rem;
+      }
+    }
+  }
+
   .step-container {
     width: 7.02rem;
     height: 3.96rem;
@@ -618,10 +734,6 @@ export default {
       }
     }
 
-    // 心率
-    .heart-rate {
-    }
-
     .pressure-container {
       .circle-box {
         margin-top: 0.1rem;
@@ -636,12 +748,28 @@ export default {
     // 体温
     .temperature-container {
       .temperature-chart {
-        width: 2.55rem;
-        height: 2.55rem;
+        width: 2.85rem;
+        height: 2.85rem;
         background: #c3d1f77a;
         border-radius: 50%;
-        margin-top: 0.28rem;
-        margin-left: 0.43rem;
+        margin-left: 0.33rem;
+        background: url("../../../assets/image/home/temperature-bcg.png");
+        background-position: center center;
+        background-size: 93%;
+        background-repeat: no-repeat;
+      }
+      .info-box {
+        width: 1.69rem;
+        height: 1.69rem;
+        background: linear-gradient(360deg, #4367fd 0%, #50bcff 100%);
+        border-radius: 50%;
+        font-size: 0.29rem;
+        font-weight: 400;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
       }
     }
 

@@ -37,7 +37,7 @@ export default {
 
   methods: {
     addDevice() {
-      this.$androidApi.connectScanCode();
+      // this.$androidApi.connectScanCode();
     },
   },
 };

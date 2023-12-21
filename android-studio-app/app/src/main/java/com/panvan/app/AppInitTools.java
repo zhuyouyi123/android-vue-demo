@@ -49,15 +49,6 @@ public class AppInitTools extends AppCompatActivity {
         Config.webView = this.webView;
         SdkUtil.init();
         UserDatabase.init(Config.mainContext, "app-user");
-        //
-        // if (!PermissionsUtil.isNotificationListenerEnabled()) {
-        //     AlertDialog enableNotificationListenerDialog = buildNotificationServiceAlertDialog();
-        //     enableNotificationListenerDialog.show();
-        // }
-
-        // TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        // MyPhoneStateListener phoneStateListener = new MyPhoneStateListener();
-        // telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
     }
 
 
@@ -164,15 +155,6 @@ public class AppInitTools extends AppCompatActivity {
             supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         }
     }
-
-    private AlertDialog buildNotificationServiceAlertDialog() {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setTitle("请求授予通知权限");
-        alertDialogBuilder.setPositiveButton("开启", (dialog, which) -> startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")));
-        alertDialogBuilder.setNegativeButton("不开启", (dialog, which) -> Toast.makeText(Config.mainContext, "不授予通知读取权限Monitor将无法运行！", Toast.LENGTH_SHORT).show());
-        return alertDialogBuilder.create();
-    }
-
 
     public void initWebView(String url) {
         webView = findViewById(R.id.mainWebView);

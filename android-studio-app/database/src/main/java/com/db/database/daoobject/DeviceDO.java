@@ -2,9 +2,10 @@ package com.db.database.daoobject;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "device")
+@Entity(tableName = "device", indices = {@Index(value = {"address"})})
 public class DeviceDO {
 
     @PrimaryKey(autoGenerate = true)
@@ -30,7 +31,6 @@ public class DeviceDO {
      */
     @ColumnInfo(name = "firmware_version")
     private String firmwareVersion;
-
 
     /**
      * 正在使用

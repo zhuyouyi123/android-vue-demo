@@ -15,6 +15,7 @@ public class SingleChartInfoVO<T> {
     private String max;
     private String min;
 
+    private Object extendedInfo;
 
     public Integer getChartSize() {
         return chartSize;
@@ -62,5 +63,13 @@ public class SingleChartInfoVO<T> {
 
     public void setMin(String min) {
         this.min = min;
+    }
+
+    public Object getExtendedInfo() {
+        return extendedInfo;
+    }
+
+    public void setExtendedInfo(Object extendedInfo) {
+        this.extendedInfo = extendedInfo;
     }
 }

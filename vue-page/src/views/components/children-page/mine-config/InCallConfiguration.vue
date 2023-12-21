@@ -2,7 +2,7 @@
 <template>
   <div>
     <custom-nav-bar
-    :returnRouter="$deviceHolder.mineReturnRouter"
+      :returnRouter="$deviceHolder.mineReturnRouter"
       left-arrow
       title="来电提醒"
     ></custom-nav-bar>
@@ -92,18 +92,29 @@ export default {
   components: { customNavBar, [Dialog.Component.name]: Dialog.Component },
 
   mounted() {
+    this.$deviceHolder.routerPath = "mine";
+    if (window.history && window.history.pushState) {
+      history.pushState(null, null, document.URL);
+      //false阻止默认事件
+      window.addEventListener("popstate", this.goBack, false);
+    }
     this.queryPermissionExist();
     this.queryNotificationConfig();
     this.start();
   },
 
   destroyed() {
+    //false阻止默认事件
+    window.removeEventListener("popstate", this.goBack, false);
     if (this.permissionInterval) {
       clearInterval(this.permissionInterval);
     }
   },
 
   methods: {
+    goBack() {
+      this.$router.replace(this.$deviceHolder.mineReturnRouter);
+    },
     start() {
       if (!this.notificationPermissions) {
         this.permissionInterval = setInterval(() => {

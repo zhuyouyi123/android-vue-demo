@@ -114,7 +114,7 @@ export default {
     customSwipe,
     customPicker,
   },
-  mounted() {},
+  mounted() {this.$deviceHolder.routerPath = "home";},
 
   methods: {
     onClickTab() {},

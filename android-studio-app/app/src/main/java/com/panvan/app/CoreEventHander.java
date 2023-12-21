@@ -142,10 +142,13 @@ public class CoreEventHander {
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static Object[] getParam(Method method, String json) throws Exception {
+        Parameter[] parameters = method.getParameters();
         if (json == null || (json + "").equals("")) {
+            if (parameters.length > 0) {
+                return new Object[]{false};
+            }
             return null;
         }
-        Parameter[] parameters = method.getParameters();
         Object[] object = new Object[method.getParameters().length];
         JSONObject jsonObject = null;
         try {

@@ -28,6 +28,7 @@ import axios from "axios";
 import { getNowDateTime } from "@/utils/index.js";
 import deviceHolder from "./store/deviceHolder";
 import rem from "../static/rem";
+import { Toast } from "vant";
 export default {
   name: "App",
   components: { resize, rem },
@@ -43,6 +44,7 @@ export default {
         height: 20,
         key: "",
       },
+      currTime: 0,
     };
   },
 
@@ -53,11 +55,12 @@ export default {
 
     //通用安卓推送回调
     window.commonAndroidEvent = this.commonAndroidCallBack;
+    window._androidGoBackBySystemButton = this.androidGoBackBySystemButton;
     this.commonAndroidEvent = new Event("commonAndroidEvent");
   },
 
   methods: {
-    initConfig(){
+    initConfig() {
       this.$androidApi.initConfig();
     },
     /**
@@ -129,6 +132,51 @@ export default {
       }
     },
 
+     androidGoBackBySystemButton() {
+      if (
+        !this.$deviceHolder.routerPath ||
+        this.$deviceHolder.routerPath == "/"
+      ) {
+        let time = new Date().getTime();
+
+        if (time - this.currTime > 3000) {
+          Toast({ message: "再次返回后退出", position: "top" });
+          this.currTime = time;
+          return;
+        } else if (time - this.currTime <= 1000) {
+          return false;
+        }
+      } else if (this.$deviceHolder.routerPath == "home") {
+        this.$router.replace({
+          path: "/layout/index",
+          query: { active: 0 },
+        });
+      } else if (this.$deviceHolder.routerPath == "mine") {
+        this.$router.replace({
+          path: "/layout/index",
+          query: { active: 1 },
+        });
+      }
+      this.$deviceHolder.routerPath = "";
+    },
+
+    goBack() {
+      return new Promise((resolve, reject) => {
+        this.$dialog
+          .alert({
+            title: "提示",
+            message: "是否退出",
+            showCancelButton: true,
+          })
+          .then(() => {
+            resolve(false);
+          })
+          .catch(() => {
+            reject();
+          });
+      });
+    },
+
     responseDataHandle(data) {
       console.log("data.eventName", JSON.stringify(data.data));
 
@@ -162,8 +210,6 @@ export default {
           break;
       }
     },
-
-  
 
     getFirstUseTime() {
       this.$androidApi.shareGet("FIRST_USE_TIME").then((data) => {

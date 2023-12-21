@@ -22,8 +22,8 @@ public class Config {
      * 2.使用 npm run build 打包vue文件
      * 3.使用android-studio 打包成apk文件
      */
-   public static Boolean APK = false;
-    // public static Boolean APK = true;
+   // public static Boolean APK = false;
+    public static Boolean APK = true;
 
     /**
      * 基本项目目录
@@ -43,7 +43,7 @@ public class Config {
     /**
      * 系统后退按钮，是否显示退出提示框
      */
-    public static boolean isShowExitDialogByBackButton = false;
+    public static boolean isShowExitDialogByBackButton = true;
 
     /**
      * 获取当前webView请求页面
@@ -54,17 +54,7 @@ public class Config {
         return getAssetsPath();
     }
 
-    /**
-     * 获取当前webView 错误页面
-     *
-     * @return
-     */
-    public static String getWebErrorUrl() {
-        return getAssetsPath();
-    }
-
     public static String getAssetsPath() {
-        // return APK ? "file:///android_asset/ui/index.html" : "http://192.168.1.32:8888";
         return APK ? "file:///android_asset/ui/index.html" : "http://172.16.31.158:8888";
     }
 

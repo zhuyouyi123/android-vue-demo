@@ -9,6 +9,7 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.utils.CollectionUtils;
+import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.db.database.daoobject.ConfigurationDO;
 import com.db.database.enums.ConfigurationGroupEnum;
 import com.db.database.enums.ConfigurationTypeEnum;
@@ -16,6 +17,8 @@ import com.db.database.service.ConfigurationDataService;
 import com.panvan.app.Config;
 import com.panvan.app.data.enums.PermissionTypeEnum;
 import com.panvan.app.service.PermissionService;
+import com.panvan.app.utils.DataConvertUtil;
+import com.panvan.app.utils.SdkUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +27,8 @@ import java.util.Objects;
 
 public class CallViewModel {
     private CallModel mCallModel;
+
+    private static boolean isFirst = true;
 
     private static boolean inCallEnable = false;
     private static boolean inCallContactsEnable = false;
@@ -63,7 +68,7 @@ public class CallViewModel {
             protected void onStateRinging(int state, String phoneNumber) {
                 if (inCallEnable) {
                     Toast.makeText(Config.mainContext, "来电号码：" + (inCallContactsEnable ? phoneNumber : "不显示来电号码"), Toast.LENGTH_SHORT).show();
-
+                    start("");
                 }
             }
 
@@ -76,11 +81,36 @@ public class CallViewModel {
 
             @Override
             protected void onStateIdle(int state, String phoneNumber) {
+                if (isFirst) {
+                    isFirst = false;
+                    return;
+                }
                 if (inCallEnable) {
-                    Toast.makeText(Config.mainContext, "挂断空闲：" + phoneNumber, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Config.mainContext, "挂断：" + phoneNumber, Toast.LENGTH_SHORT).show();
+                    stop();
                 }
             }
         };
+    }
+
+    private void start(String phoneNumber) {
+        byte[] bytes = new byte[]{0x68, 0x01};
+        String hexStr = ProtocolUtil.byteArrToHexStr("17626525183".getBytes());
+        hexStr += "000000000000";
+        hexStr += "313131";
+        byte[] lenBytes = ProtocolUtil.intToByteArrayTwo(hexStr.length() + 2);
+
+        byte[] mergeLenBytes = DataConvertUtil.mergeBytes(bytes, lenBytes);
+
+        byte[] contentBytes = ProtocolUtil.hexStrToBytes(hexStr);
+        byte[] mergeBytes = DataConvertUtil.mergeBytes(mergeLenBytes, contentBytes);
+
+        // SdkUtil.writeCommand(ProtocolUtil.byteArrToHexStr(mergeBytes) + ProtocolUtil.byteToHexStr(ProtocolUtil.calcAddSum(mergeBytes)) + "16");
+        SdkUtil.writeCommand("6801160000313336353638393837343500000000E5BCA0E4B8893316");
+    }
+
+    private void stop() {
+        SdkUtil.writeCommand("68010100016B16");
     }
 
     public void loadConfig() {

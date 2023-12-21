@@ -6,6 +6,7 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 
 import com.db.database.callback.DBCallback;
+import com.db.database.daoobject.AllDayDataDO;
 import com.db.database.daoobject.CommunicationDataDO;
 
 import java.util.ArrayList;
@@ -25,6 +26,8 @@ public class CommunicationDataCache {
      */
     private static final ConcurrentMap<Integer, ConcurrentMap<String, CommunicationDataDO>> dataCacheMap = new ConcurrentHashMap<>();
     private static final ConcurrentMap<Integer, ConcurrentMap<String, Long>> CACHE_MAP = new ConcurrentHashMap<>();
+
+    private static final ConcurrentMap<Integer, AllDayDataDO> ALL_DAY_DATA_DO_CONCURRENT_MAP = new ConcurrentHashMap<>();
 
     private static CommunicationDataCache INSTANCE = null;
 
@@ -176,5 +179,19 @@ public class CommunicationDataCache {
 
     public static String getKey(String type, int sort) {
         return type + "-" + sort;
+    }
+
+
+    public void initAllDay(List<AllDayDataDO> list) {
+        ALL_DAY_DATA_DO_CONCURRENT_MAP.clear();
+        if (Objects.nonNull(list) && !list.isEmpty()) {
+            for (AllDayDataDO allDayDataDO : list) {
+                ALL_DAY_DATA_DO_CONCURRENT_MAP.put(allDayDataDO.getDateTime(), allDayDataDO);
+            }
+        }
+    }
+
+    public ConcurrentMap<Integer, AllDayDataDO> getAllDayMap() {
+        return ALL_DAY_DATA_DO_CONCURRENT_MAP;
     }
 }

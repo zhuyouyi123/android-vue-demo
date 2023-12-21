@@ -82,7 +82,7 @@ export default {
     this.generateTimeData();
   },
 
-  mounted() {},
+  mounted() {this.$deviceHolder.routerPath = "home";},
 
   methods: {
     generateTimeData() {

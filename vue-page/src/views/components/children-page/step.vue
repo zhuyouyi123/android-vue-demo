@@ -17,6 +17,7 @@
         tooltipName="步数"
         :time-interval="timeActive == 0"
         :axis-label-interval="timeActive == 0 ? 5 : null"
+        @extendedInfoResponse="extendedInfoResponse"
       >
       </custom-swipe>
 
@@ -34,7 +35,7 @@
         <div class="box round">
           <div class="name">总用时</div>
           <div class="num">
-            <span>{{ "01:15:00" }}</span>
+            <span>{{ $dateUtil.convertMinutesToTime(stepInfo.useTime) }}</span>
           </div>
         </div>
         <div class="box round">
@@ -70,14 +71,14 @@
         <div class="base-space-between-box">
           <div>本周</div>
           <div>
-            <span>5555</span>
+            <span>{{ dateDatas.currWeek }}</span>
             <span class="unit">步/天</span>
           </div>
         </div>
 
         <!-- 进度条 -->
         <van-progress
-          :percentage="1"
+          :percentage="parseInt((dateDatas.currWeek / 2000) * 100)"
           :color="'#1DA772'"
           :track-color="'#d1ede5'"
           :show-pivot="false"
@@ -87,14 +88,14 @@
         <div class="base-space-between-box">
           <div>上周</div>
           <div>
-            <span>5122</span>
+            <span>{{ dateDatas.lastWeek }}</span>
             <span class="unit">步/天</span>
           </div>
         </div>
 
         <!-- 进度条 -->
         <van-progress
-          :percentage="30"
+          :percentage="parseInt((dateDatas.lastWeek / 2000) * 100)"
           :color="'#1DA772'"
           :track-color="'#d1ede5'"
           :show-pivot="false"
@@ -108,14 +109,14 @@
         <div class="base-space-between-box">
           <div>本月</div>
           <div>
-            <span>5555</span>
+            <span>{{ dateDatas.currMonth }}</span>
             <span class="unit">步/天</span>
           </div>
         </div>
 
         <!-- 进度条 -->
         <van-progress
-          :percentage="50"
+          :percentage="parseInt((dateDatas.currMonth / 3000) * 100)"
           :color="'#1DA772'"
           :track-color="'#d1ede5'"
           :show-pivot="false"
@@ -125,14 +126,14 @@
         <div class="base-space-between-box">
           <div>上月</div>
           <div>
-            <span>5122</span>
+            <span>{{ dateDatas.lastMonth }}</span>
             <span class="unit">步/天</span>
           </div>
         </div>
 
         <!-- 进度条 -->
         <van-progress
-          :percentage="30"
+          :percentage="parseInt((dateDatas.lastMonth / 3000) * 100)"
           :color="'#1DA772'"
           :track-color="'#d1ede5'"
           :show-pivot="false"

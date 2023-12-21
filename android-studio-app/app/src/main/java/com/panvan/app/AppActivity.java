@@ -28,7 +28,6 @@ public class AppActivity extends AppInitTools {
     public HashMap<Integer, Intent> intentMap = new HashMap<>();
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,7 +38,6 @@ public class AppActivity extends AppInitTools {
 
         AppActivity.appActivity = this;
         this.setTitleColor(this.getResources().getColor(R.color.system_color));
-
 
 
         setFirstUseTime();
@@ -82,22 +80,22 @@ public class AppActivity extends AppInitTools {
             @Override
             public void onReceiveValue(String value) {
                 //此处为 js 返回的结果
-                if (value.equals("false") && Config.isShowExitDialogByBackButton) {
-                    new AlertDialog.Builder(AppActivity.this)
-                            .setMessage("是否要退出当前应用?")
-                            .setPositiveButton("是", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    AppActivity.super.onBackPressed();
-                                }
-                            })
-                            .setNegativeButton("否", null)
-                            .show();
+                if (value.equals("false")) {
+                    // new AlertDialog.Builder(AppActivity.this)
+                    //         .setMessage("是否要退出当前应用?")
+                    //         .setPositiveButton("是", new DialogInterface.OnClickListener() {
+                    //             @Override
+                    //             public void onClick(DialogInterface dialog, int which) {
+                    //
+                    //             }
+                    //         })
+                    //         .setNegativeButton("否", null)
+                    //         .show();
+                    AppActivity.super.onBackPressed();
                 }
             }
         });
     }
-
 
 
     @Override
@@ -118,7 +116,7 @@ public class AppActivity extends AppInitTools {
     public void initRefresh() {
         Button button = findViewById(R.id.refresh);
         button.setVisibility(View.INVISIBLE);
-       button.setVisibility(!Config.APK ? View.VISIBLE : View.INVISIBLE);
+        button.setVisibility(!Config.APK ? View.VISIBLE : View.INVISIBLE);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -138,12 +136,10 @@ public class AppActivity extends AppInitTools {
     }
 
 
-
-
     private void setFirstUseTime() {
         String shareGet = SharePreferenceUtil.getInstance().shareGet(SharePreferenceConstants.FIRST_USE_TIME);
 
-        if (StringUtils.isBlank(shareGet)){
+        if (StringUtils.isBlank(shareGet)) {
             SharePreferenceUtil.getInstance().shareSet(SharePreferenceConstants.FIRST_USE_TIME, DateUtils.getPreviousDate(3));
         }
     }

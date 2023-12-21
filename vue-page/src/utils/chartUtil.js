@@ -36,6 +36,7 @@ export default {
             androidApi.getHistoryData(type, dateType, currIndex).then((data) => {
                 let chartSize = data.chartSize;
                 let chartOptionsArray = [];
+                debugger
 
                 for (let i = 0; i < chartSize; i++) {
                     if (data.dataIndex == i) {
@@ -65,7 +66,8 @@ export default {
                     extendedInfo: {
                         average: data.average,
                         max: data.max,
-                        min: data.min
+                        min: data.min,
+                        extendedInfo: data.extendedInfo
                     }
                 });
             }).catch(error => {
@@ -119,7 +121,8 @@ export default {
                     extendedInfo: {
                         average: data.average,
                         max: data.max,
-                        min: data.min
+                        min: data.min,
+                        extendedInfo: data.extendedInfo
                     }
                 });
             })
@@ -163,7 +166,8 @@ export default {
                     extendedInfo: {
                         average: data.average,
                         max: data.max,
-                        min: data.min
+                        min: data.min,
+                        extendedInfo: data.extendedInfo
                     }
                 });
             })
@@ -182,7 +186,7 @@ export default {
     }),
 
     allMultipleZeros: (arr) => {
-        return arr[0].length == 0 || arr[0].every((element) => element === 0 || element == '0.0' || element === '0' || !element)
+        return arr.length == 0 || arr[0].length == 0 || arr[0].every((element) => element === 0 || element == '0.0' || element === '0' || !element)
     },
 
     allZeros: (arr) => {

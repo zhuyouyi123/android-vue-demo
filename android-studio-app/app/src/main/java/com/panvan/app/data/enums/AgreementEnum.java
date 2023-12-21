@@ -6,8 +6,10 @@ import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
+import com.db.database.UserDatabase;
 import com.db.database.daoobject.CommunicationDataDO;
 import com.db.database.service.CommunicationDataService;
+import com.db.database.service.DeviceDataService;
 import com.db.database.utils.DataConvertUtils;
 import com.db.database.utils.DateUtils;
 import com.panvan.app.callback.AgreementCallback;
@@ -21,6 +23,7 @@ import com.panvan.app.utils.JsBridgeUtil;
 import com.panvan.app.utils.LogUtil;
 
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -139,6 +142,37 @@ public enum AgreementEnum {
         }
     },
 
+
+    DEVICE_INFO(0X16, 0X96, "DEVICE_INFO") {
+        @Override
+        public void responseHandle(byte[] bytes, AgreementCallback callback) {
+            if (bytes[bytes.length - 1] != 0x16 || !DataConvertUtil.checkSum(bytes)) {
+                callback.failed(DEVICE_INFO, bytes);
+                return;
+            }
+            LogUtil.info("设备信息", ProtocolUtil.byteArrToHexStr(bytes));
+
+            byte[] model = DataConvertUtil.getSubArray(bytes, 9, 4);
+            // 指定使用 UTF-8 编码将字节数组转换为字符串
+            String modelStr = new String(model, StandardCharsets.UTF_8);
+            byte[] subArray = DataConvertUtil.getSubArray(bytes, bytes.length - 30, 14);
+            String version = new String(subArray, StandardCharsets.UTF_8);
+
+            DeviceHolder.getInstance().getInfo().setModel(modelStr);
+            DeviceHolder.getInstance().getInfo().setFirmwareVersion(version);
+
+            DeviceDataService.getInstance().setModelAndVersion(modelStr, version);
+
+            CommandRetryScheduled.getInstance().remove("16");
+            callback.success(DEVICE_INFO);
+        }
+
+        @Override
+        public byte[] getRequestCommand(String params) {
+            String hex = "68160200FB007B16";
+            return ProtocolUtil.hexStrToBytes(hex);
+        }
+    },
 
     HISTORY_DATA(0X17, 0X17, "HISTORY_DATA") {
         @RequiresApi(api = Build.VERSION_CODES.N)

@@ -2,6 +2,7 @@ import customNavBar from "@/views/components/custom/customNavBar";
 import echartsComponent from "@/components/Charts/echartsComponent.vue";
 import customSwipe from "../custom/customSwipe.vue";
 import customPicker from '@/views/components/custom/customPicker'
+import deviceData from "@/store/deviceData";
 
 export default {
     components: {
@@ -20,6 +21,12 @@ export default {
             stepInfo: {
                 stepNumber: 0,
                 mileage: 0,
+                calories: 0,
+                useTime: 0,
+            },
+            otherStepInfo: {
+                stepNumber: 0,
+                mileage: 0,
                 calories: 0
             },
             initialSwipe: 0,
@@ -27,14 +34,24 @@ export default {
             complianceDays: 0,
             // 连续达标天数
             continueComplianceDays: 0,
+            dateDatas: {
+                currMonth: 0,
+                currWeek: 0,
+                lastMonth: 0,
+                lastWeek: 0
+            },
+
+
         };
     },
 
     mounted() {
+        this.$deviceHolder.routerPath = "home";
         // 设置显示日期
         // this.setDateText();
         this.setDayData();
         this.queryComplianceDays();
+        this.queryWeekAndMonthStepData();
 
     },
 
@@ -42,7 +59,6 @@ export default {
         onClickTab(e) {
             // 设置显示日期
             this.setDateText();
-            console.log("onClickTab", e);
             this.$refs.customSwipe.changeDateType(e);
         },
 
@@ -58,10 +74,18 @@ export default {
         },
 
         vanSwipeChange(e, chartSize) {
-            console.log(this.timeActive);
             this.dateText = this.$dateUtil.getDateTextByActive(this.timeActive, chartSize - (e + 1));
-            console.log(this.dateText);
             this.initialSwipe = e;
+        },
+
+        extendedInfoResponse(e) {
+            this.stepInfo = {
+                stepNumber: e.extendedInfo.stepNumber,
+                mileage: e.extendedInfo.mileage,
+                calories: e.extendedInfo.calories,
+                useTime: e.extendedInfo.useTime,
+            }
+            // extendedInfo":{"calories":13,"mileage":681,"stepNumber":954,"useTime":0}}
         },
 
         setTarget() {
@@ -73,6 +97,10 @@ export default {
                 this.complianceDays = res.complianceDays
                 this.continueComplianceDays = res.continueComplianceDays
             })
+        },
+
+        queryWeekAndMonthStepData() {
+            deviceData.queryWeekAndMonthStepData().then(res => this.dateDatas = { ...res })
         },
     },
 };

@@ -44,8 +44,6 @@ public class AllDayDataService {
                     if (Objects.isNull(STEP_TARGET)) {
                         ConfigurationDO configurationDO = UserDatabase.getInstance().getConfigurationDAO().queryByGroupAndType(ConfigurationTypeEnum.TARGET_STEP.getGroup().getName(), ConfigurationTypeEnum.TARGET_STEP.getType());
                         STEP_TARGET = Objects.isNull(configurationDO) ? ConfigurationTypeEnum.TARGET_STEP.getDefaultValue() : configurationDO.getValue();
-                    } else {
-                        STEP_TARGET = ConfigurationTypeEnum.TARGET_STEP.getDefaultValue();
                     }
 
                     // 设置是否达标

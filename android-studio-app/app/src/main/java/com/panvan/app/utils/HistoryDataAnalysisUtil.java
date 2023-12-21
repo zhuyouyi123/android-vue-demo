@@ -16,6 +16,7 @@ import com.db.database.utils.DateUtils;
 import com.panvan.app.data.constants.ChartConstants;
 import com.panvan.app.data.constants.SharePreferenceConstants;
 import com.panvan.app.data.enums.HistoryDataTypeEnum;
+import com.panvan.app.data.holder.DeviceHolder;
 import com.panvan.app.data.holder.chart.ChartInfo;
 import com.panvan.app.data.holder.chart.MonthChartInfo;
 import com.panvan.app.data.holder.chart.MultipleChartInfo;
@@ -89,6 +90,10 @@ public class HistoryDataAnalysisUtil {
         bytes = DataConvertUtils.subBytes(bytes, 10, bytes.length - 10 - 2);
 
         String[] arr = new String[bytes.length / packetsPerFiveMinutes];
+
+        if (arr.length > 200) {
+            return arr;
+        }
 
         // 计算每个五分钟段的平均值
         int index = 0;
@@ -316,17 +321,41 @@ public class HistoryDataAnalysisUtil {
         chartInfoVO.setDataIndex(daysBetweenTodayAndFirstUseTime - index - 1);
         Integer previousIntDate = DateUtils.getPreviousIntDate(daysBetweenTodayAndFirstUseTime - index - 1);
 
+
         ChartInfo<String> chartInfo = getChartInfo(previousIntDate, type);
         chartInfoList.add(chartInfo);
 
         HistoryDataTypeEnum typeEnum = HistoryDataTypeEnum.getType(type);
         boolean needDouble = typeEnum == HistoryDataTypeEnum.TEMPERATURE;
 
+        if (typeEnum == HistoryDataTypeEnum.STEP) {
+            DeviceHolder.StepInfo allDayData = getAllDayData(previousIntDate);
+            chartInfoVO.setExtendedInfo(allDayData);
+        }
         chartInfoVO.setAverage(DataConvertUtil.calcDoubleStringAverage(chartInfo.getHourlyData(), needDouble));
         chartInfoVO.setMax(DataConvertUtil.getListStringMax(chartInfo.getHourlyData(), needDouble));
         chartInfoVO.setMin(DataConvertUtil.getListStringMin(chartInfo.getHourlyData(), needDouble));
         chartInfoVO.setList(chartInfoList);
         return chartInfoVO;
+    }
+
+    private static DeviceHolder.StepInfo getAllDayData(Integer previousIntDate) {
+        if (DateUtils.isSameDay(previousIntDate)) {
+            DeviceHolder.StepInfo stepInfo = DeviceHolder.getInstance().getInfo().getStepInfo();
+            double walkingSpeed = 5000; // 步行速度，单位：公里/小时
+            double time = stepInfo.getMileage() / walkingSpeed; // 计算时间，单位：小时
+            stepInfo.setUseTime(Double.valueOf(time * 60).intValue());
+            return stepInfo;
+        }
+
+        DeviceHolder.StepInfo stepInfo = new DeviceHolder.StepInfo();
+        AllDayDataDO allDayDataDO = CommunicationDataCache.getInstance().getAllDayMap().get(previousIntDate);
+        if (null != allDayDataDO) {
+            stepInfo.setCalories(allDayDataDO.getCalorie());
+            stepInfo.setMileage(allDayDataDO.getMileage());
+            stepInfo.setUseTime(allDayDataDO.getActiveTime());
+        }
+        return stepInfo;
     }
 
     public static MultipleChartInfoVO<MultipleChartInfo<List<String>>> multipleStatisticalDataByDay(String type, Integer index) {
@@ -401,6 +430,43 @@ public class HistoryDataAnalysisUtil {
         }
     }
 
+    public static Integer getStepAveByDateType(boolean isWeek, int index) {
+        int length;
+        Map<Integer, List<Integer>> dates;
+        if (isWeek) {
+            // 根据第一次时间计算到今天有几周
+            length = DateUtil.calculateWeeksToCurrentWeek(String.valueOf(firstUseTime));
+            dates = DateUtil.getWeeksDates(length);
+        } else {
+            // 根据第一次时间计算到今天有几月
+            length = DateUtil.calculateMonthsToCurrentDate(String.valueOf(firstUseTime));
+            dates = DateUtil.getDatesForMonth(length);
+        }
+
+        List<Map.Entry<Integer, List<Integer>>> list = new ArrayList<>(dates.entrySet());
+
+        if (CollectionUtils.isEmpty(list) || list.size() <= index) {
+            return 0;
+        }
+
+        Map.Entry<Integer, List<Integer>> entry = list.get(index);
+
+        List<Integer> value = entry.getValue();
+        // 初始化集合 存放每天数据
+        List<Double> dayData = new ArrayList<>();
+
+        for (Integer date : value) {
+            CommunicationDataDO communicationDataDO = CommunicationDataCache.get(date, HistoryDataTypeEnum.STEP.getKeyDes());
+            if (null == communicationDataDO) {
+                dayData.add(0.0);
+            } else {
+                dayData.add(calcDataSum(communicationDataDO.getData()));
+            }
+        }
+
+        return Integer.parseInt(DataConvertUtil.calculateIntAverage(dayData));
+    }
+
     public static SingleChartInfoVO<WeekChartInfo<String>> statisticalDataByWeek(String type, Integer index) {
         // 第一次使用时间
         setFirstUseTime();
@@ -431,28 +497,45 @@ public class HistoryDataAnalysisUtil {
         // 初始化集合 存放每天数据
         List<Double> dayData = new ArrayList<>();
 
+        List<CommunicationDataDO> doList = new ArrayList<>();
+        List<DeviceHolder.StepInfo> stepInfoList = new ArrayList<>();
         for (Integer date : value) {
             CommunicationDataDO communicationDataDO = CommunicationDataCache.get(date, type);
             if (null == communicationDataDO) {
                 dayData.add(0.0);
             } else {
+                doList.add(communicationDataDO);
                 if (isTemperature || isHeartRate || isBloodOxygen) {
                     dayData.add(DataConvertUtil.calcDataAverage(communicationDataDO.getData()));
                 } else {
                     dayData.add(calcDataSum(communicationDataDO.getData()));
                 }
             }
+            DeviceHolder.StepInfo allDayData = getAllDayData(date);
+            if (Objects.nonNull(allDayData)) {
+                stepInfoList.add(allDayData);
+            }
+        }
+
+        if (typeEnum == HistoryDataTypeEnum.STEP) {
+            DeviceHolder.StepInfo stepInfo = new DeviceHolder.StepInfo();
+            for (DeviceHolder.StepInfo item : stepInfoList) {
+                stepInfo.setUseTime(stepInfo.getUseTime() + item.getUseTime());
+                stepInfo.setStepNumber(stepInfo.getStepNumber() + item.getStepNumber());
+                stepInfo.setCalories(stepInfo.getCalories() + item.getCalories());
+                stepInfo.setMileage(stepInfo.getMileage() + item.getMileage());
+            }
+            chartInfoVO.setExtendedInfo(stepInfo);
         }
 
         if (isTemperature) {
             chartInfoVO.setAverage(String.valueOf(DataConvertUtil.calcListDoubleAverage(dayData)));
-            chartInfoVO.setMax(DataConvertUtil.getDoubleListMax(dayData, true));
-            chartInfoVO.setMin(DataConvertUtil.getDoubleListMin(dayData, true));
         } else {
-            chartInfoVO.setAverage(DataConvertUtil.calculateIntAverage(dayData));
-            chartInfoVO.setMax(DataConvertUtil.getDoubleListMax(dayData, false));
-            chartInfoVO.setMin(DataConvertUtil.getDoubleListMin(dayData, false));
+            chartInfoVO.setAverage(String.valueOf(DataConvertUtil.roundedDoubleToInt(DataConvertUtil.calcListDoubleAverage(dayData))));
         }
+
+        chartInfoVO.setMax(DataConvertUtil.calcDOMaxValue(doList, true, isTemperature));
+        chartInfoVO.setMin(DataConvertUtil.calcDOMaxValue(doList, false, isTemperature));
 
         List<String> stringList = new ArrayList<>();
         for (Double dayDatum : dayData) {
@@ -508,7 +591,7 @@ public class HistoryDataAnalysisUtil {
                 highList.add("0");
                 continue;
             }
-            if (Objects.nonNull(multipleChartInfo.getOriginalData())){
+            if (Objects.nonNull(multipleChartInfo.getOriginalData())) {
                 allList.addAll(multipleChartInfo.getOriginalData());
             }
 
@@ -565,11 +648,15 @@ public class HistoryDataAnalysisUtil {
         // 初始化集合 存放每天数据
         List<Double> dayData = new ArrayList<>();
         List<String> xAxis = new ArrayList<>();
+        List<CommunicationDataDO> doList = new ArrayList<>();
+        List<DeviceHolder.StepInfo> stepInfoList = new ArrayList<>();
+
         for (Integer date : value) {
             CommunicationDataDO communicationDataDO = CommunicationDataCache.get(date, type);
             if (null == communicationDataDO) {
                 dayData.add(0.0);
             } else {
+                doList.add(communicationDataDO);
                 if (isTemperature || isHeartRate || isBloodOxygen) {
                     dayData.add(DataConvertUtil.calcDataAverage(communicationDataDO.getData()));
                 } else {
@@ -577,6 +664,21 @@ public class HistoryDataAnalysisUtil {
                 }
             }
             xAxis.add(DateUtil.convertDate(String.valueOf(date)));
+            DeviceHolder.StepInfo allDayData = getAllDayData(date);
+            if (Objects.nonNull(allDayData)) {
+                stepInfoList.add(allDayData);
+            }
+        }
+
+        if (typeEnum == HistoryDataTypeEnum.STEP) {
+            DeviceHolder.StepInfo stepInfo = new DeviceHolder.StepInfo();
+            for (DeviceHolder.StepInfo item : stepInfoList) {
+                stepInfo.setUseTime(stepInfo.getUseTime() + item.getUseTime());
+                stepInfo.setStepNumber(stepInfo.getStepNumber() + item.getStepNumber());
+                stepInfo.setCalories(stepInfo.getCalories() + item.getCalories());
+                stepInfo.setMileage(stepInfo.getMileage() + item.getMileage());
+            }
+            chartInfoVO.setExtendedInfo(stepInfo);
         }
 
         List<String> stringList = new ArrayList<>();
@@ -595,13 +697,11 @@ public class HistoryDataAnalysisUtil {
 
         if (isTemperature) {
             chartInfoVO.setAverage(String.valueOf(DataConvertUtil.calcListDoubleAverage(dayData)));
-            chartInfoVO.setMax(DataConvertUtil.getDoubleListMax(dayData, true));
-            chartInfoVO.setMin(DataConvertUtil.getDoubleListMin(dayData, true));
         } else {
-            chartInfoVO.setAverage(DataConvertUtil.calculateIntAverage(dayData));
-            chartInfoVO.setMax(DataConvertUtil.getDoubleListMax(dayData, false));
-            chartInfoVO.setMin(DataConvertUtil.getDoubleListMin(dayData, false));
+            chartInfoVO.setAverage(String.valueOf(DataConvertUtil.roundedDoubleToInt(DataConvertUtil.calcListDoubleAverage(dayData))));
         }
+        chartInfoVO.setMax(DataConvertUtil.calcDOMaxValue(doList, true, isTemperature));
+        chartInfoVO.setMin(DataConvertUtil.calcDOMaxValue(doList, false, isTemperature));
 
         chartInfoVO.setList(monthChartInfoList);
 
@@ -645,7 +745,7 @@ public class HistoryDataAnalysisUtil {
                 highList.add("0");
                 continue;
             }
-            if (Objects.nonNull(multipleChartInfo.getOriginalData())){
+            if (Objects.nonNull(multipleChartInfo.getOriginalData())) {
                 allList.addAll(multipleChartInfo.getOriginalData());
             }
             if (isNeedInterval) {
@@ -714,37 +814,41 @@ public class HistoryDataAnalysisUtil {
             return new String[0];
         }
 
-        byte[] subBytes = DataConvertUtils.subBytes(bytes, 10, bytes.length - 10 - 2);
-        int index = 0;
-        // 步数信息
-        byte[] stepArray = DataConvertUtils.subBytes(subBytes, index, 4);
-        int step = ProtocolUtil.byteArrayToInt(stepArray, false);
-        // 卡路里
-        byte[] caArray = DataConvertUtils.subBytes(subBytes, index += 4, 4);
-        int ca = ProtocolUtil.byteArrayToInt(caArray, false);
-        // 里程
-        byte[] meArray = DataConvertUtils.subBytes(subBytes, index += 4, 4);
-        int me = ProtocolUtil.byteArrayToInt(meArray, false);
-        // 活动时间
-        byte[] activeTimeArray = DataConvertUtils.subBytes(subBytes, index += 4, 4);
-        int activeTime = ProtocolUtil.byteArrayToInt(activeTimeArray, false);
-        // 活动消耗
-        byte[] activeCaArray = DataConvertUtils.subBytes(subBytes, index + 4, 4);
-        int activeCa = ProtocolUtil.byteArrayToInt(caArray, false);
+        try {
+            byte[] subBytes = DataConvertUtils.subBytes(bytes, 10, bytes.length - 10 - 2);
+            int index = 0;
+            // 步数信息
+            byte[] stepArray = DataConvertUtils.subBytes(subBytes, index, 4);
+            int step = ProtocolUtil.byteArrayToInt(stepArray, false);
+            // 卡路里
+            byte[] caArray = DataConvertUtils.subBytes(subBytes, index += 4, 4);
+            int ca = ProtocolUtil.byteArrayToInt(caArray, false);
+            // 里程
+            byte[] meArray = DataConvertUtils.subBytes(subBytes, index += 4, 4);
+            int me = ProtocolUtil.byteArrayToInt(meArray, false);
+            // 活动时间
+            byte[] activeTimeArray = DataConvertUtils.subBytes(subBytes, index += 4, 4);
+            int activeTime = ProtocolUtil.byteArrayToInt(activeTimeArray, false);
+            // 活动消耗
+            byte[] activeCaArray = DataConvertUtils.subBytes(subBytes, index + 4, 4);
+            int activeCa = ProtocolUtil.byteArrayToInt(caArray, false);
 
-        AllDayDataDO allDayDataDO = new AllDayDataDO();
-        allDayDataDO.setStep(step);
-        allDayDataDO.setCalorie(ca);
-        allDayDataDO.setMileage(me);
-        allDayDataDO.setActiveTime(activeTime);
-        allDayDataDO.setDateTime(DateUtils.formatDateToInt(bytes[4], bytes[5], bytes[6]));
+            AllDayDataDO allDayDataDO = new AllDayDataDO();
+            allDayDataDO.setStep(step);
+            allDayDataDO.setCalorie(ca);
+            allDayDataDO.setMileage(me);
+            allDayDataDO.setActiveTime(activeTime);
+            allDayDataDO.setDateTime(DateUtils.formatDateToInt(bytes[4], bytes[5], bytes[6]));
 
-        // 证明数据都是无效的数据 不保存
-        if (step == -1 || ca == -1) {
-            return new String[0];
+            // 证明数据都是无效的数据 不保存
+            if (step == -1 || ca == -1) {
+                return new String[0];
+            }
+
+            AllDayDataService.getInstance().save(allDayDataDO);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        AllDayDataService.getInstance().save(allDayDataDO);
 
         return new String[0];
     }
