@@ -512,7 +512,6 @@ export default {
     },
 
     handleFirmwareUpgrade(data) {
-      console.log(JSON.stringify(data));
       let needClose = false;
       switch (data.key) {
         case "UPGRADE_FAILED":
@@ -560,7 +559,6 @@ export default {
         });
         const data = await response.json();
         // 在这里处理返回的数据
-        console.log(data);
         return data;
       } catch (error) {
         // 在这里处理错误

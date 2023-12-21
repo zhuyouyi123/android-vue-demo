@@ -96,9 +96,6 @@ export default {
 
   mounted() {
     this.$deviceHolder.routerPath = "home";
-    // this.$androidApi.getHistoryData("09").then((data) => {
-    //   console.log(JSON.stringify(data));
-    // });
   },
 
   methods: {

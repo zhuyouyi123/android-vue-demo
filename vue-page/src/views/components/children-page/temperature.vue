@@ -79,7 +79,6 @@ export default {
 
   methods: {
     extendedInfoResponse(extendedInfo) {
-      console.log("extendedInfo", JSON.stringify(extendedInfo));
       this.extendedInfo = { ...extendedInfo };
     },
 

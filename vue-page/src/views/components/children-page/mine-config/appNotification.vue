@@ -121,7 +121,6 @@ export default {
       this.$androidApi
         .queryConfigurationByGroup(this.pageGroup)
         .then((data) => {
-          console.log(JSON.stringify(data));
           data.forEach((e) => {
             if (e.type == this.configKey) {
               this.notifyEnable = e.value == 1;

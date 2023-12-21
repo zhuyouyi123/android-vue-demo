@@ -178,14 +178,11 @@ export default {
     },
 
     responseDataHandle(data) {
-      console.log("data.eventName", JSON.stringify(data.data));
-
       switch (data.eventName) {
         case "DEVICE_BATTERY":
           deviceHolder.deviceInfo.battery = data.data;
           break;
         case "DEVICE_REAL_TIME":
-          console.log(JSON.stringify(data.data));
           deviceHolder.deviceInfo = JSON.parse(JSON.stringify(data.data));
           break;
         case "STEP_HISTORY_DATA":

@@ -206,7 +206,6 @@ export default {
     },
 
     toolTipValueResponse(e) {
-      console.log(JSON.stringify(e));
       this.$emit("toolTipValueResponse", e);
       this.setRealData(e);
     },

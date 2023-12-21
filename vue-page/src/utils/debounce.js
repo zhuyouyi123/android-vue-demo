@@ -6,7 +6,6 @@ function debounce(fn, wait = 50) {
     return function (...args) {
         // 如果已经设定过定时器就清空上一次的定时器
         if (timer) {
-            console.log(121212);
             clearTimeout(timer)
         }
 

@@ -346,7 +346,7 @@ function request(type, path, params) {
       return;
     }
     if (res.errorCode == 0) {
-      console.log("androidVue 结果", JSON.stringify(res));
+      console.log(`android-vue path:${path} res:${JSON.stringify(res)}`);
       resolve(res.data);
     } else {
       Toast.fail({ message: res.errorMsg[0], position: "top" })

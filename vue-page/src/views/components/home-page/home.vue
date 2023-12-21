@@ -468,7 +468,6 @@ export default {
     },
 
     callJs(e) {
-      console.log("接收到数据返回：" + JSON.stringify(e));
       let eventName = e.data.eventName;
       let data = e.data.data;
       switch (eventName) {
