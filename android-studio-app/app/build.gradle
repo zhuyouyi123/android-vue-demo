@@ -10,8 +10,8 @@ android {
         applicationId "com.order.management"
         minSdk 21
         targetSdk 32
-        versionCode 2
-        versionName "0.0.1"
+        versionCode 4
+        versionName "0.0.5"
 
     }
 

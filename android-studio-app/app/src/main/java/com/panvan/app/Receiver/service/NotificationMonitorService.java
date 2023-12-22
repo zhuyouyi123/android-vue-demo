@@ -28,6 +28,7 @@ import com.panvan.app.Config;
 import com.panvan.app.data.enums.NotificationTypeEnum;
 import com.panvan.app.data.holder.DeviceHolder;
 import com.panvan.app.utils.SdkUtil;
+import com.panvan.app.utils.StringUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -109,6 +110,9 @@ public class NotificationMonitorService extends NotificationListenerService {
                 Log.d(TAG, "通知的标题为：" + title);
                 // 获取通知内容
                 content = extras.getString(Notification.EXTRA_TEXT, "");
+                if (StringUtils.isBlank(content)) {
+                    content = Objects.isNull(extras.get("android.text")) ? "" : extras.get("android.text").toString();
+                }
                 Log.d(TAG, "通知的内容为：" + content);
             }
         } else {

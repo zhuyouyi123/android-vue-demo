@@ -3,6 +3,7 @@
   <div>
     <van-popup v-model="showPicker" round position="bottom">
       <van-picker
+        v-if="showPicker"
         :title="title"
         show-toolbar
         :columns="columns"
@@ -37,9 +38,32 @@ export default {
   },
 
   components: {},
+  destroyed() {},
 
   mounted() {
-    this.$androidApi.queryConfigurationByGroup(this.group).then((data) => {
+    
+  },
+
+  methods: {
+    onConfirm(e) {
+      let params = {
+        type: this.type,
+        group: this.group,
+        value: e,
+      };
+      this.$androidApi.updateConfigStatus(params).then(() => {
+        Toast.success({ message: "保存成功", position: "top" });
+        this.onCancel();
+      });
+    },
+    onCancel() {
+      this.showPicker = false;
+    },
+    onChange() {},
+
+    open() {
+      this.showPicker = true;
+      this.$androidApi.queryConfigurationByGroup(this.group).then((data) => {
       this.columns = [];
       let tar = data.find((e) => e.type == this.type);
       switch (this.type) {
@@ -64,27 +88,6 @@ export default {
           break;
       }
     });
-  },
-
-  methods: {
-    onConfirm(e) {
-      let params = {
-        type: this.type,
-        group: this.group,
-        value: e,
-      };
-      this.$androidApi.updateConfigStatus(params).then(() => {
-        Toast.success({ message: "保存成功", position: "top" });
-        this.onCancel();
-      });
-    },
-    onCancel() {
-      this.showPicker = false;
-    },
-    onChange() {},
-
-    open() {
-      this.showPicker = true;
     },
 
     close() {

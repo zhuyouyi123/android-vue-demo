@@ -6,6 +6,8 @@ public class DeviceInfoVO {
 
     private DeviceHolder.DeviceInfo deviceInfo;
 
+    private Boolean connectStatus;
+
     public DeviceInfoVO(DeviceHolder.DeviceInfo deviceInfo) {
         this.deviceInfo = deviceInfo;
     }
@@ -16,5 +18,13 @@ public class DeviceInfoVO {
 
     public void setDeviceInfo(DeviceHolder.DeviceInfo deviceInfo) {
         this.deviceInfo = deviceInfo;
+    }
+
+    public Boolean getConnectStatus() {
+        return connectStatus;
+    }
+
+    public void setConnectStatus(Boolean connectStatus) {
+        this.connectStatus = connectStatus;
     }
 }

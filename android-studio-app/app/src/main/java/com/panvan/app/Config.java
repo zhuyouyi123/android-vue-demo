@@ -22,8 +22,8 @@ public class Config {
      * 2.使用 npm run build 打包vue文件
      * 3.使用android-studio 打包成apk文件
      */
-   // public static Boolean APK = false;
-    public static Boolean APK = true;
+   public static Boolean APK = true;
+    // public static Boolean APK = false;
 
     /**
      * 基本项目目录
@@ -39,11 +39,6 @@ public class Config {
      * 是否显示状态栏
      */
     public static boolean showStatusBar = true;
-
-    /**
-     * 系统后退按钮，是否显示退出提示框
-     */
-    public static boolean isShowExitDialogByBackButton = true;
 
     /**
      * 获取当前webView请求页面

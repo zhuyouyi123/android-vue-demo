@@ -19,5 +19,10 @@ public class DfuService extends DfuBaseService {
         super.onDestroy();
     }
 
+    @Override
+    public boolean isDebug() {
+        return true;
+    }
+
 
 }

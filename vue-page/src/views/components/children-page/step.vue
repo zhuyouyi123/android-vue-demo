@@ -78,7 +78,11 @@
 
         <!-- 进度条 -->
         <van-progress
-          :percentage="parseInt((dateDatas.currWeek / 2000) * 100)"
+          :percentage="
+            parseInt((dateDatas.currWeek / 2000) * 100) >= 100
+              ? 100
+              : parseInt((dateDatas.currWeek / 2000) * 100)
+          "
           :color="'#1DA772'"
           :track-color="'#d1ede5'"
           :show-pivot="false"
@@ -95,7 +99,11 @@
 
         <!-- 进度条 -->
         <van-progress
-          :percentage="parseInt((dateDatas.lastWeek / 2000) * 100)"
+          :percentage="
+            parseInt((dateDatas.lastWeek / 2000) * 100) >= 100
+              ? 100
+              : parseInt((dateDatas.lastWeek / 2000) * 100)
+          "
           :color="'#1DA772'"
           :track-color="'#d1ede5'"
           :show-pivot="false"
@@ -116,7 +124,11 @@
 
         <!-- 进度条 -->
         <van-progress
-          :percentage="parseInt((dateDatas.currMonth / 3000) * 100)"
+          :percentage="
+            parseInt((dateDatas.currMonth / 3000) * 100) >= 100
+              ? 100
+              : parseInt((dateDatas.currMonth / 3000) * 100)
+          "
           :color="'#1DA772'"
           :track-color="'#d1ede5'"
           :show-pivot="false"
@@ -133,7 +145,11 @@
 
         <!-- 进度条 -->
         <van-progress
-          :percentage="parseInt((dateDatas.lastMonth / 3000) * 100)"
+          :percentage="
+            parseInt((dateDatas.lastMonth / 3000) * 100) >= 100
+              ? 100
+              : parseInt((dateDatas.lastMonth / 3000) * 100)
+          "
           :color="'#1DA772'"
           :track-color="'#d1ede5'"
           :show-pivot="false"

@@ -23,7 +23,7 @@ public class WriteCommandTask extends AsyncTask<Void, Void, Void> {
             }
             SdkUtil.writeCommand(instruction);
             try {
-                Thread.sleep(30);  // 添加适当的延迟
+                Thread.sleep(20);  // 添加适当的延迟
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

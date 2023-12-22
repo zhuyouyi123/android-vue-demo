@@ -1,8 +1,13 @@
 package com.panvan.app.controller;
 
+import android.app.Activity;
+import android.bluetooth.BluetoothProfile;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 
 import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
 import com.ble.blescansdk.ble.scan.handle.BleHandler;
@@ -18,6 +23,7 @@ import com.panvan.app.annotation.AppRequestMapper;
 import com.panvan.app.annotation.AppRequestMethod;
 import com.panvan.app.callback.ConnectCallback;
 import com.panvan.app.connect.DeviceConnectHandle;
+import com.panvan.app.data.constants.ActiveForResultConstants;
 import com.panvan.app.data.constants.SharePreferenceConstants;
 import com.panvan.app.data.entity.vo.ComplianceDaysVO;
 import com.panvan.app.data.entity.vo.CurrDayLastInfoVO;
@@ -45,7 +51,6 @@ public class CommunicationController {
     @AppRequestMapper(path = "/init", method = AppRequestMethod.POST)
     public RespVO<InitVO> init(Boolean reload) {
         InitVO initVO = PermissionService.getInstance().checkPermission();
-
         // 未连接时 连接设备
         boolean needConnect = Objects.isNull(DeviceHolder.DEVICE) || DeviceHolder.DEVICE.getConnectState() != DeviceHolder.CONNECTED;
         if (needConnect) {
@@ -142,12 +147,26 @@ public class CommunicationController {
 
     @AppRequestMapper(path = "/dfu-upgrade", method = AppRequestMethod.POST)
     public RespVO<Void> startDufUpgrade() {
-        BleHandler.of().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                CommunicationService.getInstance().startDufUpgrade();
+        if (!NotificationManagerCompat.from(Config.mainContext).areNotificationsEnabled()) {
+            Intent intent = new Intent();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {// android 8.0引导
+                intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
+                intent.putExtra("android.provider.extra.APP_PACKAGE", Config.mainContext.getPackageName());
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { // android 5.0-7.0
+                intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
+                intent.putExtra("app_package", Config.mainContext.getPackageName());
+                intent.putExtra("app_uid", Config.mainContext.getApplicationInfo().uid);
+            } else {//其它
+                intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+                intent.setData(Uri.fromParts("package", Config.mainContext.getPackageName(), null));
             }
-        }, 5000);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Activity activity = (Activity) Config.mainContext;
+            activity.startActivityForResult(intent, ActiveForResultConstants.REQUEST_NOTIFY_CODE);
+        }
+
+        BleHandler.of().postDelayed(() -> CommunicationService.getInstance().startDufUpgrade(), 5000);
+
         return RespVO.success();
     }
 }

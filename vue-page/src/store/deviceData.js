@@ -14,6 +14,7 @@ export default {
             androidApi.getDeviceInfo().then((data) => {
                 if (data && data.deviceInfo) {
                     deviceHolder.deviceInfo = data.deviceInfo;
+                    deviceHolder.connectStatus = data.connectStatus
                     deviceHolder.bindingInfo.time = new Date().getTime();
                     resolve(data.deviceInfo);
                     return

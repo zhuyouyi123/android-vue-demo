@@ -1,5 +1,7 @@
 package com.panvan.app.utils;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -7,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
+import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.db.database.daoobject.DeviceDO;
 import com.db.database.service.DeviceDataService;
@@ -24,12 +27,15 @@ import com.panvan.app.data.constants.PermissionsRequestConstants;
 import com.panvan.app.data.constants.SharePreferenceConstants;
 import com.panvan.app.data.entity.bo.WatchQrCodeBO;
 import com.panvan.app.data.holder.DeviceHolder;
+import com.panvan.app.service.CommunicationService;
 import com.panvan.app.service.PermissionService;
+import com.panvan.app.service.SystemService;
 
 public class ActivityResultUtil {
 
     private static final String TAG = ActivityResultUtil.class.getSimpleName();
 
+    @SuppressLint("NewApi")
     public static void handleResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case ActiveForResultConstants.SCAN_QR_CODE_REQUEST_CODE:
@@ -69,6 +75,14 @@ public class ActivityResultUtil {
                 if (PermissionsUtil.isNotificationListenerEnabled()) {
 
                 }
+                break;
+            case ActiveForResultConstants.REQUEST_INSTALL_PACKAGES_CODE:
+                if (resultCode == Activity.RESULT_OK) {
+                    SystemService.getInstance().installApp(false);
+                }
+                break;
+            case ActiveForResultConstants.REQUEST_NOTIFY_CODE:
+                BleHandler.of().postDelayed(() -> CommunicationService.getInstance().startDufUpgrade(), 8000);
                 break;
         }
     }

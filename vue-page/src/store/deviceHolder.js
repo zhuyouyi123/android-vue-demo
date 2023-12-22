@@ -10,6 +10,8 @@ export default {
         status: false,
         time: 0,
     },
+    // 连接状态
+    connectStatus: false,
     // 设备信息
     deviceInfo: {
         battery: 0,

@@ -8,7 +8,6 @@ import android.widget.Button;
 
 public class SecondActivity extends AppCompatActivity {
 
-   private final String CHANNEL_ID="com.panvan.app";
     private Button button1;
     private Button button2;
     @Override

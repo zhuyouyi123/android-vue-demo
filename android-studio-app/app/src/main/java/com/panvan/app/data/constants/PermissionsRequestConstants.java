@@ -25,11 +25,6 @@ public class PermissionsRequestConstants {
      */
     public static final int READ_CALL_LOG_PERMISSION_REQUEST_CODE = 1014;
 
-    /**
-     * 安装权限
-     */
-    public static final int REQUEST_INSTALL_PACKAGES_CODE = 1015;
-
 
 
     public static final int OTHER_REQUEST_CODE = 6666;

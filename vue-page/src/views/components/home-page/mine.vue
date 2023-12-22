@@ -148,7 +148,6 @@
 
 <script>
 import { Toast, Popup, Notify, Dialog } from "vant";
-import code from "../../../store/code";
 import customNavBar from "../custom/customNavBar.vue";
 
 export default {
@@ -180,7 +179,6 @@ export default {
 
   mounted() {
     window.addEventListener("commonAndroidEvent", this.callJs);
-
     setTimeout(() => {
       this.readBattery();
       this.getUserInfo();
@@ -377,10 +375,6 @@ export default {
         return this.lastVersionTips(noTips);
       }
 
-      if (!navigator.onLine) {
-        return this.lastVersionTips(noTips);
-      }
-
       return {
         result: true,
         version: split[1],
@@ -392,24 +386,45 @@ export default {
      * @param {只需要结果，需要更新也不去 只返回结果 不弹窗} onlyResult
      */
     async checkNeedUpdate(type, onlyResult) {
+      if (!navigator.onLine) {
+        if (!onlyResult) {
+          Toast.fail("网络错误");
+        }
+        return { result: false };
+      }
       // ANDROID_APP   DFU_FIRMWARE
       let urlPath =
         "http://172.16.31.158:40001/api-node/app/file-download/BCG_WRISTBAND/";
       let url;
+      let currentVersion;
       if (type == "DFU_FIRMWARE") {
+        let deviceInfoData = await this.$androidApi.getDeviceInfo();
+        if (!deviceInfoData.connectStatus) {
+          if (!onlyResult) {
+            Toast.fail({ message: "设备未连接", position: "top" });
+          }
+          return {
+            result: false,
+          };
+        }
         let data = this.getDfuUpdate(onlyResult);
         if (!data.result) {
-          return this.lastVersionTips();
+          return this.lastVersionTips(onlyResult);
         }
+        currentVersion = data.version;
         url = `${urlPath}${type}/${data.version}`;
       } else if (type == "ANDROID_APP") {
         let version = await this.checkAppUpdate();
+        currentVersion = version;
         url = `${urlPath}${type}/${version}`;
       }
 
       let res = await this.fetchData(url);
       if (!res || !res.data) {
-        return this.lastVersionTips(onlyResult);
+        if (!onlyResult) {
+          Toast.fail({ message: "更新失败", position: "top" });
+        }
+        return { result: false };
       }
       let resData = res.data;
       if (!resData.needUpdate) {
@@ -426,7 +441,7 @@ export default {
 
       Dialog.confirm({
         title: "有新版本可用",
-        message: `文件名称：${resData.fileName}\n文件大小：${fileSize}\n`,
+        message: `当前版本：${currentVersion}\n新版本：${resData.fileName}\n文件大小：${fileSize}\n`,
         confirmButtonText: "立即更新",
         showCancelButton: true,
         cancelButtonText: "稍后再说",
@@ -544,7 +559,7 @@ export default {
       if (needClose) {
         setTimeout(() => {
           this.overlayShow = false;
-        }, 1000);
+        }, 2000);
       }
     },
 

@@ -1,10 +1,12 @@
 package com.panvan.app.service;
 
+import android.bluetooth.BluetoothProfile;
 import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
 import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
@@ -192,7 +194,9 @@ public class CommunicationService {
 
             if (deviceInfo.getTime() > DateUtil.getTodayStartTime()) {
                 DeviceHolder.getInstance().setInfo(deviceInfo);
-                return new DeviceInfoVO(deviceInfo);
+                DeviceInfoVO deviceInfoVO = new DeviceInfoVO(deviceInfo);
+                deviceInfoVO.setConnectStatus(Objects.nonNull(DeviceHolder.DEVICE) && DeviceHolder.DEVICE.getConnectState() == BleConnectStatusEnum.CONNECTED.getStatus());
+                return deviceInfoVO;
             }
         } catch (JsonSyntaxException e) {
             e.printStackTrace();
@@ -357,7 +361,6 @@ public class CommunicationService {
 
             @Override
             public void onProgressChanged(String deviceAddress, int percent, float speed, float avgSpeed, int currentPart, int partsTotal) {
-                Log.i(TAG, "升级进度" + deviceAddress + "" + (50 + (percent / 2)));
                 Log.i(TAG, "升级进度" + deviceAddress + "" + percent);
                 JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.UPGRADING.getKey(), percent));
             }
