@@ -458,10 +458,12 @@ export default {
     },
 
     onRefresh() {
-      this.init(true);
+      setTimeout(() => {
+        this.init(true);
+      }, 100);
       setTimeout(() => {
         this.loading = false;
-      }, 3000);
+      }, 2000);
       setTimeout(() => {
         this.updatePageInfo();
       }, 8000);

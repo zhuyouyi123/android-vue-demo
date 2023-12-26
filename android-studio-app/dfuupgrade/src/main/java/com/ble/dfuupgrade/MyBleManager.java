@@ -89,9 +89,9 @@ public class MyBleManager extends BleManager {
         final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         final BluetoothDevice device = adapter.getRemoteDevice(address);
         connect(device)
-                // .timeout(10000)
+                .timeout(15000)
                 .useAutoConnect(false)
-                // .fail((device1, status) -> callback.failed())
+                .fail((device1, status) -> callback.failed())
                 .enqueue();
 
     }

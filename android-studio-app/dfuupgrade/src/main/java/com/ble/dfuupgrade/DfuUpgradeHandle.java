@@ -75,12 +75,13 @@ public class DfuUpgradeHandle implements DfuProgressListener {
                 DfuServiceInitiator.createDfuNotificationChannel(context);
             }
 
-            String path = context.getFilesDir().getAbsolutePath() + File.separator + "FIRMWARE_BCG_WRISTBAND";
+            String path = context.getFilesDir().getAbsolutePath() + File.separator + "DFU_FIRMWARE";
             File file = new File(path);
 
             File[] files = file.listFiles();
 
             if (Objects.isNull(files)) {
+                callback.onError(address,-1,-1,"固件获取失败");
                 return;
             }
             File newFile = null;

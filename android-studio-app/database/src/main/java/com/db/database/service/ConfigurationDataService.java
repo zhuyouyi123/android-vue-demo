@@ -27,8 +27,7 @@ public class ConfigurationDataService {
     }
 
     public ConfigurationDO queryByGroupAndType(String group, String type) {
-        ConfigurationDO configurationDO = UserDatabase.getInstance().getConfigurationDAO().queryByGroupAndType(group, type);
-        return configurationDO;
+        return UserDatabase.getInstance().getConfigurationDAO().queryByGroupAndType(group, type);
     }
 
     public void updateConfig(ConfigurationDO configurationDO) {

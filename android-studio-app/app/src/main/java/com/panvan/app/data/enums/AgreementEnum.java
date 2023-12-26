@@ -4,10 +4,7 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
-import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
-import com.db.database.UserDatabase;
-import com.db.database.daoobject.CommunicationDataDO;
 import com.db.database.service.CommunicationDataService;
 import com.db.database.service.DeviceDataService;
 import com.db.database.utils.DataConvertUtils;
@@ -21,13 +18,29 @@ import com.panvan.app.utils.DataConvertUtil;
 import com.panvan.app.utils.DateUtil;
 import com.panvan.app.utils.JsBridgeUtil;
 import com.panvan.app.utils.LogUtil;
+import com.panvan.app.utils.StringUtils;
 
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.Objects;
 
+
 public enum AgreementEnum {
+
+    FUNCTION_SWITCH(0X02, 0X82, "FUNCTION_SWITCH") {
+        @RequiresApi(api = Build.VERSION_CODES.N)
+        @Override
+        public void responseHandle(byte[] bytes, AgreementCallback callback) {
+            CommandRetryScheduled.getInstance().remove("02");
+            CommunicationService.getInstance().pushFunctionSwitchInfo(bytes);
+            callback.success(FUNCTION_SWITCH);
+        }
+
+        @Override
+        public byte[] getRequestCommand(String params) {
+            return ProtocolUtil.hexStrToBytes("680205000007080B0C9516");
+        }
+    },
 
     /**
      * 电量结果
@@ -65,6 +78,19 @@ public enum AgreementEnum {
         @Override
         public byte[] getRequestCommand(String params) {
             // String hex="6802"
+            return new byte[0];
+        }
+    },
+
+    // diagnostic
+    DIAGNOSTIC_DATA(-0x01, 0x3A, "DIAGNOSTIC_DATA") {
+        @Override
+        public void responseHandle(byte[] bytes, AgreementCallback callback) {
+            LogUtil.info("3A接收数据：" + ProtocolUtil.byteArrToHexStr(bytes));
+        }
+
+        @Override
+        public byte[] getRequestCommand(String params) {
             return new byte[0];
         }
     },

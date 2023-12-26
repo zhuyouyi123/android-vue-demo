@@ -36,8 +36,6 @@ export default {
             androidApi.getHistoryData(type, dateType, currIndex).then((data) => {
                 let chartSize = data.chartSize;
                 let chartOptionsArray = [];
-                debugger
-
                 for (let i = 0; i < chartSize; i++) {
                     if (data.dataIndex == i) {
                         if (data.isMultiple) {

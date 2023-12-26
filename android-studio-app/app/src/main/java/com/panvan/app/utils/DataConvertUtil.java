@@ -261,7 +261,7 @@ public class DataConvertUtil {
             return String.valueOf(calcListDoubleAverage(integers));
         }
 
-        return String.valueOf(Double.valueOf(calcListDoubleAverage(integers)).intValue());
+        return roundedDoubleToString(calcListDoubleAverage(integers));
     }
 
     public static String calcDoubleStringAverage(List<String> list, boolean needDouble) {

@@ -278,7 +278,8 @@ public class HistoryDataAnalysisUtil {
 
         boolean isMu = typeEnum == HistoryDataTypeEnum.BLOOD_PRESSURE;
 
-        boolean isNeedInterval = typeEnum == HistoryDataTypeEnum.HEART_RATE || typeEnum == HistoryDataTypeEnum.TEMPERATURE;
+        // 前端展示样式为腾空状态
+        boolean isNeedSoar = typeEnum == HistoryDataTypeEnum.HEART_RATE || typeEnum == HistoryDataTypeEnum.TEMPERATURE;
 
         switch (dateType) {
             case 1:
@@ -287,13 +288,13 @@ public class HistoryDataAnalysisUtil {
                 }
                 return statisticalDataByDay(type, index);
             case 2:
-                if (isMu || isNeedInterval) {
-                    return multipleStatisticalDataByWeek(type, index, isMu, isNeedInterval);
+                if (isMu || isNeedSoar) {
+                    return multipleStatisticalData(type, index, isMu, isNeedSoar, 2);
                 }
                 return statisticalDataByWeek(type, index);
             case 3:
-                if (isMu || isNeedInterval) {
-                    return multipleStatisticalDataByMonth(type, index, isMu, isNeedInterval);
+                if (isMu || isNeedSoar) {
+                    return multipleStatisticalData(type, index, isMu, isNeedSoar, 3);
                 }
                 return statisticalDataByMonth(type, index);
         }
@@ -579,8 +580,10 @@ public class HistoryDataAnalysisUtil {
 
         List<String> lowList = new ArrayList<>();
         List<String> highList = new ArrayList<>();
-
+        List<String> allDayLowList = new ArrayList<>();
+        List<String> allDayHighList = new ArrayList<>();
         List<String> allList = new ArrayList<>();
+
         boolean isTemp = HistoryDataTypeEnum.TEMPERATURE == HistoryDataTypeEnum.getType(type);
 
         for (Integer date : value) {
@@ -594,22 +597,27 @@ public class HistoryDataAnalysisUtil {
             if (Objects.nonNull(multipleChartInfo.getOriginalData())) {
                 allList.addAll(multipleChartInfo.getOriginalData());
             }
-
+            // 数据是否需要腾空
             if (isNeedInterval) {
                 lowList.add(DataConvertUtil.getListStringMin(dataList.get(0), isTemp));
                 highList.add(DataConvertUtil.getListStringMax(dataList.get(0), isTemp));
+                allDayLowList.addAll(dataList.get(0));
+                allDayHighList.addAll(dataList.get(0));
             } else {
                 lowList.add(DataConvertUtil.calcStringAverage(dataList.get(0), isTemp));
                 highList.add(DataConvertUtil.calcStringAverage(dataList.get(1), isTemp));
+                allDayLowList.addAll(dataList.get(0));
+                allDayHighList.addAll(dataList.get(1));
             }
+
         }
         MultipleChartInfo<List<String>> multipleChartInfo = new MultipleChartInfo<>(null, Arrays.asList(lowList, highList));
         chartInfoVO.setData(multipleChartInfo);
         if (CollectionUtils.isNotEmpty(multipleChartInfo.getDataList())) {
             if (isBloodPressure) {
                 chartInfoVO.setAverage(DataConvertUtil.calcStringAverage(multipleChartInfo.getDataList().get(0), isTemp) + "-" + DataConvertUtil.calcStringAverage(multipleChartInfo.getDataList().get(1), isTemp));
-                chartInfoVO.setMax(DataConvertUtil.getListStringMax(multipleChartInfo.getDataList().get(0), isTemp) + "-" + DataConvertUtil.getListStringMax(multipleChartInfo.getDataList().get(1), isTemp));
-                chartInfoVO.setMin(DataConvertUtil.getListStringMin(multipleChartInfo.getDataList().get(0), isTemp) + "-" + DataConvertUtil.getListStringMin(multipleChartInfo.getDataList().get(1), isTemp));
+                chartInfoVO.setMax(DataConvertUtil.getListStringMax(allDayLowList, isTemp) + "-" + DataConvertUtil.getListStringMax(allDayHighList, isTemp));
+                chartInfoVO.setMin(DataConvertUtil.getListStringMin(allDayLowList, isTemp) + "-" + DataConvertUtil.getListStringMin(allDayHighList, isTemp));
             } else {
                 chartInfoVO.setAverage(DataConvertUtil.calcStringAverage(allList, isTemp));
                 chartInfoVO.setMax(DataConvertUtil.getListStringMax(allList, isTemp));
@@ -767,6 +775,79 @@ public class HistoryDataAnalysisUtil {
             chartInfoVO.setAverage(DataConvertUtil.calcStringAverage(allList, isTemp));
             chartInfoVO.setMax(DataConvertUtil.getListStringMax(allList, isTemp));
             chartInfoVO.setMin(DataConvertUtil.getListStringMin(allList, isTemp));
+        }
+        return chartInfoVO;
+    }
+
+    public static MultipleChartInfoVO<MultipleChartInfo<List<String>>> multipleStatisticalData(String type, Integer index, boolean isBloodPressure, boolean isNeedInterval, int dateType) {
+        // 第一次使用时间
+        setFirstUseTime();
+        MultipleChartInfoVO<MultipleChartInfo<List<String>>> chartInfoVO = new MultipleChartInfoVO<>();
+        chartInfoVO.setNeedSoar(isNeedInterval);
+        int size;
+        Map<Integer, List<Integer>> dateData;
+        // 周
+        if (dateType == 2) {
+            // 根据第一次时间计算到今天有几周
+            size = DateUtil.calculateWeeksToCurrentWeek(String.valueOf(firstUseTime));
+            dateData = DateUtil.getWeeksDates(size);
+        } else {
+            size = DateUtil.calculateMonthsToCurrentDate(String.valueOf(firstUseTime));
+            dateData = DateUtil.getDatesForMonth(size);
+        }
+        chartInfoVO.setChartSize(size);
+        if (-1 == index) {
+            index = size - 1;
+        }
+        List<Map.Entry<Integer, List<Integer>>> list = new ArrayList<>(dateData.entrySet());
+        chartInfoVO.setDataIndex(size - index - 1);
+        Map.Entry<Integer, List<Integer>> entry = list.get(size - index - 1);
+        List<Integer> value = entry.getValue();
+
+        List<String> lowList = new ArrayList<>();
+        List<String> highList = new ArrayList<>();
+        List<String> allDayLowList = new ArrayList<>();
+        List<String> allDayHighList = new ArrayList<>();
+        List<String> allList = new ArrayList<>();
+
+        boolean isTemp = HistoryDataTypeEnum.TEMPERATURE == HistoryDataTypeEnum.getType(type);
+        for (Integer date : value) {
+            MultipleChartInfo<List<String>> multipleChartInfo = getMultipleChartInfo(date, type, isNeedInterval, isTemp);
+            List<List<String>> dataList = multipleChartInfo.getDataList();
+            if (CollectionUtils.isEmpty(dataList)) {
+                lowList.add("0");
+                highList.add("0");
+                continue;
+            }
+            if (Objects.nonNull(multipleChartInfo.getOriginalData())) {
+                allList.addAll(multipleChartInfo.getOriginalData());
+            }
+            // 数据是否需要腾空
+            if (isNeedInterval) {
+                lowList.add(DataConvertUtil.getListStringMin(dataList.get(0), isTemp));
+                highList.add(DataConvertUtil.getListStringMax(dataList.get(0), isTemp));
+                allDayLowList.addAll(dataList.get(0));
+                allDayHighList.addAll(dataList.get(0));
+            } else {
+                lowList.add(DataConvertUtil.calcStringAverage(dataList.get(0), isTemp));
+                highList.add(DataConvertUtil.calcStringAverage(dataList.get(1), isTemp));
+                allDayLowList.addAll(dataList.get(0));
+                allDayHighList.addAll(dataList.get(1));
+            }
+
+        }
+        MultipleChartInfo<List<String>> multipleChartInfo = new MultipleChartInfo<>(null, Arrays.asList(lowList, highList));
+        chartInfoVO.setData(multipleChartInfo);
+        if (CollectionUtils.isNotEmpty(multipleChartInfo.getDataList())) {
+            if (isBloodPressure) {
+                chartInfoVO.setAverage(DataConvertUtil.calcStringAverage(multipleChartInfo.getDataList().get(0), isTemp) + "-" + DataConvertUtil.calcStringAverage(multipleChartInfo.getDataList().get(1), isTemp));
+                chartInfoVO.setMax(DataConvertUtil.getListStringMax(allDayLowList, isTemp) + "-" + DataConvertUtil.getListStringMax(allDayHighList, isTemp));
+                chartInfoVO.setMin(DataConvertUtil.getListStringMin(allDayLowList, isTemp) + "-" + DataConvertUtil.getListStringMin(allDayHighList, isTemp));
+            } else {
+                chartInfoVO.setAverage(DataConvertUtil.calcStringAverage(allList, isTemp));
+                chartInfoVO.setMax(DataConvertUtil.getListStringMax(allList, isTemp));
+                chartInfoVO.setMin(DataConvertUtil.getListStringMin(allList, isTemp));
+            }
         }
         return chartInfoVO;
     }

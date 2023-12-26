@@ -40,6 +40,7 @@
           :timeInterval="timeActive == 0"
           :tooltip="tooltip"
           areaStyleGradientBcg
+          :yAxisMin="yAxisMin"
           :type="chartType"
           :lineStyleColor="lineStyleColor"
           :tooltipTitle="tooltipTitle"
@@ -58,11 +59,11 @@
 
         <div class="mark-box" v-show="type == '0E'">
           <div class="low-box">
-            <div class="round-box"></div>
+            <div class="round-box round-box-low"></div>
             <div class="name">低压</div>
           </div>
           <div class="high-box">
-            <div class="round-box"></div>
+            <div class="round-box round-box-high"></div>
             <div class="name">高压</div>
           </div>
         </div>
@@ -89,6 +90,7 @@ export default {
       extendedInfo: {
         average: 0,
       },
+      yAxisMin: 0,
       realData: 0,
       unit: "",
     };
@@ -211,6 +213,7 @@ export default {
     },
 
     setUnit() {
+      this.yAxisMin = 0;
       switch (this.type) {
         case "04":
           if (this.timeActive == 0) {
@@ -227,6 +230,7 @@ export default {
           break;
         case "0B":
           this.unit = "℃";
+          this.yAxisMin = 10;
           break;
         case "0E":
           this.unit = "mmHg";
@@ -280,29 +284,31 @@ export default {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin: 0 2.12rem;
+  margin-right: 2.16rem;
+  margin-left: 2.12rem;
+  margin-bottom: 0.2rem;
+  margin-top: 0.1rem;
   font-size: 0.3rem;
   .round-box {
     width: 0.27rem;
-    height: 0.27rem;
-    border-radius: 50%;
+    height: 0.03rem;
     margin: 0.1rem;
+  }
+  .round-box-low {
+    background-color: #1da772;
+  }
+  .round-box-high {
+    background-color: #fc5a58;
   }
   .low-box {
     display: flex;
     align-items: center;
     color: #1da772;
-    .round-box {
-      border: 1px solid #1da772;
-    }
   }
   .high-box {
     display: flex;
     align-items: center;
     color: #fc5a58;
-    .round-box {
-      border: 1px solid #fc5a58;
-    }
   }
 }
 </style>

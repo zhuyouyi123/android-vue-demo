@@ -46,4 +46,9 @@ public class JsBridgeConstants {
      * 固件升级
      */
     public static final String FIRMWARE_UPGRADE_KEY = "FIRMWARE_UPGRADE_KEY";
+
+    /**
+     * 功能开关
+     */
+    public static final String FUNCTION_SWITCH_KEY = "FUNCTION_SWITCH_KEY";
 }

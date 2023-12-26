@@ -38,7 +38,7 @@ public class DeviceDataService {
 
     }
 
-    public void query( Callback callback) {
+    public void query(Callback callback) {
         Single.fromCallable(() -> UserDatabase.getInstance().getDeviceDAO().queryInUse())
                 .subscribeOn(Schedulers.io()) // 在IO线程进行查询
                 .observeOn(AndroidSchedulers.mainThread()) // 在主线程回调结果
@@ -88,12 +88,19 @@ public class DeviceDataService {
                 });
     }
 
+    public String queryInUse() {
+        DeviceDO deviceDO = UserDatabase.getInstance().getDeviceDAO().queryInUse();
+        if (Objects.isNull(deviceDO)) {
+            return null;
+        }
+        return deviceDO.getAddress();
+    }
+
     public void setModelAndVersion(String modelStr, String version) {
         Completable.fromAction(() -> UserDatabase.getInstance().getDeviceDAO().updateVerAndFirmware(modelStr, version))
                 .subscribeOn(Schedulers.io())
                 .subscribe();
     }
-
 
 
     public interface Callback {

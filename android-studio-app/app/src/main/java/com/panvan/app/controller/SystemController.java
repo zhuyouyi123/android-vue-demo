@@ -1,17 +1,13 @@
 package com.panvan.app.controller;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
-import android.provider.Settings;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
-import androidx.core.content.FileProvider;
 
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.db.database.UserDatabase;
@@ -23,7 +19,6 @@ import com.panvan.app.SecondActivity;
 import com.panvan.app.annotation.AppController;
 import com.panvan.app.annotation.AppRequestMapper;
 import com.panvan.app.annotation.AppRequestMethod;
-import com.panvan.app.data.constants.PermissionsRequestConstants;
 import com.panvan.app.response.RespVO;
 import com.panvan.app.service.SystemService;
 import com.panvan.app.utils.DownloadUtil;
@@ -31,7 +26,6 @@ import com.panvan.app.utils.DownloadUtil;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 @AppController(path = "system")
 public class SystemController {
@@ -133,7 +127,7 @@ public class SystemController {
 
     @AppRequestMapper(path = "/download", method = AppRequestMethod.POST)
     public RespVO<Void> downloadFile(String fileType, String fileName) {
-        String url = "http://172.16.31.158:40001/api-node/app/file-download/BCG_WRISTBAND/" + fileType + "/" + fileName + "/download";
+        String url = "http://172.16.55.55:40001/api-node/app/file-download/BCG_WRISTBAND/" + fileType + "/" + fileName + "/download";
         String path = Config.mainContext.getFilesDir().getAbsolutePath()
                 + File.separator + fileType;
         return DownloadUtil.downloadFile(url, path, fileName);

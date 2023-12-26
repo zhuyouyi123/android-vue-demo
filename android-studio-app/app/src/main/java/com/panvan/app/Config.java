@@ -2,12 +2,7 @@ package com.panvan.app;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.view.Window;
-import android.view.WindowManager;
 import android.webkit.WebView;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -46,12 +41,9 @@ public class Config {
      * @return
      */
     public static String getWebIndexUrl() {
-        return getAssetsPath();
+        return APK ? "file:///android_asset/ui/index.html" : "http://172.16.55.55:8888";
     }
 
-    public static String getAssetsPath() {
-        return APK ? "file:///android_asset/ui/index.html" : "http://172.16.31.158:8888";
-    }
 
     public static DateFormat[] df = new SimpleDateFormat[]{
             new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZZZ"),

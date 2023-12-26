@@ -27,6 +27,7 @@ import com.google.gson.JsonSyntaxException;
 import com.panvan.app.Config;
 import com.panvan.app.data.constants.JsBridgeConstants;
 import com.panvan.app.data.constants.SharePreferenceConstants;
+import com.panvan.app.data.entity.bo.FunctionSwitchBO;
 import com.panvan.app.data.entity.vo.CurrDayLastInfoVO;
 import com.panvan.app.data.entity.vo.DeviceInfoVO;
 import com.panvan.app.data.entity.vo.FirmwaresUpgradeVO;
@@ -157,6 +158,11 @@ public class CommunicationService {
 
     private void timing() {
         SdkUtil.writeCommand(AgreementEnum.TIMING.getRequestCommand(null));
+    }
+
+
+    public void queryFunctionSwitch() {
+        SdkUtil.writeCommand(AgreementEnum.FUNCTION_SWITCH.getRequestCommand(null));
     }
 
     /**
@@ -337,7 +343,7 @@ public class CommunicationService {
      */
     public void startDufUpgrade() {
         String address = StringUtils.incrementMacAddress(DeviceHolder.DEVICE.getAddress());
-        DfuUpgradeHandle.getInstance().start(Config.mainContext, address, new IDfuProgressCallback() {
+        IDfuProgressCallback callback = new IDfuProgressCallback() {
             @Override
             public void onDfuCompleted(String deviceAddress) {
                 Log.i(TAG, "升级成功" + deviceAddress);
@@ -393,7 +399,21 @@ public class CommunicationService {
             public void onDeviceDisconnected(String deviceAddress) {
                 Log.i(TAG, "设备未连接" + deviceAddress);
             }
-        });
+        };
+        DfuUpgradeHandle.getInstance().start(Config.mainContext, address, callback);
+
+        BleHandler.of().postDelayed(() -> {
+            if (DfuUpgradeHandle.getInstance().getConnectStatus() != BluetoothProfile.STATE_CONNECTED) {
+                DfuUpgradeHandle.getInstance().start(Config.mainContext, address, callback);
+            }
+        }, 15000);
+
+        BleHandler.of().postDelayed(() -> {
+            if (DfuUpgradeHandle.getInstance().getConnectStatus() != BluetoothProfile.STATE_CONNECTED) {
+                DfuUpgradeHandle.getInstance().dispose(Config.mainContext);
+                callback.onDfuAborted(address);
+            }
+        }, 25000);
     }
 
     /**
@@ -405,4 +425,14 @@ public class CommunicationService {
             DeviceHolder.getInstance().getBleManager().connectToDevice();
         }, 5000);
     }
+
+    public void pushFunctionSwitchInfo(byte[] bytes) {
+        FunctionSwitchBO bo = new FunctionSwitchBO();
+        bo.setBloodOxygenInterval((bytes[6] & 0xff));
+        bo.setBloodOxygen((bytes[8] & 0xff) == 1);
+        bo.setBloodPressureInterval((bytes[10] & 0xff));
+        bo.setBloodPressure((bytes[12] & 0xff) == 1);
+        JsBridgeUtil.pushEvent(JsBridgeConstants.FUNCTION_SWITCH_KEY, bo);
+    }
+
 }

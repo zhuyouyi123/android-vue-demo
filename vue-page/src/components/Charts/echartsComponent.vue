@@ -25,6 +25,10 @@ export default {
       type: Number,
       default: window.innerWidth / 1.6,
     },
+    yAxisMin: {
+      type: Number,
+      default: 0,
+    },
     type: {
       type: String,
       default: "line",
@@ -257,6 +261,7 @@ export default {
       if (!this.options.yAxis) {
         this.options.yAxis = {
           type: "value",
+          min: this.yAxisMin,
         };
       }
 

@@ -85,6 +85,7 @@
           size="large"
           is-link
           @click="checkNeedUpdate('DFU_FIRMWARE', false)"
+          :value="updateState.DFU_FIRMWARE ? '有新版本可用' : ''"
         >
           <van-image
             class="l-p-l"
@@ -104,6 +105,21 @@
             "
           ></van-image>
         </van-cell>
+        <!-- 开关配置 -->
+        <van-cell
+          title="功能开关配置"
+          size="large"
+          is-link
+          @click="$router.replace('/function/switch')"
+        >
+          <van-image
+            class="l-p-l"
+            slot="icon"
+            :src="
+              require('../../../assets/image/braceletconfig/function-switch-icon.svg')
+            "
+          ></van-image>
+        </van-cell>
       </van-cell-group>
 
       <van-cell-group inset class="l-m-t">
@@ -112,6 +128,7 @@
           size="large"
           is-link
           @click="checkNeedUpdate('ANDROID_APP', false)"
+          :value="updateState.ANDROID_APP ? '有新版本可用' : ''"
         >
           <van-image
             class="l-p-l"
@@ -174,6 +191,7 @@ export default {
         DFU_FIRMWARE: false,
         OTA_FIRMWARE: false,
       },
+      appVersion: "",
     };
   },
 
@@ -198,11 +216,11 @@ export default {
   methods: {
     checkAllUpdate() {
       this.checkNeedUpdate("ANDROID_APP", true).then((res) => {
-        console.log(JSON.stringify(res));
+        this.updateState.ANDROID_APP = res.result;
       });
 
       this.checkNeedUpdate("DFU_FIRMWARE", true).then((res) => {
-        console.log(JSON.stringify(res));
+        this.updateState.DFU_FIRMWARE = res.result;
       });
     },
 
@@ -317,10 +335,8 @@ export default {
     },
 
     setName() {
-      if (!this.name && this.$deviceHolder.deviceInfo.model) {
+      if (this.$deviceHolder.deviceInfo.model) {
         this.name = this.$deviceHolder.deviceInfo.model;
-      } else {
-        this.name = "";
       }
     },
 
@@ -394,11 +410,30 @@ export default {
       }
       // ANDROID_APP   DFU_FIRMWARE
       let urlPath =
-        "http://172.16.31.158:40001/api-node/app/file-download/BCG_WRISTBAND/";
+        "http://172.16.55.55:40001/api-node/app/file-download/BCG_WRISTBAND/";
       let url;
       let currentVersion;
       if (type == "DFU_FIRMWARE") {
         let deviceInfoData = await this.$androidApi.getDeviceInfo();
+
+        if (!deviceInfoData) {
+          if (!onlyResult) {
+            Toast.fail({ message: "设备未连接", position: "top" });
+          }
+          return {
+            result: false,
+          };
+        }
+        if (this.battery <= 20) {
+          if (!onlyResult) {
+            Toast.fail({
+              message: "当电量低于20%，无法进行升级",
+              position: "top",
+            });
+          }
+          return { result: false };
+        }
+
         if (!deviceInfoData.connectStatus) {
           if (!onlyResult) {
             Toast.fail({ message: "设备未连接", position: "top" });
@@ -528,6 +563,9 @@ export default {
 
     handleFirmwareUpgrade(data) {
       let needClose = false;
+      if (!this.overlayShow) {
+        this.overlayShow = true;
+      }
       switch (data.key) {
         case "UPGRADE_FAILED":
           this.loadingText = "升级失败";
@@ -541,6 +579,7 @@ export default {
           break;
         case "UPGRADE_SUCCESS":
           this.loadingText = "升级成功...";
+          this.checkAllUpdate();
           needClose = true;
           break;
         case "UPGRADING":
@@ -555,6 +594,8 @@ export default {
         default:
           break;
       }
+
+      console.log("handleFirmwareUpgrade", needClose);
 
       if (needClose) {
         setTimeout(() => {
@@ -633,6 +674,10 @@ export default {
         }
       }
     }
+  }
+
+  .van-cell__value {
+    font-size: 0.26rem;
   }
 
   // 我的设备

@@ -91,6 +91,12 @@ export const constantRoutes = [
     name: "userInfo",
     component: () => import("@/views/components/children-page/config/userInfo.vue"),
   },
+  // 功能开关配置
+  {
+    path: '/function/switch',
+    name: 'functionSwitchConfig',
+    component: () => import("@/views/components/children-page/config/functionSwitchConfig.vue"),
+  },
   // 来电提醒
   {
     path: "/mine/incall",

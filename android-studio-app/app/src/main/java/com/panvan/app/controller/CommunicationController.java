@@ -11,12 +11,11 @@ import androidx.core.app.NotificationManagerCompat;
 
 import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
 import com.ble.blescansdk.ble.scan.handle.BleHandler;
+import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
-import com.ble.dfuupgrade.DfuUpgradeHandle;
-import com.ble.dfuupgrade.MyBleManager;
-import com.ble.dfuupgrade.callback.ConCallback;
 import com.db.database.AppDatabase;
 import com.db.database.service.AllDayDataService;
+import com.db.database.service.DeviceDataService;
 import com.panvan.app.Config;
 import com.panvan.app.annotation.AppController;
 import com.panvan.app.annotation.AppRequestMapper;
@@ -25,6 +24,7 @@ import com.panvan.app.callback.ConnectCallback;
 import com.panvan.app.connect.DeviceConnectHandle;
 import com.panvan.app.data.constants.ActiveForResultConstants;
 import com.panvan.app.data.constants.SharePreferenceConstants;
+import com.panvan.app.data.entity.dto.SaveFunctionSwitchDTO;
 import com.panvan.app.data.entity.vo.ComplianceDaysVO;
 import com.panvan.app.data.entity.vo.CurrDayLastInfoVO;
 import com.panvan.app.data.entity.vo.DeviceInfoVO;
@@ -45,7 +45,6 @@ import java.util.Objects;
 @AppController(path = "communication")
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class CommunicationController {
-
     private static long refreshTime = System.currentTimeMillis();
 
     @AppRequestMapper(path = "/init", method = AppRequestMethod.POST)
@@ -56,7 +55,10 @@ public class CommunicationController {
         if (needConnect) {
             String address = SharePreferenceUtil.getInstance().shareGet(SharePreferenceConstants.DEVICE_ADDRESS_KEY);
             if (StringUtils.isBlank(address)) {
-                return RespVO.success(initVO);
+                address = DeviceDataService.getInstance().queryInUse();
+                if (StringUtils.isBlank(address)) {
+                    return RespVO.success(initVO);
+                }
             }
             if (initVO.getBluetoothEnable() && initVO.getLocateEnable()) {
                 // 绑定设备
@@ -133,6 +135,7 @@ public class CommunicationController {
             return RespVO.failure("当前设备未连接");
         }
         SdkUtil.writeCommand(AgreementEnum.RESET.getRequestCommand(null));
+        DeviceHolder.DEVICE.setConnectState(BluetoothProfile.STATE_DISCONNECTED);
         return RespVO.success();
     }
 
@@ -142,6 +145,33 @@ public class CommunicationController {
             return RespVO.failure("当前设备未连接");
         }
         SdkUtil.retryWriteCommand(hex);
+        return RespVO.success();
+    }
+
+    @AppRequestMapper(path = "/function-switch")
+    public RespVO<Void> queryFunctionSwitch() {
+        CommunicationService.getInstance().queryFunctionSwitch();
+        return RespVO.success();
+    }
+
+    @AppRequestMapper(path = "/function-switch", method = AppRequestMethod.POST)
+    public RespVO<Void> saveFunctionSwitch(SaveFunctionSwitchDTO dto) {
+        if (Objects.isNull(dto)) {
+            return RespVO.failure("参数为空");
+        }
+
+        StringBuilder stringBuilder = new StringBuilder("6802090001");
+        stringBuilder.append("07").append(ProtocolUtil.byteToHexStr(dto.getBloodOxygenInterval().byteValue()));
+        stringBuilder.append("08").append(dto.getBloodOxygen() ? "01" : "00");
+
+
+        stringBuilder.append("0B").append(ProtocolUtil.byteToHexStr(dto.getBloodPressureInterval().byteValue()));
+        stringBuilder.append("0C").append(dto.getBloodPressure() ? "01" : "00");
+
+        byte[] bytes = ProtocolUtil.hexStrToBytes(stringBuilder.toString());
+        byte calcAddSum = ProtocolUtil.calcAddSum(bytes);
+        SdkUtil.retryWriteCommand(stringBuilder.toString() + ProtocolUtil.byteToHexStr(calcAddSum) + "16");
+
         return RespVO.success();
     }
 

@@ -211,6 +211,18 @@ export default {
     return request("get", "communication/curr-day-last-info")
   },
 
+  /**
+   * 
+   * @returns 查询血氧血压全天监测开关
+   */
+  queryFunctionSwitch() {
+    return request('get', 'communication/function-switch')
+  },
+
+  saveFunctionSwitch(params) {
+    return request('post', 'communication/function-switch', params)
+  },
+
 
   /**
    * type数据类型主要包括 04 09 0E 07 等

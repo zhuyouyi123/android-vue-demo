@@ -10,4 +10,5 @@ public class SharePreferenceConstants {
      * 设备信息
      */
     public static final String DEVICE_HOLDER_KEY = "DEVICE_HOLDER_KEY";
+
 }

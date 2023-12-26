@@ -5,6 +5,7 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.scan.handle.BleHandler;
+import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.ble.dfuupgrade.callback.IBleNotifyCallback;
 import com.db.database.cache.CacheScheduled;
 import com.db.database.callback.DBCallback;
@@ -17,6 +18,7 @@ import com.panvan.app.scheduled.DeviceDataUpdateScheduled;
 import com.panvan.app.service.CommunicationService;
 import com.panvan.app.utils.DataConvertUtil;
 import com.panvan.app.utils.JsBridgeUtil;
+import com.panvan.app.utils.LogUtil;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -103,6 +105,8 @@ public class BleNotifyCallback implements IBleNotifyCallback {
 
     @Override
     public void onChanged(byte[] bytes) {
+        LogUtil.info("onChanged", ProtocolUtil.byteArrToHexStr(bytes));
+
         long currentTimeMillis = System.currentTimeMillis();
         if (previousPackageTime != 0) {
             if (currentTimeMillis - previousPackageTime > 100 && packetBreakage) {

@@ -10,10 +10,8 @@ import com.panvan.app.annotation.AppController;
 import com.panvan.app.annotation.AppRequestMapper;
 import com.panvan.app.data.entity.dto.ConfigurationSaveDTO;
 import com.panvan.app.data.entity.vo.ConfigurationVO;
-import com.panvan.app.data.enums.PermissionTypeEnum;
 import com.panvan.app.response.RespVO;
 import com.panvan.app.service.ConfigurationService;
-import com.panvan.app.service.PermissionService;
 
 import java.util.List;
 

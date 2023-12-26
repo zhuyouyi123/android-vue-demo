@@ -2,9 +2,7 @@ package com.panvan.app.data.holder;
 
 import com.ble.blescansdk.ble.entity.seek.BraceletDevice;
 import com.ble.dfuupgrade.MyBleManager;
-import com.panvan.app.data.holder.statistics.CalorieStatisticsInfo;
 import com.panvan.app.data.holder.statistics.StatisticsInfo;
-import com.panvan.app.data.holder.statistics.StepStatisticsInfo;
 
 import java.util.Objects;
 
