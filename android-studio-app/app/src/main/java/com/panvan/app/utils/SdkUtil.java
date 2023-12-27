@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothProfile;
 import android.os.Build;
 
 import com.ble.blescansdk.ble.BleSdkManager;
@@ -155,7 +156,9 @@ public class SdkUtil {
     public static void connect(BraceletDevice device, ConnectCallback callback) {
         DeviceHolder.DEVICE = device;
         DeviceHolder.DEVICE.setConnectState(DeviceHolder.CONNECTING);
-        MyBleManager.getInstance(Config.mainContext).init(device.getAddress(),
+        MyBleManager manager = new MyBleManager(Config.mainContext);
+        DeviceHolder.getInstance().setBleManager(manager);
+        manager.init(device.getAddress(),
                 new ConCallback() {
                     @Override
                     public void success(BluetoothGatt gatt) {
@@ -181,11 +184,19 @@ public class SdkUtil {
                             JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BINDING_STATUS, JsBridgeConstants.BINDING_STATUS_UN_CONNECTED);
                         }
                     }
+
+                    @Override
+                    public void end() {
+                        if (DeviceHolder.DEVICE.getConnectState() != BluetoothProfile.STATE_CONNECTED) {
+                            DeviceHolder.DEVICE.setConnectState(DeviceHolder.CONNECT_FAILED);
+                            JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BINDING_STATUS, JsBridgeConstants.BINDING_STATUS_UN_CONNECTED);
+                            callback.failed();
+                        }
+                    }
                 }, BleNotifyCallback.getInstance(), true
         );
-
-        MyBleManager.getInstance(Config.mainContext).connectToDevice();
-        DeviceHolder.getInstance().setBleManager(MyBleManager.getInstance(Config.mainContext));
+        manager.startScan();
+        // MyBleManager.getInstance(Config.mainContext).connectToDevice();
     }
 
     @SuppressLint("RestrictedApi")

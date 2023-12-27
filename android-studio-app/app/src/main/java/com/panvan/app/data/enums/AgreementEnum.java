@@ -121,7 +121,7 @@ public enum AgreementEnum {
                 callback.failed(REAL_TIME, bytes);
                 return;
             }
-
+            // 68861800003800000000000000000000000000C819331A01635538005D16
             int index = 5;
             // 心率
             DeviceHolder.getInstance().getInfo().setHeartRate(bytes[index++] & 0xff);
@@ -148,9 +148,9 @@ public enum AgreementEnum {
             // 血氧
             DeviceHolder.getInstance().getInfo().getBloodPressureInfo().setBloodOxygen((bytes[index++] & 0xff));
             // 舒张压
-            DeviceHolder.getInstance().getInfo().getBloodPressureInfo().setBloodOxygen((bytes[index++] & 0xff));
+            DeviceHolder.getInstance().getInfo().getBloodPressureInfo().setSystolicPressure((bytes[index++] & 0xff));
             // 收缩压
-            DeviceHolder.getInstance().getInfo().getBloodPressureInfo().setBloodOxygen((bytes[index++] & 0xff));
+            DeviceHolder.getInstance().getInfo().getBloodPressureInfo().setDiastolicPressure((bytes[index++] & 0xff));
             // 收缩压
             DeviceHolder.getInstance().getInfo().getBloodPressureInfo().setBloodViscosity((bytes[index] & 0xff));
 

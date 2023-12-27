@@ -70,6 +70,7 @@ export default {
   components: { customNavBar },
 
   mounted() {
+    this.$deviceHolder.routerPath = "mine";
     this.getUserInfo();
   },
 

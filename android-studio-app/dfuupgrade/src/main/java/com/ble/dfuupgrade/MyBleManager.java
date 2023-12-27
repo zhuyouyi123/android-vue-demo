@@ -17,34 +17,46 @@ import androidx.annotation.NonNull;
 import com.ble.dfuupgrade.callback.ConCallback;
 import com.ble.dfuupgrade.callback.IBleNotifyCallback;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import no.nordicsemi.android.ble.BleManager;
+import no.nordicsemi.android.ble.ConnectRequest;
 import no.nordicsemi.android.ble.callback.DataReceivedCallback;
 import no.nordicsemi.android.ble.data.Data;
+import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
+import no.nordicsemi.android.support.v18.scanner.ScanCallback;
+import no.nordicsemi.android.support.v18.scanner.ScanResult;
+import no.nordicsemi.android.support.v18.scanner.ScanSettings;
 
 public class MyBleManager extends BleManager {
 
+    private static final String TAG = MyBleManager.class.getSimpleName();
+
     private String address;
-    private ConCallback callback;
+    private static ConCallback callback;
     private IBleNotifyCallback notifyCallback;
     private boolean needNotify = false;
     private static BluetoothGatt bluetoothGatt;
     private static BluetoothGattCharacteristic writeCharacteristic = null;
-    private static final Handler handle = new Handler();
-    private static Runnable runnable = null;
+    private static BluetoothLeScannerCompat scanner = null;
+
+    /**
+     * 当前是否已有连接
+     */
+    private static boolean alreadyHaveConnect = false;
 
     @SuppressLint("StaticFieldLeak")
-    private static MyBleManager INSTANCE = null;
+    // private static MyBleManager INSTANCE = null;
 
-    public static MyBleManager getInstance(Context context) {
-        if (null == INSTANCE) {
-            INSTANCE = new MyBleManager(context);
-        }
-        return INSTANCE;
-    }
+    // public static MyBleManager getInstance(Context context) {
+    //     if (null == INSTANCE) {
+    //         INSTANCE = new MyBleManager(context);
+    //     }
+    //     return INSTANCE;
+    // }
 
 
     /**
@@ -58,43 +70,96 @@ public class MyBleManager extends BleManager {
         super(context);
     }
 
-    public void init(String address, ConCallback callback, IBleNotifyCallback notifyCallback, boolean needNotify) {
+    public void init(String address, ConCallback conCallback, IBleNotifyCallback notifyCallback, boolean needNotify) {
         this.address = address;
-        this.callback = callback;
+        callback = conCallback;
         this.notifyCallback = notifyCallback;
         this.needNotify = needNotify;
     }
 
-    @SuppressLint("MissingPermission")
-    public void dis() {
-        disconnect();
-        if (bluetoothGatt != null) {
-            bluetoothGatt.disconnect();
-            bluetoothGatt.close();
-        }
-        writeCharacteristic = null;
-        bluetoothGatt = null;
-    }
-
-    public void connectTask(int timeout) {
-        runnable = () -> callback.timeout(getConnectionState() == BluetoothProfile.STATE_CONNECTED);
-        handle.postDelayed(runnable, (long) timeout + 100);
-    }
-
     public void connectToDevice() {
-        if (Objects.nonNull(runnable)) {
-            handle.removeCallbacks(runnable);
+        if (alreadyHaveConnect) {
+            return;
         }
-        dis();
-        final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        final BluetoothDevice device = adapter.getRemoteDevice(address);
-        connect(device)
+        alreadyHaveConnect = true;
+        Log.i(TAG, "connectToDevice");
+        BluetoothDevice remoteDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+        ConnectRequest connectRequest = connect(remoteDevice)
                 .timeout(15000)
                 .useAutoConnect(false)
-                .fail((device1, status) -> callback.failed())
-                .enqueue();
+                .fail((device1, status) -> callback.failed());
+        connectRequest.enqueue();
 
     }
+
+    @SuppressLint("MissingPermission")
+    public void dis(DisCallback callback) {
+        try {
+           dis();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            callback.success();
+        }
+    }
+
+    private void dis(){
+        if (alreadyHaveConnect) {
+            close();
+            refreshDeviceCache();
+        }
+        // if (bluetoothGatt != null) {
+        //     bluetoothGatt.disconnect();
+        //     bluetoothGatt.close();
+        // }
+        writeCharacteristic = null;
+        bluetoothGatt = null;
+        alreadyHaveConnect = false;
+        stopScan();
+        // disconnect();
+    }
+
+    public static interface DisCallback {
+        void success();
+    }
+
+    private final Handler handler = new Handler();
+
+    public void startScan() {
+        if (Objects.isNull(scanner)) {
+            dis();
+            ScanSettings settings = new ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY) // 设置扫描模式
+                    .build();
+
+            scanner = BluetoothLeScannerCompat.getScanner();
+            scanner.startScan(null, settings, scanCallback);
+            handler.postDelayed(() -> {
+                stopScan();
+                callback.end();
+            }, 20000); // 设置扫描时间
+        }
+    }
+
+    private void stopScan() {
+        if (Objects.nonNull(scanner)) {
+            BluetoothLeScannerCompat.getScanner().stopScan(scanCallback);
+            scanner = null;
+        }
+    }
+
+    private final ScanCallback scanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, @NonNull ScanResult result) {
+            super.onScanResult(callbackType, result);
+            // 处理扫描到的蓝牙设备
+            BluetoothDevice device = result.getDevice();
+            if (device.getAddress().equals(address)) {
+                connectToDevice();
+            }
+
+        }
+    };
 
     public UUID uuid_service = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb");
     public UUID uuid_notify = UUID.fromString("0000fff1-0000-1000-8000-00805f9b34fb");
@@ -108,6 +173,7 @@ public class MyBleManager extends BleManager {
             @Override
             protected boolean isRequiredServiceSupported(@NonNull BluetoothGatt gatt) {
                 Log.e("Dfu", "isRequiredServiceSupported");
+                stopScan();
                 if (Objects.isNull(bluetoothGatt)) {
                     bluetoothGatt = gatt;
                 }
@@ -150,12 +216,8 @@ public class MyBleManager extends BleManager {
                 if (writeDescriptor) {
                     notifyCallback.onNotifySuccess();
                 }
-                setNotificationCallback(notifyCharacteristic).with(new DataReceivedCallback() {
-                    @Override
-                    public void onDataReceived(@NonNull BluetoothDevice device, @NonNull Data data) {
-                        notifyCallback.onChanged(data.getValue());
-                    }
-                });
+
+                setNotificationCallback(notifyCharacteristic).with((device, data) -> notifyCallback.onChanged(data.getValue()));
 
                 callback.success(gatt);
                 return true;
@@ -164,11 +226,11 @@ public class MyBleManager extends BleManager {
             @Override
             protected void onServicesInvalidated() {
                 Log.e("Dfu", "onServicesInvalidated");
+                callback.failed();
             }
-
-
         };
     }
+
 
     @SuppressLint("MissingPermission")
     public void write(byte[] bytes) {

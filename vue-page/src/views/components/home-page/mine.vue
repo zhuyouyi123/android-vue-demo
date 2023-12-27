@@ -85,7 +85,9 @@
           size="large"
           is-link
           @click="checkNeedUpdate('DFU_FIRMWARE', false)"
-          :value="updateState.DFU_FIRMWARE ? '有新版本可用' : ''"
+          :value="
+            updateState.DFU_FIRMWARE ? '有新版本可用' : updateState.dfuDurrVer
+          "
         >
           <van-image
             class="l-p-l"
@@ -128,7 +130,9 @@
           size="large"
           is-link
           @click="checkNeedUpdate('ANDROID_APP', false)"
-          :value="updateState.ANDROID_APP ? '有新版本可用' : ''"
+          :value="
+            updateState.ANDROID_APP ? '有新版本可用' : updateState.appCurrVer
+          "
         >
           <van-image
             class="l-p-l"
@@ -188,7 +192,9 @@ export default {
 
       updateState: {
         ANDROID_APP: false,
+        appCurrVer: "",
         DFU_FIRMWARE: false,
+        dfuDurrVer: "",
         OTA_FIRMWARE: false,
       },
       appVersion: "",
@@ -245,7 +251,9 @@ export default {
               break;
             case 3003:
               this.loadingText = "设备连接失败";
-              this.overlayShow = false;
+              setTimeout(() => {
+                this.overlayShow = false;
+              }, 1000);
               break;
             case 3004:
               this.loadingText = "正在准备初始化...";
@@ -335,7 +343,10 @@ export default {
     },
 
     setName() {
-      if (this.$deviceHolder.deviceInfo.model) {
+      if (
+        this.$deviceHolder.deviceInfo.model &&
+        0 != this.$deviceHolder.deviceInfo.model
+      ) {
         this.name = this.$deviceHolder.deviceInfo.model;
       }
     },
@@ -353,6 +364,7 @@ export default {
             if (res) {
               Toast({ message: "解除绑定成功", position: "top" });
               this.device = null;
+              this.updateState.dfuDurrVer = "";
               this.$deviceHolder.deviceInfo = {};
               this.$deviceHolder.deviceInfo = this.$deviceHolder.initDeviceInfo;
               this.queryDevice();
@@ -447,12 +459,15 @@ export default {
           return this.lastVersionTips(onlyResult);
         }
         currentVersion = data.version;
+        this.updateState.dfuDurrVer = "Version " + data.version;
         url = `${urlPath}${type}/${data.version}`;
       } else if (type == "ANDROID_APP") {
         let version = await this.checkAppUpdate();
+        this.updateState.appCurrVer = "Version " + version;
         currentVersion = version;
         url = `${urlPath}${type}/${version}`;
       }
+      console.log(url);
 
       let res = await this.fetchData(url);
       if (!res || !res.data) {

@@ -116,7 +116,6 @@ export default {
       let data = e.data.data;
       if (eventName == "FUNCTION_SWITCH_KEY") {
         this.editStatus = true;
-        console.log(JSON.stringify(data));
         this.form = { ...data };
       }
     },
@@ -127,16 +126,10 @@ export default {
       }
       this.$androidApi.queryFunctionSwitch();
     },
-      
+
     save() {
       this.$androidApi.saveFunctionSwitch(this.form).then(() => {
-        Toast({ message: "保存中", position: "top" });
-        setTimeout(() => {
-          this.queryFunctionSwitch();
-        }, 200);
-        setTimeout(() => {
-          this.$refs.customNavBar.clickLeft();
-        }, 1000);
+        this.$refs.customNavBar.clickLeft();
       });
     },
   },

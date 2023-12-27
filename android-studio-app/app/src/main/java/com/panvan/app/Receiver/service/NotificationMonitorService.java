@@ -75,66 +75,88 @@ public class NotificationMonitorService extends NotificationListenerService {
 
         Log.d(TAG, "通知所属包名：" + sbn.getPackageName());
 
-        if (null == DeviceHolder.DEVICE || DeviceHolder.DEVICE.getConnectState() != BleConnectStatusEnum.CONNECTED.getStatus()) {
-            return;
-        }
-
-        Notification notification = sbn.getNotification();
-        if (notification == null) {
-            return;
-        }
-
-        NotificationTypeEnum typeEnum = NotificationTypeEnum.getPacket(sbn.getPackageName());
-
-        boolean isMms = sbn.getPackageName().contains("mms");
-
-        if (Objects.nonNull(typeEnum) && isMms) {
-            if (!SMS_ENABLE) {
+        try {
+            if (null == DeviceHolder.DEVICE || DeviceHolder.DEVICE.getConnectState() != BleConnectStatusEnum.CONNECTED.getStatus()) {
                 return;
             }
-        } else {
-            if (!NOTIFY_ENABLE) {
+
+            Notification notification = sbn.getNotification();
+            if (notification == null) {
                 return;
             }
-        }
 
-        String title;
-        String content = "";
+            NotificationTypeEnum typeEnum = NotificationTypeEnum.getPacket(sbn.getPackageName());
 
-        // 当 API > 18 时，使用 extras 获取通知的详细信息
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            Bundle extras = notification.extras;
-            if (extras != null) {
-                // 获取通知标题通知所属包名
-                title = extras.getString(Notification.EXTRA_TITLE, "");
-                Log.d(TAG, "通知的标题为：" + title);
-                // 获取通知内容
-                content = extras.getString(Notification.EXTRA_TEXT, "");
-                if (StringUtils.isBlank(content)) {
-                    content = Objects.isNull(extras.get("android.text")) ? "" : extras.get("android.text").toString();
+            boolean isMms = sbn.getPackageName().contains("mms");
+
+            if (Objects.nonNull(typeEnum) && isMms) {
+                if (!SMS_ENABLE) {
+                    return;
                 }
-                Log.d(TAG, "通知的内容为：" + content);
-            }
-        } else {
-            // 当 API = 18 时，利用反射获取内容字段
-            List<String> textList = getText(notification);
-            if (textList != null && textList.size() > 0) {
-                for (String text : textList) {
-                    Log.d(TAG, "通知的内容包含：" + text);
-                    content = text;
+            } else {
+                if (!NOTIFY_ENABLE) {
+                    return;
                 }
             }
-        }
 
-        if (Objects.isNull(typeEnum)) {
-            if (!APP_LIST_MAP.containsKey(sbn.getPackageName())) {
+            String title = "消息提醒";
+            String content = "";
+
+            // 当 API > 18 时，使用 extras 获取通知的详细信息
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                Bundle extras = notification.extras;
+                if (extras != null) {
+                    // 获取通知标题通知所属包名
+                    title = extras.getString(Notification.EXTRA_TITLE, "");
+                    Log.d(TAG, "通知的标题为：" + title);
+                    // 获取通知内容
+                    content = extras.getString(Notification.EXTRA_TEXT, "");
+                    if (StringUtils.isBlank(content)) {
+                        content = Objects.isNull(extras.get("android.text")) ? "" : extras.get("android.text").toString();
+                    }
+                    Log.d(TAG, "通知的内容为：" + content);
+                }
+            } else {
+                // 当 API = 18 时，利用反射获取内容字段
+                List<String> textList = getText(notification);
+                if (textList != null && textList.size() > 0) {
+                    for (String text : textList) {
+                        Log.d(TAG, "通知的内容包含：" + text);
+                        content = text;
+                    }
+                }
+            }
+
+            if (Objects.isNull(typeEnum)) {
+                if (!APP_LIST_MAP.containsKey(sbn.getPackageName())) {
+                    return;
+                }
+                typeEnum = NotificationTypeEnum.OTHERS;
+            }
+
+            if (StringUtils.isBlank(content)) {
                 return;
             }
-            typeEnum = NotificationTypeEnum.OTHERS;
-        }
 
-        if (typeEnum != NotificationTypeEnum.IN_CALL) {
-            SdkUtil.retryWriteCommand(NotificationTypeEnum.getCommand(typeEnum, content));
+            if (typeEnum != NotificationTypeEnum.IN_CALL) {
+                if (Objects.isNull(typeEnum)) {
+                    return;
+                }
+
+                String tipsTitle = typeEnum.getTitle();
+
+                if (StringUtils.isNotBlank(title)) {
+                    tipsTitle = tipsTitle + ":" + title;
+                }
+
+                String command = NotificationTypeEnum.getCommand(tipsTitle, typeEnum.getType(), content);
+                if (StringUtils.isBlank(command)) {
+                    return;
+                }
+                SdkUtil.retryWriteCommand(command);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
 

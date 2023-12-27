@@ -48,14 +48,6 @@ public class DataConvertUtil {
         return Collections.max(integers);
     }
 
-    public static String getDoubleListMax(List<Double> list, boolean needDouble) {
-        if (needDouble) {
-            return roundedDoubleToString(Collections.max(list));
-        }
-        return String.valueOf(Collections.max(list).intValue());
-
-    }
-
 
     public static String getListStringMax(List<String> list, boolean needDouble) {
         if (needDouble) {
@@ -74,13 +66,6 @@ public class DataConvertUtil {
     public static int getListStringMin(List<String> list) {
         List<Integer> integers = convertStringToInt(list, true);
         return Collections.min(integers);
-    }
-
-    public static String getDoubleListMin(List<Double> list, boolean needDouble) {
-        if (needDouble) {
-            return roundedDoubleToString(Collections.min(removeDoubleListZero(list)));
-        }
-        return String.valueOf(Collections.min(removeDoubleListZero(list)).intValue());
     }
 
     public static String getListStringMin(List<String> list, boolean needDouble) {
@@ -196,12 +181,12 @@ public class DataConvertUtil {
             return 0;
         }
 
-        int sum = 0;
+        double sum = 0;
         for (double num : res) {
             sum += num;
         }
 
-        return roundedDouble((double) sum / res.size());
+        return roundedDouble(sum / res.size());
     }
 
     public static double roundedDouble(double d) {
@@ -225,10 +210,11 @@ public class DataConvertUtil {
         return df.format(d);
     }
 
-    public static double calcDataAverage(String data) {
+    public static double calcDataAverage(String data, boolean needDouble) {
         String[] split = data.split(",");
         List<String> list = new ArrayList<>(Arrays.asList(split));
-        return Double.parseDouble(calcDoubleStringAverage(list, true));
+
+        return Double.parseDouble(calcDoubleStringAverage(list, needDouble));
     }
 
     /**
@@ -261,7 +247,8 @@ public class DataConvertUtil {
             return String.valueOf(calcListDoubleAverage(integers));
         }
 
-        return roundedDoubleToString(calcListDoubleAverage(integers));
+        DF_INT.setRoundingMode(RoundingMode.HALF_UP);
+        return DF_INT.format(calcListDoubleAverage(integers));
     }
 
     public static String calcDoubleStringAverage(List<String> list, boolean needDouble) {
@@ -277,7 +264,8 @@ public class DataConvertUtil {
             return String.valueOf(calcListDoubleAverage(integers));
         }
 
-        return String.valueOf(Double.valueOf(calcListDoubleAverage(integers)).intValue());
+        DF_INT.setRoundingMode(RoundingMode.HALF_UP);
+        return DF_INT.format(calcListDoubleAverage(integers));
     }
 
     public static int calcStringAverageAndToIOnt(List<String> list) {

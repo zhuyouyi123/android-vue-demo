@@ -41,7 +41,6 @@ public class DeviceConnectHandle {
         this.address = address;
         AppDatabase.init(Config.mainContext, address);
         JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BINDING_STATUS, JsBridgeConstants.BINDING_STATUS_CONNECTING);
-
         if (StringUtils.isNotBlank(address)) {
             BraceletDevice braceletDevice = new BraceletDevice();
             braceletDevice.setAddress(address);

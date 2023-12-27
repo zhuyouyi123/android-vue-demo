@@ -55,7 +55,7 @@ public enum NotificationTypeEnum {
         return typeEnum;
     }
 
-    public static String getCommand(NotificationTypeEnum typeEnum, String content) {
+    public static String getCommand(String title, int type, String content) {
         StringBuilder stringBuilder = new StringBuilder("680B");
 
         int totalLength = 3;
@@ -65,11 +65,6 @@ public enum NotificationTypeEnum {
         byte[] contentBytes = content.getBytes();
         totalLength += contentBytes.length;
 
-        if (null == typeEnum) {
-            return "";
-        }
-
-        String title = typeEnum.getTitle();
         if (title.length() > 25) {
             title = title.substring(0, 25) + "...";
         }
@@ -81,7 +76,7 @@ public enum NotificationTypeEnum {
         totalLengthBytes[1] = (byte) ((totalLength >> 8) & 0xff);
         stringBuilder.append(String.format("%02X%02X", totalLengthBytes[0], totalLengthBytes[1]));
         // 增加类型
-        stringBuilder.append(ProtocolUtil.byteToHexStr((byte) typeEnum.getType()));
+        stringBuilder.append(ProtocolUtil.byteToHexStr((byte) type));
 
         // title 长度和内容
         stringBuilder.append(String.format("%02X", titleBytes.length));

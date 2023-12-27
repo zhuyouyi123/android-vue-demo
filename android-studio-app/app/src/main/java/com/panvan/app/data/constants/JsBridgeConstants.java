@@ -30,6 +30,9 @@ public class JsBridgeConstants {
     // 连接错误
     public static final int BINDING_STATUS_FAILED = 3006;
 
+    // 扫描中
+    public static final int BINDING_STATUS_SCANNING = 3007;
+
     public static final String DEVICE_BINDING_STATUS = "DEVICE_BINDING_STATUS";
 
     /**

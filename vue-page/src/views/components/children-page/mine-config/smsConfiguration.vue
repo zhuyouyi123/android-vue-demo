@@ -6,7 +6,7 @@
     <custom-nav-bar
       :returnRouter="$deviceHolder.mineReturnRouter"
       left-arrow
-      title="来电提醒"
+      title="短信提醒"
     />
     <div class="page-content">
       <van-cell-group inset>

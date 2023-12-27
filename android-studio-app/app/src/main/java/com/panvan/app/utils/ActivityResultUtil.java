@@ -118,6 +118,9 @@ public class ActivityResultUtil {
                     new Thread(() -> CallViewModel.getInstance().loadConfig()).start();
                 }
                 break;
+            case PermissionsRequestConstants.APP_LIST_PERMISSION_REQUEST_CODE:
+                SystemService.getInstance().openPage();
+                break;
             default:
                 break;
         }

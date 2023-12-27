@@ -1,10 +1,12 @@
 package com.panvan.app.utils;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.provider.Settings;
 import android.widget.Toast;
@@ -21,6 +23,10 @@ public class PermissionsUtil {
 
     public static void requestBasePermissions(String[] permissions) {
         ActivityCompat.requestPermissions((Activity) Config.mainContext, permissions, PermissionsRequestConstants.BASE_REQUEST_CODE);
+    }
+
+    public static void requestBasePermission(String permission, int code) {
+        ActivityCompat.requestPermissions((Activity) Config.mainContext, new String[]{permission}, code);
     }
 
     public static void requestAccessCoarseLocation() {
@@ -54,5 +60,13 @@ public class PermissionsUtil {
         // }
         return providerEnabled;
     }
+
+    @SuppressLint("InlinedApi")
+    public static boolean checkPermission(String type) {
+        return Config.mainContext.getPackageManager().checkPermission(
+                type,
+                Config.mainContext.getPackageName()) == PackageManager.PERMISSION_GRANTED;
+    }
+
 
 }

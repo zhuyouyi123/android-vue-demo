@@ -8,12 +8,18 @@ import android.provider.Settings;
 
 import androidx.core.content.FileProvider;
 
+import com.ble.blescansdk.ble.utils.CollectionUtils;
+import com.db.database.UserDatabase;
+import com.db.database.daoobject.NotificationAppListDO;
+import com.db.database.service.NotificationAppListDataService;
+import com.panvan.app.AppListActivity;
 import com.panvan.app.Config;
 import com.panvan.app.data.constants.ActiveForResultConstants;
 import com.panvan.app.data.constants.PermissionsRequestConstants;
 import com.panvan.app.response.RespVO;
 
 import java.io.File;
+import java.util.List;
 import java.util.Objects;
 
 public class SystemService {
@@ -70,5 +76,26 @@ public class SystemService {
         }
         Config.mainContext.startActivity(intent);
         return true;
+    }
+
+    public void openPage() {
+        NotificationAppListDataService.getInstance().query(new NotificationAppListDataService.Callback() {
+            @Override
+            public void success(List<NotificationAppListDO> doList) {
+                Intent intent = new Intent(Config.mainContext, AppListActivity.class);
+                if (CollectionUtils.isNotEmpty(doList)) {
+                    for (NotificationAppListDO appListDO : doList) {
+                        intent.putExtra(appListDO.getPackageName(), appListDO.getAppName());
+                    }
+                }
+                Config.mainContext.startActivity(intent);
+            }
+
+            @Override
+            public void failed() {
+
+            }
+        });
+
     }
 }

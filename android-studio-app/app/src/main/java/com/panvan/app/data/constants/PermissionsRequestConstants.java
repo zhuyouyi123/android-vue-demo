@@ -24,6 +24,7 @@ public class PermissionsRequestConstants {
      * 读取通话记录
      */
     public static final int READ_CALL_LOG_PERMISSION_REQUEST_CODE = 1014;
+    public static final int APP_LIST_PERMISSION_REQUEST_CODE = 1015;
 
 
 

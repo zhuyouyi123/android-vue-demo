@@ -2,7 +2,6 @@
 <template>
   <div class="home">
     <custom-nav-bar title="首页"> </custom-nav-bar>
-
     <div class="page-content">
       <van-pull-refresh v-model="loading" @refresh="onRefresh">
         <!-- 头部 步数信息 -->
@@ -100,7 +99,15 @@
               <div
                 class="arrow"
                 :style="{
-                  'padding-left': `${(pageInfo.bloodOxygen / 100) * 2.24}rem`,
+                  'padding-left': `${
+                    ((pageInfo.bloodOxygen
+                      ? pageInfo.bloodOxygen
+                      : deviceInfo.bloodPressureInfo
+                      ? deviceInfo.bloodPressureInfo.bloodOxygen
+                      : 0) /
+                      100) *
+                    2.24
+                  }rem`,
                 }"
               >
                 <van-icon color="#909998" name="location" />
@@ -111,7 +118,15 @@
               </div>
             </div>
             <div class="time-unit">
-              <span>{{ pageInfo.bloodOxygen }}%</span>
+              <span
+                >{{
+                  pageInfo.bloodOxygen
+                    ? pageInfo.bloodOxygen
+                    : deviceInfo.bloodPressureInfo
+                    ? deviceInfo.bloodPressureInfo.bloodOxygen
+                    : 0
+                }}%</span
+              >
             </div>
           </div>
 
@@ -229,13 +244,25 @@
               <div class="blood-pressure-box">
                 高压
                 <div class="blood-pressure-num">
-                  {{ pageInfo.highPressure }}
+                  {{
+                    pageInfo.highPressure
+                      ? pageInfo.highPressure
+                      : deviceInfo.bloodPressureInfo
+                      ? deviceInfo.bloodPressureInfo.diastolicPressure
+                      : 0
+                  }}
                 </div>
                 mmHg
               </div>
               <custom-blood-pressure
                 :level="110"
-                :blood-pressure="pageInfo.highPressure"
+                :blood-pressure="
+                  pageInfo.highPressure
+                    ? pageInfo.highPressure
+                    : deviceInfo.bloodPressureInfo
+                    ? deviceInfo.bloodPressureInfo.systolicPressure
+                    : 0
+                "
               >
               </custom-blood-pressure>
               <div class="blood-pressure-box">
@@ -462,9 +489,21 @@ export default {
         this.init(true);
       }, 100);
       setTimeout(() => {
+        if (this.$deviceHolder.connectStatus) {
+          this.refreshTimeLoading = true;
+          this.refreshTime = "数据同步中...";
+        }
         this.loading = false;
       }, 2000);
       setTimeout(() => {
+        if (this.$deviceHolder.connectStatus) {
+          this.refreshTime = "数据同步结束...";
+          setTimeout(() => {
+            this.refreshTimeLoading = false;
+            this.refreshTime = "刚刚";
+          }, 1000);
+          this.$deviceHolder.bindingInfo.time = new Date().getTime();
+        }
         this.updatePageInfo();
       }, 8000);
     },
@@ -472,6 +511,8 @@ export default {
     callJs(e) {
       let eventName = e.data.eventName;
       let data = e.data.data;
+      console.log("eventName", eventName);
+      console.log(data);
       switch (eventName) {
         case "DEVICE_BINDING_STATUS":
           switch (data) {
@@ -505,6 +546,9 @@ export default {
             case 3006:
               this.refreshTime = "连接错误";
               this.refreshTimeLoading = false;
+              break;
+            case 3007:
+              this.refreshTime = "扫描中...";
               break;
             default:
               break;
@@ -559,6 +603,7 @@ export default {
     },
 
     calcUpdateTimeDiff() {
+      console.log("calcUpdateTimeDiff", this.$deviceHolder.bindingInfo.time);
       // 计算多少分钟之前
       this.refreshTime = this.$dateUtil.getTimeDiffInMinutes(
         this.$deviceHolder.bindingInfo.time

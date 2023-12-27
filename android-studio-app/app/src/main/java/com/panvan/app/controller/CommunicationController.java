@@ -13,6 +13,7 @@ import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
 import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
+import com.ble.dfuupgrade.MyBleManager;
 import com.db.database.AppDatabase;
 import com.db.database.service.AllDayDataService;
 import com.db.database.service.DeviceDataService;
@@ -135,6 +136,8 @@ public class CommunicationController {
             return RespVO.failure("当前设备未连接");
         }
         SdkUtil.writeCommand(AgreementEnum.RESET.getRequestCommand(null));
+        // MyBleManager.getInstance(Config.mainContext).dis();
+        DeviceHolder.getInstance().getBleManager().dis(() -> DeviceHolder.getInstance().setBleManager(null));
         DeviceHolder.DEVICE.setConnectState(BluetoothProfile.STATE_DISCONNECTED);
         return RespVO.success();
     }

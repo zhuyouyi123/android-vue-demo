@@ -9,6 +9,7 @@ import android.os.Build;
 import androidx.core.app.ActivityCompat;
 
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
+import com.ble.dfuupgrade.MyBleManager;
 import com.db.database.AppDatabase;
 import com.db.database.UserDatabase;
 import com.db.database.daoobject.DeviceDO;
@@ -16,6 +17,7 @@ import com.db.database.service.DeviceDataService;
 import com.panvan.app.Config;
 import com.panvan.app.data.constants.SharePreferenceConstants;
 import com.panvan.app.data.entity.vo.device.DeviceVO;
+import com.panvan.app.data.holder.DeviceHolder;
 import com.panvan.app.utils.SdkUtil;
 
 import java.lang.reflect.InvocationTargetException;
@@ -110,23 +112,23 @@ public class DeviceService {
     }
 
     public boolean unbind() {
-        DeviceDO deviceDO = queryInUseDeviceDO();
-        if (Objects.nonNull(deviceDO)) {
-            // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && ActivityCompat.checkSelfPermission(Config.mainContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            //     return false;
-            // }
-            // Set<BluetoothDevice> devices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();
+        try {
+            DeviceDO deviceDO = queryInUseDeviceDO();
+            if (Objects.nonNull(deviceDO)) {
+                DeviceService.getInstance().updateUseStatus(deviceDO);
+            }
 
-            // for (BluetoothDevice device : devices) {
-            //     if (device.getAddress().equals(deviceDO.getAddress())) {
-            //         SdkUtil.setCanExecute(false);
-            //         res = removeBond(device);
-            //     }
-            // }
-            DeviceService.getInstance().updateUseStatus(deviceDO);
+            AppDatabase.init(Config.mainContext, "FF:FF:FF:FF:FF:FF");
+
             SharePreferenceUtil.getInstance().shareRemove(SharePreferenceConstants.DEVICE_ADDRESS_KEY);
             SharePreferenceUtil.getInstance().shareRemove(SharePreferenceConstants.DEVICE_HOLDER_KEY);
-            AppDatabase.init(Config.mainContext, "FF:FF:FF:FF:FF:FF");
+
+            if (Objects.nonNull(DeviceHolder.DEVICE)) {
+                DeviceHolder.getInstance().getBleManager().dis(() -> {
+                });
+            }
+        } finally {
+            DeviceHolder.getInstance().setBleManager(null);
         }
         return true;
     }

@@ -8,4 +8,6 @@ public interface ConCallback {
     void failed();
 
     void timeout(boolean result);
+
+    void end();
 }

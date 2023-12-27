@@ -1,5 +1,7 @@
 package com.panvan.app.controller;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -19,9 +21,11 @@ import com.panvan.app.SecondActivity;
 import com.panvan.app.annotation.AppController;
 import com.panvan.app.annotation.AppRequestMapper;
 import com.panvan.app.annotation.AppRequestMethod;
+import com.panvan.app.data.constants.PermissionsRequestConstants;
 import com.panvan.app.response.RespVO;
 import com.panvan.app.service.SystemService;
 import com.panvan.app.utils.DownloadUtil;
+import com.panvan.app.utils.PermissionsUtil;
 
 import java.io.File;
 import java.util.HashMap;
@@ -112,16 +116,15 @@ public class SystemController {
         return hash;
     }
 
+    @SuppressLint("InlinedApi")
     @AppRequestMapper(path = "/manager-app", method = AppRequestMethod.POST)
     public void openPage() {
-        List<NotificationAppListDO> queryAll = UserDatabase.getInstance().getNotificationAppListDAO().queryAll();
-        Intent intent = new Intent(Config.mainContext, AppListActivity.class);
-        if (CollectionUtils.isNotEmpty(queryAll)) {
-            for (NotificationAppListDO appListDO : queryAll) {
-                intent.putExtra(appListDO.getPackageName(), appListDO.getAppName());
-            }
+        if (!PermissionsUtil.checkPermission(Manifest.permission.PACKAGE_USAGE_STATS)) {
+            PermissionsUtil.requestBasePermission(Manifest.permission.PACKAGE_USAGE_STATS, PermissionsRequestConstants.APP_LIST_PERMISSION_REQUEST_CODE);
+        }else{
+            SystemService.getInstance().openPage();
         }
-        Config.mainContext.startActivity(intent);
+
     }
 
 

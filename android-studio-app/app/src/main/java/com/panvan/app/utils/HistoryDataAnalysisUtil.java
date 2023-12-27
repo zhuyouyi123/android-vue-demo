@@ -217,7 +217,7 @@ public class HistoryDataAnalysisUtil {
 
     private static String[] temperatureAnalysis(byte[] bytes, int bytesPerHour, int intervalNum, String[] dataArr) {
         List<Double> hourDataList = new ArrayList<>();
-
+        LogUtil.info("体温" + ProtocolUtil.byteArrToHexStr(bytes));
         for (int i = 0; i < bytes.length; i += bytesPerHour) {
             // 每小时
             double bodySurfaceSum = 0;
@@ -255,7 +255,11 @@ public class HistoryDataAnalysisUtil {
             } else {
                 double y = bodySurfaceSum / size;
                 double x = environmentSum / size;
-                hourDataList.add(0.0337 * y * y - 0.545 * y + 1.7088 * x - 0.0519 * x * y + 17.626);
+                double v = 0.0337 * y * y - 0.545 * y + 1.7088 * x - 0.0519 * x * y + 17.626;
+                if (v < 10) {
+                    v = 0;
+                }
+                hourDataList.add(v);
             }
         }
 
@@ -507,7 +511,7 @@ public class HistoryDataAnalysisUtil {
             } else {
                 doList.add(communicationDataDO);
                 if (isTemperature || isHeartRate || isBloodOxygen) {
-                    dayData.add(DataConvertUtil.calcDataAverage(communicationDataDO.getData()));
+                    dayData.add(DataConvertUtil.calcDataAverage(communicationDataDO.getData(), isTemperature));
                 } else {
                     dayData.add(calcDataSum(communicationDataDO.getData()));
                 }
@@ -666,7 +670,7 @@ public class HistoryDataAnalysisUtil {
             } else {
                 doList.add(communicationDataDO);
                 if (isTemperature || isHeartRate || isBloodOxygen) {
-                    dayData.add(DataConvertUtil.calcDataAverage(communicationDataDO.getData()));
+                    dayData.add(DataConvertUtil.calcDataAverage(communicationDataDO.getData(), isTemperature));
                 } else {
                     dayData.add(calcDataSum(communicationDataDO.getData()));
                 }
@@ -804,6 +808,8 @@ public class HistoryDataAnalysisUtil {
         Map.Entry<Integer, List<Integer>> entry = list.get(size - index - 1);
         List<Integer> value = entry.getValue();
 
+        List<String> xAxis = new ArrayList<>();
+
         List<String> lowList = new ArrayList<>();
         List<String> highList = new ArrayList<>();
         List<String> allDayLowList = new ArrayList<>();
@@ -812,6 +818,7 @@ public class HistoryDataAnalysisUtil {
 
         boolean isTemp = HistoryDataTypeEnum.TEMPERATURE == HistoryDataTypeEnum.getType(type);
         for (Integer date : value) {
+            xAxis.add(DateUtil.convertDate(String.valueOf(date)));
             MultipleChartInfo<List<String>> multipleChartInfo = getMultipleChartInfo(date, type, isNeedInterval, isTemp);
             List<List<String>> dataList = multipleChartInfo.getDataList();
             if (CollectionUtils.isEmpty(dataList)) {
@@ -837,7 +844,11 @@ public class HistoryDataAnalysisUtil {
 
         }
         MultipleChartInfo<List<String>> multipleChartInfo = new MultipleChartInfo<>(null, Arrays.asList(lowList, highList));
+        if (dateType == 3) {
+            multipleChartInfo.setxAxis(xAxis);
+        }
         chartInfoVO.setData(multipleChartInfo);
+
         if (CollectionUtils.isNotEmpty(multipleChartInfo.getDataList())) {
             if (isBloodPressure) {
                 chartInfoVO.setAverage(DataConvertUtil.calcStringAverage(multipleChartInfo.getDataList().get(0), isTemp) + "-" + DataConvertUtil.calcStringAverage(multipleChartInfo.getDataList().get(1), isTemp));
