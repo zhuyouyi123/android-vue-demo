@@ -511,8 +511,6 @@ export default {
     callJs(e) {
       let eventName = e.data.eventName;
       let data = e.data.data;
-      console.log("eventName", eventName);
-      console.log(data);
       switch (eventName) {
         case "DEVICE_BINDING_STATUS":
           switch (data) {
