@@ -108,15 +108,10 @@ public class MyBleManager extends BleManager {
             close();
             refreshDeviceCache();
         }
-        // if (bluetoothGatt != null) {
-        //     bluetoothGatt.disconnect();
-        //     bluetoothGatt.close();
-        // }
         writeCharacteristic = null;
         bluetoothGatt = null;
         alreadyHaveConnect = false;
         stopScan();
-        // disconnect();
     }
 
     public static interface DisCallback {

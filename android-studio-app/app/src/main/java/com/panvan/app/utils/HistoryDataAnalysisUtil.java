@@ -395,7 +395,15 @@ public class HistoryDataAnalysisUtil {
         } else {
             String data = communicationDataDO.getData();
             String[] split = data.split(",");
-            return new ChartInfo<>(previousIntDate, new ArrayList<>(Arrays.asList(split)));
+            List<String> list = new ArrayList<>();
+            for (int i = 0; i <= split.length; i++) {
+                if (i == 0) {
+                    list.add("0");
+                } else {
+                    list.add(split[i - 1]);
+                }
+            }
+            return new ChartInfo<>(previousIntDate, list);
         }
     }
 
