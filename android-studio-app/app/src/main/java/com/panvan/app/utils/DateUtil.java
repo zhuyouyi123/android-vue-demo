@@ -216,4 +216,27 @@ public class DateUtil {
         }
     }
 
+    public static boolean checkSortStop(int total, int index) {
+        int allDayMinute = 1440;
+        int packetMinute = allDayMinute / total;
+        int indexMinute = packetMinute * index;
+        return indexMinute > getMinutesSinceMidnight();
+    }
+
+    // 计算当前时间到今天 0 点过去了多少分钟
+    public static int getMinutesSinceMidnight() {
+        Calendar now = Calendar.getInstance();
+        int currentHour = now.get(Calendar.HOUR_OF_DAY);
+        int currentMinute = now.get(Calendar.MINUTE);
+
+        int currentMinutes = currentHour * 60 + currentMinute;
+
+        Calendar midnight = Calendar.getInstance();
+        midnight.set(Calendar.HOUR_OF_DAY, 0);
+        midnight.set(Calendar.MINUTE, 0);
+
+        int midnightMinutes = midnight.get(Calendar.HOUR_OF_DAY) * 60 + midnight.get(Calendar.MINUTE);
+
+        return currentMinutes - midnightMinutes;
+    }
 }

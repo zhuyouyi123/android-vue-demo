@@ -2,11 +2,15 @@ package com.panvan.app.controller;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.Settings;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
@@ -121,7 +125,7 @@ public class SystemController {
     public void openPage() {
         if (!PermissionsUtil.checkPermission(Manifest.permission.PACKAGE_USAGE_STATS)) {
             PermissionsUtil.requestBasePermission(Manifest.permission.PACKAGE_USAGE_STATS, PermissionsRequestConstants.APP_LIST_PERMISSION_REQUEST_CODE);
-        }else{
+        } else {
             SystemService.getInstance().openPage();
         }
 
@@ -130,7 +134,7 @@ public class SystemController {
 
     @AppRequestMapper(path = "/download", method = AppRequestMethod.POST)
     public RespVO<Void> downloadFile(String fileType, String fileName) {
-        String url = "http://172.16.55.55:40001/api-node/app/file-download/BCG_WRISTBAND/" + fileType + "/" + fileName + "/download";
+        String url = "https://pre.joysuch.com/api-node/app/file-download/BCG_WRISTBAND/" + fileType + "/" + fileName + "/download";
         String path = Config.mainContext.getFilesDir().getAbsolutePath()
                 + File.separator + fileType;
         return DownloadUtil.downloadFile(url, path, fileName);
@@ -157,5 +161,7 @@ public class SystemController {
 
         return RespVO.success();
     }
+
+
 
 }

@@ -54,4 +54,8 @@ public class JsBridgeConstants {
      * 功能开关
      */
     public static final String FUNCTION_SWITCH_KEY = "FUNCTION_SWITCH_KEY";
+    /**
+     * OTA_FIRMWARE_UPGRADE 固件升级
+     */
+    public static final String OTA_FIRMWARE_UPGRADE = "OTA_FIRMWARE_UPGRADE";
 }

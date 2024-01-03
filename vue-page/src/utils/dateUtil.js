@@ -82,7 +82,7 @@ export default {
     getTimeDiffInMinutes(timestamp) {
         console.log("timestamp", timestamp);
         if (timestamp < 10000) {
-            return "连接中...";
+            return "刚刚";
         }
         const currentTime = new Date();
         const targetTime = new Date(timestamp);

@@ -15,17 +15,15 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.ble.dfuupgrade.callback.ConCallback;
+import com.ble.dfuupgrade.callback.DisCallback;
 import com.ble.dfuupgrade.callback.IBleNotifyCallback;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import no.nordicsemi.android.ble.BleManager;
 import no.nordicsemi.android.ble.ConnectRequest;
-import no.nordicsemi.android.ble.callback.DataReceivedCallback;
-import no.nordicsemi.android.ble.data.Data;
 import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
 import no.nordicsemi.android.support.v18.scanner.ScanCallback;
 import no.nordicsemi.android.support.v18.scanner.ScanResult;
@@ -95,7 +93,7 @@ public class MyBleManager extends BleManager {
     @SuppressLint("MissingPermission")
     public void dis(DisCallback callback) {
         try {
-           dis();
+            dis();
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -103,24 +101,26 @@ public class MyBleManager extends BleManager {
         }
     }
 
-    private void dis(){
+    private void dis() {
         if (alreadyHaveConnect) {
             close();
             refreshDeviceCache();
         }
+        Log.i("当前连接状态", "" + alreadyHaveConnect);
         writeCharacteristic = null;
         bluetoothGatt = null;
         alreadyHaveConnect = false;
         stopScan();
     }
 
-    public static interface DisCallback {
-        void success();
-    }
 
     private final Handler handler = new Handler();
 
     public void startScan() {
+        startScan(false);
+    }
+
+    public void startScan(boolean retry) {
         if (Objects.isNull(scanner)) {
             dis();
             ScanSettings settings = new ScanSettings.Builder()
@@ -131,12 +131,14 @@ public class MyBleManager extends BleManager {
             scanner.startScan(null, settings, scanCallback);
             handler.postDelayed(() -> {
                 stopScan();
-                callback.end();
+                if (!retry) {
+                    callback.end();
+                }
             }, 20000); // 设置扫描时间
         }
     }
 
-    private void stopScan() {
+    public void stopScan() {
         if (Objects.nonNull(scanner)) {
             BluetoothLeScannerCompat.getScanner().stopScan(scanCallback);
             scanner = null;
@@ -221,6 +223,10 @@ public class MyBleManager extends BleManager {
             @Override
             protected void onServicesInvalidated() {
                 Log.e("Dfu", "onServicesInvalidated");
+                Log.e("Dfu", "DfuUpgradeHandle.getInstance().getIsUpgrading()" + DfuUpgradeHandle.getInstance().getIsUpgrading());
+                if (DfuUpgradeHandle.getInstance().getIsUpgrading()) {
+                    return;
+                }
                 callback.failed();
             }
         };

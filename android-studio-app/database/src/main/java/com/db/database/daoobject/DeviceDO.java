@@ -32,6 +32,12 @@ public class DeviceDO {
     @ColumnInfo(name = "firmware_version")
     private String firmwareVersion;
 
+    @ColumnInfo(name = "ota_firmware_version")
+    private String otaFirmwareVersion;
+
+    @ColumnInfo(name = "ota_address")
+    private String otaAddress;
+
     /**
      * 正在使用
      */
@@ -87,4 +93,19 @@ public class DeviceDO {
         this.inUse = inUse;
     }
 
+    public String getOtaFirmwareVersion() {
+        return otaFirmwareVersion;
+    }
+
+    public void setOtaFirmwareVersion(String otaFirmwareVersion) {
+        this.otaFirmwareVersion = otaFirmwareVersion;
+    }
+
+    public String getOtaAddress() {
+        return otaAddress;
+    }
+
+    public void setOtaAddress(String otaAddress) {
+        this.otaAddress = otaAddress;
+    }
 }

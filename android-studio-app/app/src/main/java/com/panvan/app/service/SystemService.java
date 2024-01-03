@@ -79,23 +79,27 @@ public class SystemService {
     }
 
     public void openPage() {
-        NotificationAppListDataService.getInstance().query(new NotificationAppListDataService.Callback() {
-            @Override
-            public void success(List<NotificationAppListDO> doList) {
-                Intent intent = new Intent(Config.mainContext, AppListActivity.class);
-                if (CollectionUtils.isNotEmpty(doList)) {
-                    for (NotificationAppListDO appListDO : doList) {
-                        intent.putExtra(appListDO.getPackageName(), appListDO.getAppName());
+        try {
+            NotificationAppListDataService.getInstance().query(new NotificationAppListDataService.Callback() {
+                @Override
+                public void success(List<NotificationAppListDO> doList) {
+                    Intent intent = new Intent(Config.mainContext, AppListActivity.class);
+                    if (CollectionUtils.isNotEmpty(doList)) {
+                        for (NotificationAppListDO appListDO : doList) {
+                            intent.putExtra(appListDO.getPackageName(), appListDO.getAppName());
+                        }
                     }
+                    Config.mainContext.startActivity(intent);
                 }
-                Config.mainContext.startActivity(intent);
-            }
 
-            @Override
-            public void failed() {
+                @Override
+                public void failed() {
 
-            }
-        });
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
     }
 }

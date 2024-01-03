@@ -88,10 +88,6 @@ public class DeviceService {
             bond = device.createBond();
         }
 
-        if (bond) {
-            SdkUtil.setCanExecute(true);
-        }
-
         boolean finalBond = bond;
 
         queryInUseDeviceDO(device.getAddress(), new DeviceDataService.Callback() {
@@ -125,8 +121,10 @@ public class DeviceService {
 
             if (Objects.nonNull(DeviceHolder.DEVICE)) {
                 DeviceHolder.getInstance().getBleManager().dis(() -> {
+                    DeviceHolder.DEVICE = null;
                 });
             }
+            CommunicationService.getInstance().clearTask();
         } finally {
             DeviceHolder.getInstance().setBleManager(null);
         }

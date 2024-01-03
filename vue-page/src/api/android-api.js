@@ -124,6 +124,9 @@ export default {
   startDfuUpgrade(params) {
     return request("post", "communication/dfu-upgrade", params);
   },
+  startOtaUpgrade(params) {
+    return request("post", "communication/ota-upgrade", params);
+  },
 
 
   /**

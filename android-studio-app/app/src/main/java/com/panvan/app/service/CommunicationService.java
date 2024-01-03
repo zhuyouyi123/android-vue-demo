@@ -1,10 +1,8 @@
 package com.panvan.app.service;
 
-import android.bluetooth.BluetoothProfile;
-import android.os.Build;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.util.Log;
-
-import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
 import com.ble.blescansdk.ble.scan.handle.BleHandler;
@@ -36,7 +34,7 @@ import com.panvan.app.data.enums.AgreementEnum;
 import com.panvan.app.data.enums.HistoryDataTypeEnum;
 import com.panvan.app.data.holder.DeviceHolder;
 import com.panvan.app.response.RespVO;
-import com.panvan.app.scheduled.task.WriteCommandTask;
+import com.panvan.app.scheduled.task.CommandConsumerQueue;
 import com.panvan.app.utils.DataConvertUtil;
 import com.panvan.app.utils.DateUtil;
 import com.panvan.app.utils.HistoryDataAnalysisUtil;
@@ -44,7 +42,13 @@ import com.panvan.app.utils.JsBridgeUtil;
 import com.panvan.app.utils.LogUtil;
 import com.panvan.app.utils.SdkUtil;
 import com.panvan.app.utils.StringUtils;
+import com.seekcy.otaupgrade.OtaHelper;
+import com.seekcy.otaupgrade.OtaUpgradeHolder;
+import com.seekcy.otaupgrade.callback.UpgradeCallback;
+import com.seekcy.otaupgrade.entity.BleDeviceInfoVO;
+import com.seekcy.otaupgrade.queue.OtaUpgradeQueue;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -52,17 +56,26 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
-@RequiresApi(api = Build.VERSION_CODES.N)
 public class CommunicationService {
     private static CommunicationService INSTANCE = null;
     private static final String TAG = CommunicationService.class.getSimpleName();
 
     private static final Gson GSON = new Gson();
 
+    private CommandConsumerQueue commandConsumerQueue;
+
     public static CommunicationService getInstance() {
         if (Objects.isNull(INSTANCE))
             INSTANCE = new CommunicationService();
         return INSTANCE;
+    }
+
+    public CommandConsumerQueue getCommandConsumerQueue() {
+        return commandConsumerQueue;
+    }
+
+    public void setCommandConsumerQueue(CommandConsumerQueue commandConsumerQueue) {
+        this.commandConsumerQueue = commandConsumerQueue;
     }
 
     /**
@@ -90,13 +103,16 @@ public class CommunicationService {
     public void loadingDeviceHolder() {
         // 读取电量
         try {
-            SdkUtil.writeCommand(AgreementEnum.DEVICE_INFO.getRequestCommand(null));
+            // SdkUtil.writeCommand(AgreementEnum.DEVICE_INFO.getRequestCommand(null));
+            CommunicationService.getInstance().getCommandConsumerQueue().add(ProtocolUtil.byteArrToHexStr(AgreementEnum.DEVICE_INFO.getRequestCommand(null)), false);
             TimeUnit.MILLISECONDS.sleep(100);
             readBattery();
             TimeUnit.MILLISECONDS.sleep(500);
             readRealTime();
             TimeUnit.MILLISECONDS.sleep(100);
             timing();
+            TimeUnit.MILLISECONDS.sleep(100);
+            queryOtaInfo();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -143,26 +159,50 @@ public class CommunicationService {
         }
 
         if (CollectionUtils.isNotEmpty(needList)) {
-            new WriteCommandTask(needList).execute();
+            synchronized (object) {
+                if (Objects.isNull(commandConsumerQueue)) {
+                    commandConsumerQueue = new CommandConsumerQueue();
+                    commandConsumerQueue.start(commandConsumerQueue);
+                }
+                commandConsumerQueue.addList(needList);
+                // new WriteCommandTask(needList).execute();
+
+            }
         }
+    }
+
+    private final Object object = new Object();
+
+    public void clearTask() {
+        // if (Objects.nonNull(writeCommandTask)) {
+        //     writeCommandTask.clear();
+        // }
     }
 
 
     public void readBattery() {
-        SdkUtil.writeCommand(AgreementEnum.BATTERY.getRequestCommand(null));
+        // SdkUtil.writeCommand(AgreementEnum.BATTERY.getRequestCommand(null));
+        CommunicationService.getInstance().getCommandConsumerQueue().add(ProtocolUtil.byteArrToHexStr(AgreementEnum.BATTERY.getRequestCommand(null)), false);
     }
 
     public void readRealTime() {
-        SdkUtil.writeCommand(AgreementEnum.REAL_TIME.getRequestCommand(null));
+        // SdkUtil.writeCommand(AgreementEnum.REAL_TIME.getRequestCommand(null));
+        CommunicationService.getInstance().getCommandConsumerQueue().add(ProtocolUtil.byteArrToHexStr(AgreementEnum.REAL_TIME.getRequestCommand(null)), true);
     }
 
     private void timing() {
-        SdkUtil.writeCommand(AgreementEnum.TIMING.getRequestCommand(null));
+        // SdkUtil.writeCommand(AgreementEnum.TIMING.getRequestCommand(null));
+        CommunicationService.getInstance().getCommandConsumerQueue().add(ProtocolUtil.byteArrToHexStr(AgreementEnum.TIMING.getRequestCommand(null)), false);
     }
 
 
     public void queryFunctionSwitch() {
-        SdkUtil.writeCommand(AgreementEnum.FUNCTION_SWITCH.getRequestCommand(null));
+        // SdkUtil.writeCommand(AgreementEnum.FUNCTION_SWITCH.getRequestCommand(null));
+        CommunicationService.getInstance().getCommandConsumerQueue().add(ProtocolUtil.byteArrToHexStr(AgreementEnum.FUNCTION_SWITCH.getRequestCommand(null)), false);
+    }
+
+    private void queryOtaInfo() {
+        SdkUtil.writeCommand(AgreementEnum.OTA_UPGRADE.getRequestCommand("01"));
     }
 
     /**
@@ -196,6 +236,11 @@ public class CommunicationService {
                 deviceInfo.setModel(deviceDO.getModel());
                 deviceInfo.setFirmwareVersion(deviceDO.getFirmwareVersion());
             }
+            if (StringUtils.isBlank(deviceInfo.getOtaAddress())) {
+                deviceInfo.setOtaAddress(deviceDO.getOtaAddress());
+                deviceInfo.setOtaFirmwareVersion(deviceDO.getOtaFirmwareVersion());
+            }
+
             LogUtil.info("设备信息时间：" + deviceInfo.getTime());
 
             if (deviceInfo.getTime() > DateUtil.getTodayStartTime()) {
@@ -213,22 +258,17 @@ public class CommunicationService {
     public void reloadCommand() {
         CommunicationService.getInstance().loadingTodayDeviceHistoryData();
         CommunicationService.getInstance().loadingBeforeToday();
-        BleHandler.of().postDelayed(new Runnable() {
+        CommunicationDataService.getInstance().cacheDataInit(new DBCallback() {
             @Override
-            public void run() {
-                CommunicationDataService.getInstance().cacheDataInit(new DBCallback() {
-                    @Override
-                    public void success() {
-                        Log.i("CacheScheduled", "刷新数据库成功");
-                    }
-
-                    @Override
-                    public void failed() {
-                        Log.i("CacheScheduled", "刷新数据库失败");
-                    }
-                });
+            public void success() {
+                Log.i("CacheScheduled", "刷新数据库成功");
             }
-        }, 20000);
+
+            @Override
+            public void failed() {
+                Log.i("CacheScheduled", "刷新数据库失败");
+            }
+        });
     }
 
     /**
@@ -308,8 +348,13 @@ public class CommunicationService {
         ConcurrentMap<String, CommunicationDataDO> map = CommunicationDataCache.get(DateUtils.getPreviousIntDate());
         vo.setBloodOxygen(Double.valueOf(getLastValue(map.get(HistoryDataTypeEnum.BLOOD_OXYGEN.getKeyDes()), false, false)).intValue());
         vo.setTemperature(getLastValue(map.get(HistoryDataTypeEnum.TEMPERATURE.getKeyDes()), false, false));
-        vo.setHighPressure(Double.valueOf(getLastValue(map.get(HistoryDataTypeEnum.BLOOD_PRESSURE.getKeyDes()), true, false)).intValue());
-        vo.setLowPressure(Double.valueOf(getLastValue(map.get(HistoryDataTypeEnum.BLOOD_PRESSURE.getKeyDes()), true, true)).intValue());
+        int highPressure = Double.valueOf(getLastValue(map.get(HistoryDataTypeEnum.BLOOD_PRESSURE.getKeyDes()), true, false)).intValue();
+        int lowPressure = Double.valueOf(getLastValue(map.get(HistoryDataTypeEnum.BLOOD_PRESSURE.getKeyDes()), true, true)).intValue();
+        if (highPressure == 0 || lowPressure == 0) {
+            highPressure = lowPressure = 0;
+        }
+        vo.setHighPressure(highPressure);
+        vo.setLowPressure(lowPressure);
 
         CommunicationDataDO communicationDataDO = map.get(HistoryDataTypeEnum.HEART_RATE.getKeyDes());
         vo.setHeartRate(Double.valueOf(getLastValue(communicationDataDO, false, false)).intValue());
@@ -368,7 +413,7 @@ public class CommunicationService {
             @Override
             public void onProgressChanged(String deviceAddress, int percent, float speed, float avgSpeed, int currentPart, int partsTotal) {
                 Log.i(TAG, "升级进度" + deviceAddress + "" + percent);
-                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.UPGRADING.getKey(), percent));
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.UPGRADING.getKey(), String.valueOf(percent)));
             }
 
             @Override
@@ -400,20 +445,70 @@ public class CommunicationService {
                 Log.i(TAG, "设备未连接" + deviceAddress);
             }
         };
-        DfuUpgradeHandle.getInstance().start(Config.mainContext, address, callback);
+        DfuUpgradeHandle.getInstance().init(Config.mainContext, address, callback);
+        DfuUpgradeHandle.getInstance().startScan();
 
-        BleHandler.of().postDelayed(() -> {
-            if (DfuUpgradeHandle.getInstance().getConnectStatus() != BluetoothProfile.STATE_CONNECTED) {
-                DfuUpgradeHandle.getInstance().start(Config.mainContext, address, callback);
-            }
-        }, 15000);
+    }
 
-        BleHandler.of().postDelayed(() -> {
-            if (DfuUpgradeHandle.getInstance().getConnectStatus() != BluetoothProfile.STATE_CONNECTED) {
-                DfuUpgradeHandle.getInstance().dispose(Config.mainContext);
-                callback.onDfuAborted(address);
+    public void startOtaUpgrade() {
+        BleDeviceInfoVO bleDeviceInfoVO = new BleDeviceInfoVO();
+        String otaAddress = DeviceHolder.getInstance().getInfo().getOtaAddress();
+        bleDeviceInfoVO.setMac(otaAddress);
+        BluetoothDevice remoteDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(otaAddress);
+        bleDeviceInfoVO.setBluetoothDevice(remoteDevice);
+
+        OtaUpgradeQueue.add(bleDeviceInfoVO);
+        String path = Config.mainContext.getFilesDir().getAbsolutePath() + File.separator + "OTA_FIRMWARE";
+        File file = new File(path);
+        File newFile = null;
+        for (File listFile : file.listFiles()) {
+            if (!listFile.isHidden()) {
+                if (Objects.isNull(newFile)) {
+                    newFile = listFile;
+                } else if (listFile.lastModified() > newFile.lastModified()) {
+                    newFile = listFile;
+                }
             }
-        }, 25000);
+        }
+
+        UpgradeCallback upgradeCallback = new UpgradeCallback() {
+            @Override
+            public void success() {
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.UPGRADE_SUCCESS.getKey()));
+            }
+
+            @Override
+            public void failed(String errorMsg) {
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.failed(FirmwareUpgradeStatusEnum.UPGRADE_FAILED.getKey(), "升级失败"));
+            }
+
+            @Override
+            public void connecting() {
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.CONNECTING.getKey()));
+            }
+
+            @Override
+            public void connected() {
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.CONNECT_SUCCESS.getKey()));
+            }
+
+            @Override
+            public void start() {
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.START_UPGRADE.getKey()));
+            }
+
+            @Override
+            public void progressChange(String v) {
+                JsBridgeUtil.pushEvent(JsBridgeConstants.FIRMWARE_UPGRADE_KEY, FirmwaresUpgradeVO.success(FirmwareUpgradeStatusEnum.UPGRADING.getKey(), v));
+            }
+        };
+        if (Objects.isNull(newFile)) {
+            upgradeCallback.failed("固件不存在");
+            return;
+        }
+        OtaHelper.getInstance().init(Config.mainContext, newFile.getPath());
+        OtaHelper.getInstance().setOtaRunning(true);
+        OtaUpgradeHolder.startUpgrade(upgradeCallback);
     }
 
     /**
@@ -435,4 +530,7 @@ public class CommunicationService {
         JsBridgeUtil.pushEvent(JsBridgeConstants.FUNCTION_SWITCH_KEY, bo);
     }
 
+    public void removeCurrDayDay() {
+        CommunicationDataService.getInstance().removeCurrDayDay();
+    }
 }

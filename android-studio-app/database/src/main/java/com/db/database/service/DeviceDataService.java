@@ -38,6 +38,10 @@ public class DeviceDataService {
 
     }
 
+    public void updateOtaInfo(String address, String version) {
+        Completable.fromAction(() -> UserDatabase.getInstance().getDeviceDAO().updateOtaInfo(address, version)).subscribeOn(Schedulers.io()).subscribe();
+    }
+
     public void query(Callback callback) {
         Single.fromCallable(() -> UserDatabase.getInstance().getDeviceDAO().queryInUse())
                 .subscribeOn(Schedulers.io()) // 在IO线程进行查询

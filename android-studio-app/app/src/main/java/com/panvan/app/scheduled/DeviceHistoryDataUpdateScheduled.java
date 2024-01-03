@@ -6,7 +6,6 @@ import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.entity.seek.BraceletDevice;
 import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
-import com.db.database.service.CommunicationDataService;
 import com.panvan.app.data.holder.DeviceHolder;
 import com.panvan.app.service.CommunicationService;
 import com.panvan.app.utils.LogUtil;
@@ -43,8 +42,10 @@ public class DeviceHistoryDataUpdateScheduled {
 
             if (device.getConnectState() != BleConnectStatusEnum.CONNECTED.getStatus()) {
                 LogUtil.info("历史数据定时任务执行失败，设备未连接");
+            } else {
+                CommunicationService.getInstance().loadingTodayDeviceHistoryData();
             }
 
-        }, 150, 300000, TimeUnit.MILLISECONDS);
+        }, 10000, 120000 * 2, TimeUnit.MILLISECONDS);
     }
 }

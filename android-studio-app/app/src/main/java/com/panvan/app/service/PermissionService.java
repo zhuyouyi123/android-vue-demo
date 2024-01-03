@@ -119,7 +119,7 @@ public class PermissionService {
             String[] strings = {typeEnum.getName()};
 
             if (typeEnum == PermissionTypeEnum.READ_PHONE_STATE) {
-                strings = new String[]{PermissionTypeEnum.READ_PHONE_STATE.getName(), PermissionTypeEnum.READ_CALL_LOG.getName()};
+                strings = new String[]{PermissionTypeEnum.READ_PHONE_STATE.getName(), PermissionTypeEnum.READ_CALL_LOG.getName(), PermissionTypeEnum.READ_CONTACTS.getName()};
             }
 
             Activity activity = (Activity) Config.mainContext;

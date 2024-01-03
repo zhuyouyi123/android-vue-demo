@@ -5,6 +5,7 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
+import com.panvan.app.utils.DateUtil;
 import com.panvan.app.utils.HistoryDataAnalysisUtil;
 
 import java.util.ArrayList;
@@ -14,7 +15,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@RequiresApi(api = Build.VERSION_CODES.N)
 public enum HistoryDataTypeEnum {
 
     /**
@@ -152,9 +152,13 @@ public enum HistoryDataTypeEnum {
             hex.append(String.format(Locale.ENGLISH, "%02X", typeEnum.getTotalPacket()));
             // 包序号
             hex.append(String.format(Locale.ENGLISH, "%02X", i + 1));
-
             String toHexStr = ProtocolUtil.byteArrToHexStr(ProtocolUtil.addSumBytes(ProtocolUtil.hexStrToBytes(hex.toString())));
+
             ins.add(toHexStr + "16");
+
+            if (DateUtil.checkSortStop(typeEnum.getTotalPacket(),i + 1)){
+                break;
+            }
         }
 
         return ins;
@@ -185,7 +189,13 @@ public enum HistoryDataTypeEnum {
     }
 
     public static List<HistoryDataTypeEnum> getAllEnable() {
-        return Arrays.stream(values()).filter(HistoryDataTypeEnum::isEnable).collect(Collectors.toList());
+        List<HistoryDataTypeEnum> list = new ArrayList<>();
+        for (HistoryDataTypeEnum value : values()) {
+            if (value.isEnable()) {
+                list.add(value);
+            }
+        }
+        return list;
     }
 
     public int getTotalPacket() {

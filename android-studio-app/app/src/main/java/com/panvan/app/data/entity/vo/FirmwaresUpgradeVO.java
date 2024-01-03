@@ -4,7 +4,7 @@ public class FirmwaresUpgradeVO {
 
     private String key;
 
-    private Integer value;
+    private String value;
 
     private String errorMsg;
 
@@ -16,11 +16,11 @@ public class FirmwaresUpgradeVO {
         this.key = key;
     }
 
-    public Integer getValue() {
+    public String getValue() {
         return value;
     }
 
-    public void setValue(Integer value) {
+    public void setValue(String value) {
         this.value = value;
     }
 
@@ -38,7 +38,7 @@ public class FirmwaresUpgradeVO {
         return firmwaresUpgradeVO;
     }
 
-    public static FirmwaresUpgradeVO success(String key,Integer value) {
+    public static FirmwaresUpgradeVO success(String key,String value) {
         FirmwaresUpgradeVO firmwaresUpgradeVO = new FirmwaresUpgradeVO();
         firmwaresUpgradeVO.setKey(key);
         firmwaresUpgradeVO.setValue(value);

@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
-@RequiresApi(api = Build.VERSION_CODES.N)
 public class HistoryDataAnalysisUtil {
 
     private static Integer firstUseTime = null;
@@ -428,9 +427,10 @@ public class HistoryDataAnalysisUtil {
                 listMultipleChartInfo.setOriginalData(Arrays.asList(split));
                 return listMultipleChartInfo;
             }
-            int x = 0;
-            String[] listA = new String[split.length / 2];
-            String[] listB = new String[split.length / 2];
+            int x = 1;
+            String[] listA = new String[split.length / 2 + 1];
+            String[] listB = new String[split.length / 2 + 1];
+            listA[0] = listB[0] = "0";
             for (int i = 0; i < split.length; i++) {
                 if (i % 2 == 0) {
                     listA[x] = String.valueOf(Double.valueOf(split[i]).intValue());

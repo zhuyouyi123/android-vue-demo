@@ -1,8 +1,8 @@
 package com.panvan.app.scheduled;
 
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
+import com.panvan.app.service.CommunicationService;
 import com.panvan.app.utils.LogUtil;
-import com.panvan.app.utils.SdkUtil;
 
 import java.util.Map;
 import java.util.Objects;
@@ -18,7 +18,7 @@ public class CommandRetryScheduled {
     private static final ConcurrentMap<String, Long> COMMAND_MAP = new ConcurrentHashMap<>();
     private static final ConcurrentMap<String, Integer> RETRY_TIMES_MAP = new ConcurrentHashMap<>();
 
-    private static final long RETRY_TIME = 500;
+    private static final long RETRY_TIME = 1000;
 
     private static CommandRetryScheduled INSTANCE = null;
 
@@ -44,9 +44,10 @@ public class CommandRetryScheduled {
                         if (null != times && times > 0) {
                             times--;
                             RETRY_TIMES_MAP.put(entry.getKey(), times);
-                            SdkUtil.retryWriteCommand(entry.getKey());
+                            // SdkUtil.retryWriteCommand(entry.getKey());
+                            CommunicationService.getInstance().getCommandConsumerQueue().add(entry.getKey(),false);
                             try {
-                                TimeUnit.MILLISECONDS.sleep(10);
+                                TimeUnit.MILLISECONDS.sleep(50);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -60,7 +61,7 @@ public class CommandRetryScheduled {
                     }
                 }
             }
-        }, 1000, 2000, TimeUnit.MILLISECONDS);
+        }, 5000, 5000, TimeUnit.MILLISECONDS);
     }
 
 

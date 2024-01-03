@@ -4,10 +4,12 @@ import static android.content.Context.ACTIVITY_SERVICE;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Handler;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -21,8 +23,14 @@ import no.nordicsemi.android.dfu.DfuProgressListener;
 import no.nordicsemi.android.dfu.DfuServiceController;
 import no.nordicsemi.android.dfu.DfuServiceInitiator;
 import no.nordicsemi.android.dfu.DfuServiceListenerHelper;
+import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
+import no.nordicsemi.android.support.v18.scanner.ScanCallback;
+import no.nordicsemi.android.support.v18.scanner.ScanResult;
+import no.nordicsemi.android.support.v18.scanner.ScanSettings;
 
 public class DfuUpgradeHandle implements DfuProgressListener {
+
+    private static final String TAG = DfuUpgradeHandle.class.getSimpleName();
     @SuppressLint("StaticFieldLeak")
     private static DfuUpgradeHandle INSTANCE = null;
 
@@ -31,7 +39,7 @@ public class DfuUpgradeHandle implements DfuProgressListener {
     private DfuServiceController serviceController;
     private DfuServiceInitiator starter;
 
-    private int connectStatus = BluetoothProfile.STATE_DISCONNECTED;
+    private static boolean isUpgrading = false;
 
     public static DfuUpgradeHandle getInstance() {
         if (Objects.isNull(INSTANCE)) {
@@ -42,18 +50,54 @@ public class DfuUpgradeHandle implements DfuProgressListener {
         return INSTANCE;
     }
 
+    private static BluetoothLeScannerCompat scanner = null;
 
-    public int getConnectStatus() {
-        return connectStatus;
+    private static String address = "";
+    @SuppressLint("StaticFieldLeak")
+    private static Context context = null;
+    private static IDfuProgressCallback iDfuProgressCallback = null;
+
+    public void init(Context accontext, String mac, IDfuProgressCallback callback) {
+        address = mac;
+        context = accontext;
+        iDfuProgressCallback = callback;
     }
 
-    public void setConnectStatus(int connectStatus) {
-        this.connectStatus = connectStatus;
+    private final ScanCallback scanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, @NonNull ScanResult result) {
+            super.onScanResult(callbackType, result);
+            // 处理扫描到的蓝牙设备
+            BluetoothDevice device = result.getDevice();
+            if (device.getAddress().equals(address)) {
+                start(context, address, iDfuProgressCallback);
+                stopScan();
+            }
+
+        }
+    };
+
+    public void startScan() {
+        if (Objects.isNull(scanner)) {
+            ScanSettings settings = new ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY) // 设置扫描模式
+                    .build();
+
+            scanner = BluetoothLeScannerCompat.getScanner();
+            scanner.startScan(null, settings, scanCallback);
+            new Handler().postDelayed(this::stopScan, 20000); // 设置扫描时间
+        }
+    }
+
+    private void stopScan() {
+        if (Objects.nonNull(scanner)) {
+            BluetoothLeScannerCompat.getScanner().stopScan(scanCallback);
+            scanner = null;
+        }
     }
 
     public void start(Context context, String address, IDfuProgressCallback callback) {
         this.progressCallback = callback;
-        this.connectStatus = BluetoothProfile.STATE_DISCONNECTED;
         try {
             // 监听升级进度
             DfuServiceListenerHelper.registerProgressListener(context, this);
@@ -81,7 +125,7 @@ public class DfuUpgradeHandle implements DfuProgressListener {
             File[] files = file.listFiles();
 
             if (Objects.isNull(files)) {
-                callback.onError(address,-1,-1,"固件获取失败");
+                callback.onError(address, -1, -1, "固件获取失败");
                 return;
             }
             File newFile = null;
@@ -104,6 +148,7 @@ public class DfuUpgradeHandle implements DfuProgressListener {
         } catch (Exception e) {
             e.printStackTrace();
             Log.e("DfuUpgradeHandle", e.getMessage());
+            isUpgrading = false;
             progressCallback.onDfuAborted(address);
         }
     }
@@ -123,8 +168,17 @@ public class DfuUpgradeHandle implements DfuProgressListener {
         return false;
     }
 
+    public boolean getIsUpgrading() {
+        return isUpgrading;
+    }
+
+    public static void setIsUpgrading(boolean isUpgrading) {
+        DfuUpgradeHandle.isUpgrading = isUpgrading;
+    }
+
     //退出 dfu
     public void dispose(Context mContext) {
+        setIsUpgrading(false);
         DfuServiceListenerHelper.unregisterProgressListener(mContext, this);
         if (isDfuServiceRunning(mContext)) {
             if (serviceController != null) {
@@ -138,6 +192,13 @@ public class DfuUpgradeHandle implements DfuProgressListener {
         if (serviceController != null) {
             serviceController = null;
         }
+        release();
+    }
+
+    public void release() {
+        address = null;
+        context = null;
+        iDfuProgressCallback = null;
     }
 
     /**
@@ -147,7 +208,7 @@ public class DfuUpgradeHandle implements DfuProgressListener {
      */
     @Override
     public void onDeviceConnecting(@NonNull String deviceAddress) {
-        connectStatus = BluetoothProfile.STATE_CONNECTING;
+        Log.i(TAG, "onDeviceConnecting");
         progressCallback.onDeviceConnecting(deviceAddress);
     }
 
@@ -159,7 +220,7 @@ public class DfuUpgradeHandle implements DfuProgressListener {
      */
     @Override
     public void onDeviceConnected(@NonNull String deviceAddress) {
-        connectStatus = BluetoothProfile.STATE_CONNECTED;
+        Log.i(TAG, "onDeviceConnected");
         progressCallback.onDeviceConnected(deviceAddress);
     }
 
@@ -171,6 +232,7 @@ public class DfuUpgradeHandle implements DfuProgressListener {
      */
     @Override
     public void onDfuProcessStarting(@NonNull String deviceAddress) {
+        Log.i(TAG, "onDfuProcessStarting");
     }
 
     /**
@@ -180,6 +242,7 @@ public class DfuUpgradeHandle implements DfuProgressListener {
      */
     @Override
     public void onDfuProcessStarted(@NonNull String deviceAddress) {
+        Log.i(TAG, "onDfuProcessStarted");
         progressCallback.onDfuProcessStarted(deviceAddress);
     }
 
@@ -193,6 +256,7 @@ public class DfuUpgradeHandle implements DfuProgressListener {
      */
     @Override
     public void onEnablingDfuMode(@NonNull String deviceAddress) {
+        Log.i(TAG, "onEnablingDfuMode");
         progressCallback.onDfuProcessStarted(deviceAddress);
     }
 
@@ -211,6 +275,7 @@ public class DfuUpgradeHandle implements DfuProgressListener {
      */
     @Override
     public void onProgressChanged(@NonNull String deviceAddress, int percent, float speed, float avgSpeed, int currentPart, int partsTotal) {
+        Log.i(TAG, "onProgressChanged");
         progressCallback.onProgressChanged(deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal);
     }
 
@@ -221,6 +286,7 @@ public class DfuUpgradeHandle implements DfuProgressListener {
      */
     @Override
     public void onFirmwareValidating(@NonNull String deviceAddress) {
+        Log.i(TAG, "onFirmwareValidating");
     }
 
     /**
@@ -230,7 +296,7 @@ public class DfuUpgradeHandle implements DfuProgressListener {
      */
     @Override
     public void onDeviceDisconnecting(String deviceAddress) {
-        connectStatus = BluetoothProfile.STATE_DISCONNECTING;
+        Log.i(TAG, "onDeviceDisconnecting");
         progressCallback.onDeviceDisconnecting(deviceAddress);
     }
 
@@ -241,7 +307,8 @@ public class DfuUpgradeHandle implements DfuProgressListener {
      */
     @Override
     public void onDeviceDisconnected(@NonNull String deviceAddress) {
-        connectStatus = BluetoothProfile.STATE_DISCONNECTED;
+        Log.i(TAG, "onDeviceDisconnected");
+        setIsUpgrading(false);
         progressCallback.onDeviceDisconnected(deviceAddress);
     }
 
@@ -252,7 +319,10 @@ public class DfuUpgradeHandle implements DfuProgressListener {
      */
     @Override
     public void onDfuCompleted(@NonNull String deviceAddress) {
+        Log.i(TAG, "onDfuCompleted");
+        setIsUpgrading(false);
         progressCallback.onDfuCompleted(deviceAddress);
+        progressCallback = null;
     }
 
     /**
@@ -262,7 +332,11 @@ public class DfuUpgradeHandle implements DfuProgressListener {
      */
     @Override
     public void onDfuAborted(@NonNull String deviceAddress) {
-        progressCallback.onDfuAborted(deviceAddress);
+        Log.i(TAG, "onDfuAborted");
+        setIsUpgrading(false);
+        if (Objects.nonNull(progressCallback)) {
+            progressCallback.onDfuAborted(deviceAddress);
+        }
     }
 
     /**
@@ -275,6 +349,8 @@ public class DfuUpgradeHandle implements DfuProgressListener {
      */
     @Override
     public void onError(@NonNull String deviceAddress, int error, int errorType, String message) {
+        Log.i(TAG, "onError");
+        setIsUpgrading(false);
         progressCallback.onError(deviceAddress, error, errorType, message);
     }
 }

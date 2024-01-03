@@ -75,6 +75,7 @@ public class Config {
 
     @SuppressLint("StaticFieldLeak")
     public static Context mainContext;
+    @SuppressLint("StaticFieldLeak")
     public static WebView webView;
 
     public static int Dp2Px(float dpi) {

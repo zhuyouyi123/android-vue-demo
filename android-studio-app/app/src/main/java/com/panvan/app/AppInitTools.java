@@ -20,7 +20,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
 import com.db.database.UserDatabase;
-import com.panvan.app.Receiver.call.CallViewModel;
+import com.panvan.app.receiver.call.CallViewModel;
+import com.panvan.app.scheduled.BluetoothConnectCheckScheduled;
 import com.panvan.app.utils.SdkUtil;
 
 public class AppInitTools extends AppCompatActivity {
@@ -46,6 +47,7 @@ public class AppInitTools extends AppCompatActivity {
         Config.webView = this.webView;
         SdkUtil.init();
         UserDatabase.init(Config.mainContext, "app-user");
+        BluetoothConnectCheckScheduled.getInstance().start();
     }
 
 
@@ -56,6 +58,11 @@ public class AppInitTools extends AppCompatActivity {
     public void onDestroy() {
         super.onDestroy();
         CallViewModel.getInstance().listenNone();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
 

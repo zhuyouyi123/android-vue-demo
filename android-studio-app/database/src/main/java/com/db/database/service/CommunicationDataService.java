@@ -13,8 +13,12 @@ import com.db.database.enums.CommunicationTypeEnum;
 import com.db.database.utils.DataConvertUtils;
 import com.db.database.utils.DateUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentMap;
 
 import io.reactivex.Completable;
 import io.reactivex.schedulers.Schedulers;
@@ -40,6 +44,21 @@ public class CommunicationDataService {
                         if (Objects.isNull(AppDatabase.getInstance())) {
                             return;
                         }
+
+                        Integer previousIntDate = DateUtils.getPreviousIntDate();
+                        ConcurrentMap<String, CommunicationDataDO> concurrentMap = CommunicationDataCache.get(previousIntDate);
+                        List<CommunicationDataDO> doList = new ArrayList<>();
+                        if (!concurrentMap.isEmpty()) {
+                            for (Map.Entry<String, CommunicationDataDO> entry : concurrentMap.entrySet()) {
+                                doList.add(entry.getValue());
+                            }
+
+                            if (!doList.isEmpty()) {
+                                AppDatabase.getInstance().getCommunicationDataDAO().deleteTodayData(previousIntDate);
+                                AppDatabase.getInstance().getCommunicationDataDAO().insert(doList.toArray(new CommunicationDataDO[0]));
+                            }
+                        }
+
                         List<CommunicationDataDO> list = AppDatabase.getInstance().getCommunicationDataDAO().queryAll();
                         CommunicationDataCache.getInstance().init(list, dbCallback);
 
@@ -77,7 +96,15 @@ public class CommunicationDataService {
                     if (sort != 0) {
                         for (int i = 0; i < data.length; i++) {
                             int index = (sort - 1) * typeEnum.getPacketSize() + i;
-                            arr[index] = data[i];
+                            try {
+                                int newValue = Integer.parseInt(data[i]);
+                                int old = Integer.parseInt(arr[index]);
+                                if (old == 0 || old != newValue && newValue != 0) {
+                                    arr[index] = data[i];
+                                }
+                            } catch (NumberFormatException e) {
+                                arr[index] = data[i];
+                            }
                         }
                     }
 
@@ -144,4 +171,8 @@ public class CommunicationDataService {
     }
 
 
+    public void removeCurrDayDay() {
+        Completable.fromAction(() -> AppDatabase.getInstance().getCommunicationDataDAO().removeCurrDayDay(DateUtils.getPreviousIntDate(0))).subscribeOn(Schedulers.io())
+                .subscribe();
+    }
 }

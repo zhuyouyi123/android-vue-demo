@@ -1,6 +1,8 @@
 package com.panvan.app.controller;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
 import android.net.Uri;
@@ -13,6 +15,7 @@ import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
 import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
+import com.ble.dfuupgrade.DfuUpgradeHandle;
 import com.ble.dfuupgrade.MyBleManager;
 import com.db.database.AppDatabase;
 import com.db.database.service.AllDayDataService;
@@ -39,7 +42,13 @@ import com.panvan.app.service.PermissionService;
 import com.panvan.app.utils.DataConvertUtil;
 import com.panvan.app.utils.SdkUtil;
 import com.panvan.app.utils.StringUtils;
+import com.seekcy.otaupgrade.OtaHelper;
+import com.seekcy.otaupgrade.OtaUpgradeHolder;
+import com.seekcy.otaupgrade.callback.UpgradeCallback;
+import com.seekcy.otaupgrade.entity.BleDeviceInfoVO;
+import com.seekcy.otaupgrade.queue.OtaUpgradeQueue;
 
+import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
@@ -139,6 +148,8 @@ public class CommunicationController {
         // MyBleManager.getInstance(Config.mainContext).dis();
         DeviceHolder.getInstance().getBleManager().dis(() -> DeviceHolder.getInstance().setBleManager(null));
         DeviceHolder.DEVICE.setConnectState(BluetoothProfile.STATE_DISCONNECTED);
+        CommunicationService.getInstance().clearTask();
+        CommunicationService.getInstance().removeCurrDayDay();
         return RespVO.success();
     }
 
@@ -146,6 +157,28 @@ public class CommunicationController {
     public RespVO<Void> writeCommand(String hex) {
         if (Objects.isNull(DeviceHolder.DEVICE) || DeviceHolder.DEVICE.getConnectState() != BleConnectStatusEnum.CONNECTED.getStatus()) {
             return RespVO.failure("当前设备未连接");
+        }
+
+        if ("B1".equals(hex)) {
+            if (!NotificationManagerCompat.from(Config.mainContext).areNotificationsEnabled()) {
+                Intent intent = new Intent();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {// android 8.0引导
+                    intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
+                    intent.putExtra("android.provider.extra.APP_PACKAGE", Config.mainContext.getPackageName());
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { // android 5.0-7.0
+                    intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
+                    intent.putExtra("app_package", Config.mainContext.getPackageName());
+                    intent.putExtra("app_uid", Config.mainContext.getApplicationInfo().uid);
+                } else {//其它
+                    intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+                    intent.setData(Uri.fromParts("package", Config.mainContext.getPackageName(), null));
+                }
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                Activity activity = (Activity) Config.mainContext;
+                activity.startActivityForResult(intent, ActiveForResultConstants.REQUEST_NOTIFY_CODE);
+                return RespVO.success();
+            }
+            DfuUpgradeHandle.setIsUpgrading(true);
         }
         SdkUtil.retryWriteCommand(hex);
         return RespVO.success();
@@ -180,26 +213,21 @@ public class CommunicationController {
 
     @AppRequestMapper(path = "/dfu-upgrade", method = AppRequestMethod.POST)
     public RespVO<Void> startDufUpgrade() {
-        if (!NotificationManagerCompat.from(Config.mainContext).areNotificationsEnabled()) {
-            Intent intent = new Intent();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {// android 8.0引导
-                intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
-                intent.putExtra("android.provider.extra.APP_PACKAGE", Config.mainContext.getPackageName());
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { // android 5.0-7.0
-                intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
-                intent.putExtra("app_package", Config.mainContext.getPackageName());
-                intent.putExtra("app_uid", Config.mainContext.getApplicationInfo().uid);
-            } else {//其它
-                intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
-                intent.setData(Uri.fromParts("package", Config.mainContext.getPackageName(), null));
-            }
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            Activity activity = (Activity) Config.mainContext;
-            activity.startActivityForResult(intent, ActiveForResultConstants.REQUEST_NOTIFY_CODE);
-        }
+        DfuUpgradeHandle.setIsUpgrading(true);
+        DeviceHolder.DEVICE.setConnectState(DeviceHolder.NOT_CONNECTED);
+        BleHandler.of().postDelayed(() -> CommunicationService.getInstance().startDufUpgrade(), 6000);
+        return RespVO.success();
+    }
 
-        BleHandler.of().postDelayed(() -> CommunicationService.getInstance().startDufUpgrade(), 5000);
-
+    /**
+     * 固件升级
+     *
+     * @param address mac地址
+     * @return 开始升级
+     */
+    @AppRequestMapper(path = "/ota-upgrade", method = AppRequestMethod.POST)
+    public RespVO<Void> startOtaUpgrade() {
+        CommunicationService.getInstance().startOtaUpgrade();
         return RespVO.success();
     }
 }

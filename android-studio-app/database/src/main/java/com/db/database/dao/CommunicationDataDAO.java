@@ -21,9 +21,15 @@ public interface CommunicationDataDAO {
     @Query("DELETE FROM communication_data WHERE data_date=:time AND type=:type")
     void deleteTodayByType(String time, String type);
 
+    @Query("DELETE FROM communication_data WHERE data_date=:time")
+    void deleteTodayData(Integer time);
+
     @Query("SELECT * FROM communication_data")
     List<CommunicationDataDO> queryAll();
 
     @Query("SELECT * FROM communication_data WHERE data_date=:date AND type=:type")
     CommunicationDataDO queryByDateAndType(Integer date, String type);
+
+    @Query("DELETE FROM communication_data WHERE data_date=:previousIntDate")
+    void removeCurrDayDay(Integer previousIntDate);
 }

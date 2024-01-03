@@ -11,7 +11,7 @@ android {
         minSdk 21
         targetSdk 32
         versionCode 4
-        versionName "0.1.0"
+        versionName "0.2.0"
 
     }
 
@@ -37,5 +37,6 @@ dependencies {
     api rootProject.appcompat
     implementation rootProject.material
     implementation project(path: ':dfuupgrade')
+    implementation project(path: ':otaupgrade')
 
 }

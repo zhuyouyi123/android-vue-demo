@@ -7,8 +7,6 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 
 import androidx.annotation.RequiresApi;
@@ -24,10 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class AppListActivity extends AppCompatActivity {
-    private ListView listView;
     private AppInfoAdapter adapter;
 
     @RequiresApi(api = Build.VERSION_CODES.R)
@@ -36,7 +32,7 @@ public class AppListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app_list);
 
-        listView = findViewById(R.id.listView);
+        ListView listView = findViewById(R.id.listView);
 
         // 获取非系统应用列表及其图标
         List<AppInfo> nonSystemApps = getNonSystemApps(this);

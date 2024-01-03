@@ -5,12 +5,14 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
+import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
 import com.db.database.service.CommunicationDataService;
 import com.db.database.service.DeviceDataService;
 import com.db.database.utils.DataConvertUtils;
 import com.db.database.utils.DateUtils;
 import com.panvan.app.callback.AgreementCallback;
 import com.panvan.app.data.constants.JsBridgeConstants;
+import com.panvan.app.data.constants.SharePreferenceConstants;
 import com.panvan.app.data.holder.DeviceHolder;
 import com.panvan.app.scheduled.CommandRetryScheduled;
 import com.panvan.app.service.CommunicationService;
@@ -18,6 +20,7 @@ import com.panvan.app.utils.DataConvertUtil;
 import com.panvan.app.utils.DateUtil;
 import com.panvan.app.utils.JsBridgeUtil;
 import com.panvan.app.utils.LogUtil;
+import com.panvan.app.utils.RegexUtil;
 import com.panvan.app.utils.StringUtils;
 
 import java.nio.ByteOrder;
@@ -26,6 +29,76 @@ import java.util.Objects;
 
 
 public enum AgreementEnum {
+
+    OTA_UPGRADE(0x00, 0x80, "OTA_UPGRADE") {
+        @Override
+        public void responseHandle(byte[] bytes, AgreementCallback callback) {
+            if (Objects.isNull(bytes) || !DataConvertUtil.checkSum(bytes)) {
+                CommandRetryScheduled.getInstance().remove("00");
+                callback.success(OTA_UPGRADE);
+                return;
+            } else if (bytes.length == 8) {
+                JsBridgeUtil.pushEvent(JsBridgeConstants.OTA_FIRMWARE_UPGRADE, true);
+            } else if (bytes.length == 20) {
+                int index = 7;
+                // ota模组版本
+                String otaFirmwareVersion = ProtocolUtil.byteToHexStr(bytes[index++]) + "." +
+                        ProtocolUtil.byteToHexStr(bytes[index++]) + "-" +
+                        ProtocolUtil.byteToHexStr(bytes[index++]) + "." +
+                        ProtocolUtil.byteToHexStr(bytes[index++]) + "." +
+                        ProtocolUtil.byteToHexStr(bytes[index++]) + "." +
+                        ProtocolUtil.byteToHexStr(bytes[index++]) + ".";
+                // ota 设备mac地址
+                StringBuilder stringBuilder = new StringBuilder("19:18:");
+                stringBuilder.append(ProtocolUtil.byteToHexStr(bytes[index++])).append(":");
+                stringBuilder.append(ProtocolUtil.byteToHexStr(bytes[index++])).append(":");
+                stringBuilder.append(ProtocolUtil.byteToHexStr(bytes[index++])).append(":");
+                stringBuilder.append(ProtocolUtil.byteToHexStr(bytes[index]));
+
+                DeviceHolder.getInstance().getInfo().setOtaAddress(stringBuilder.toString());
+                DeviceHolder.getInstance().getInfo().setOtaFirmwareVersion(otaFirmwareVersion);
+
+                DeviceDataService.getInstance().updateOtaInfo(stringBuilder.toString(), otaFirmwareVersion);
+            }
+            CommandRetryScheduled.getInstance().remove("00");
+            callback.success(OTA_UPGRADE);
+        }
+
+        @Override
+        public byte[] getRequestCommand(String params) {
+            if (Objects.isNull(params) || StringUtils.isBlank(params) || "01".equals(params)) {
+                // 请求版本信息
+                return ProtocolUtil.hexStrToBytes("68000200B0011B16");
+            }
+            return ProtocolUtil.hexStrToBytes("68000200B0021E16");
+        }
+    },
+
+    CALL_REMINDER(0x01, 0x81, "") {
+        @Override
+        public void responseHandle(byte[] bytes, AgreementCallback callback) {
+            CommandRetryScheduled.getInstance().remove("01");
+            callback.success(CALL_REMINDER);
+        }
+
+        @Override
+        public byte[] getRequestCommand(String params) {
+            return new byte[0];
+        }
+    },
+
+    CALL_REMINDER_ERROR(0x01, 0xC1, "") {
+        @Override
+        public void responseHandle(byte[] bytes, AgreementCallback callback) {
+            CommandRetryScheduled.getInstance().remove("01");
+            callback.success(CALL_REMINDER_ERROR);
+        }
+
+        @Override
+        public byte[] getRequestCommand(String params) {
+            return new byte[0];
+        }
+    },
 
     FUNCTION_SWITCH(0X02, 0X82, "FUNCTION_SWITCH") {
         @RequiresApi(api = Build.VERSION_CODES.N)
@@ -49,14 +122,12 @@ public enum AgreementEnum {
         @Override
         public void responseHandle(byte[] data, AgreementCallback callback) {
             // 68830100645016
-            int battery = -1;
-            if (Objects.nonNull(data) && data.length == 7) {
+            int battery;
+            if (Objects.nonNull(data) && data.length == 7 ) {
                 battery = data[4] & 0xff;
+                DeviceHolder.getInstance().getInfo().setBattery(battery);
+                JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BATTERY, battery);
             }
-
-            DeviceHolder.getInstance().getInfo().setBattery(battery);
-
-            JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BATTERY, battery);
 
             CommandRetryScheduled.getInstance().remove((byte) BATTERY.getRequestKey());
             callback.success(BATTERY);
@@ -128,17 +199,23 @@ public enum AgreementEnum {
 
             // 步数
             int stepNumber = ProtocolUtil.byteArrayToInt(DataConvertUtil.getSubArray(bytes, index, 4), false);
-            DeviceHolder.getInstance().getInfo().getStepInfo().setStepNumber(stepNumber);
+            if (stepNumber >= 0 && stepNumber < 100000) {
+                DeviceHolder.getInstance().getInfo().getStepInfo().setStepNumber(stepNumber);
+            }
             index += 4;
 
             // 里程
             int mileage = ProtocolUtil.byteArrayToInt(DataConvertUtil.getSubArray(bytes, index, 4), false);
-            DeviceHolder.getInstance().getInfo().getStepInfo().setMileage(mileage);
+            if (mileage >= 0 && mileage < 100000) {
+                DeviceHolder.getInstance().getInfo().getStepInfo().setMileage(mileage);
+            }
             index += 4;
 
             // 热量
             int calories = ProtocolUtil.byteArrayToInt(DataConvertUtil.getSubArray(bytes, index, 4), false);
-            DeviceHolder.getInstance().getInfo().getStepInfo().setCalories(calories);
+            if (calories >= 0 && calories < 100000) {
+                DeviceHolder.getInstance().getInfo().getStepInfo().setCalories(calories);
+            }
             index += 4;
             // 步速 1 体表温度 2 环境温度 2
             index += 5;
@@ -184,10 +261,12 @@ public enum AgreementEnum {
             byte[] subArray = DataConvertUtil.getSubArray(bytes, bytes.length - 30, 14);
             String version = new String(subArray, StandardCharsets.UTF_8);
 
-            DeviceHolder.getInstance().getInfo().setModel(modelStr);
-            DeviceHolder.getInstance().getInfo().setFirmwareVersion(version);
+            if (RegexUtil.hasInvalidChars(modelStr)&&RegexUtil.hasInvalidChars(version)){
+                DeviceHolder.getInstance().getInfo().setModel(modelStr);
+                DeviceHolder.getInstance().getInfo().setFirmwareVersion(version);
 
-            DeviceDataService.getInstance().setModelAndVersion(modelStr, version);
+                DeviceDataService.getInstance().setModelAndVersion(modelStr, version);
+            }
 
             CommandRetryScheduled.getInstance().remove("16");
             callback.success(DEVICE_INFO);

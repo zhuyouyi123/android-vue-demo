@@ -21,7 +21,6 @@ public class CacheScheduled {
     private static CacheScheduled INSTANCE = null;
 
     private static final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
-    private static final ScheduledExecutorService scheduledRreashExecutorService = Executors.newScheduledThreadPool(1);
 
     public static CacheScheduled getInstance() {
         if (Objects.isNull(INSTANCE)) {
@@ -66,6 +65,9 @@ public class CacheScheduled {
             if (updateList.size() > 0) {
                 AppDatabase.getInstance().getCommunicationDataDAO().update(updateList.toArray(new CommunicationDataDO[0]));
                 Log.w("数据库-修改数据", updateList.size() + "");
+                for (CommunicationDataDO communicationDataDO : updateList) {
+                    Log.w("数据库-修改数据", communicationDataDO.toString() + "");
+                }
             }
         }, 5000, 5000, TimeUnit.MILLISECONDS);
     }

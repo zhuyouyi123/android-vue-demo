@@ -421,6 +421,7 @@ export default {
         bluetoothEnable: true,
         locateEnable: true,
       },
+      updatePageInfoInterval: null,
     };
   },
 
@@ -433,8 +434,11 @@ export default {
 
   destroyed() {
     window.removeEventListener("commonAndroidEvent", this.callJs);
-    if (!this.refreshInterval) {
+    if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
+    }
+    if (this.updatePageInfoInterval) {
+      clearInterval(this.updatePageInfoInterval);
     }
   },
 
@@ -466,6 +470,12 @@ export default {
           }
 
           this.updatePageInfo();
+
+          if (!this.updatePageInfoInterval) {
+            this.updatePageInfoInterval = setInterval(() => {
+              this.updatePageInfo();
+            }, 1000 * 60 * 2);
+          }
 
           this.calcUpdateTimeDiff();
           // 查询目标值
@@ -505,7 +515,11 @@ export default {
           this.$deviceHolder.bindingInfo.time = new Date().getTime();
         }
         this.updatePageInfo();
-      }, 8000);
+      }, 10000);
+      // 晚点再更新下
+      setTimeout(() => {
+        this.updatePageInfo();
+      }, 30000);
     },
 
     callJs(e) {

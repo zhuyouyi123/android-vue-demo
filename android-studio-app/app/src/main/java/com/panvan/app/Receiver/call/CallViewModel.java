@@ -1,12 +1,13 @@
-package com.panvan.app.Receiver.call;
+package com.panvan.app.receiver.call;
 
+import android.annotation.SuppressLint;
+import android.content.ContentResolver;
 import android.content.Context;
-import android.os.Build;
-import android.telecom.TelecomManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
 import android.widget.Toast;
-
-import androidx.annotation.RequiresApi;
 
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
@@ -18,8 +19,12 @@ import com.panvan.app.Config;
 import com.panvan.app.data.enums.PermissionTypeEnum;
 import com.panvan.app.service.PermissionService;
 import com.panvan.app.utils.DataConvertUtil;
+import com.panvan.app.utils.LogUtil;
 import com.panvan.app.utils.SdkUtil;
+import com.panvan.app.Receiver.call.CallModel;
+import com.panvan.app.utils.StringUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,15 +72,27 @@ public class CallViewModel {
             @Override
             protected void onStateRinging(int state, String phoneNumber) {
                 if (inCallEnable) {
-                    Toast.makeText(Config.mainContext, "来电号码：" + (inCallContactsEnable ? phoneNumber : "不显示来电号码"), Toast.LENGTH_SHORT).show();
-                    start("");
+                    // Toast.makeText(Config.mainContext, "来电号码：" + (inCallContactsEnable ? phoneNumber : "不显示来电号码"), Toast.LENGTH_SHORT).show();
+                    byte[] nameBytes = new byte[0];
+                    try {
+                        if (inCallContactsEnable) {
+                            String contactNameFromNumber = getContactNameFromNumber(Config.mainContext, phoneNumber);
+                            LogUtil.error("写入指令 名称：" + contactNameFromNumber);
+                            // 使用正则表达式只保留字母、数字和汉字
+                            String cleanedText = contactNameFromNumber.replaceAll("[^a-zA-Z0-9\\u4E00-\\u9FA5]", "");
+                            nameBytes = cleanedText.getBytes(StandardCharsets.UTF_8);
+                        }
+                        start(phoneNumber, nameBytes);
+                    } catch (Exception e) {
+                        start(phoneNumber, nameBytes);
+                    }
                 }
             }
 
             @Override
             protected void onStateOffhook(int state, String phoneNumber) {
                 if (inCallEnable) {
-                    Toast.makeText(Config.mainContext, "挂断号码：" + phoneNumber, Toast.LENGTH_SHORT).show();
+                    // Toast.makeText(Config.mainContext, "挂断号码：" + phoneNumber, Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -86,32 +103,57 @@ public class CallViewModel {
                     return;
                 }
                 if (inCallEnable) {
-                    Toast.makeText(Config.mainContext, "挂断：" + phoneNumber, Toast.LENGTH_SHORT).show();
+                    // Toast.makeText(Config.mainContext, "挂断：" + phoneNumber, Toast.LENGTH_SHORT).show();
                     stop();
                 }
             }
         };
     }
 
-    private void start(String phoneNumber) {
+    private void start(String phoneNumber, byte[] nameBytes) {
+        if (StringUtils.isBlank(phoneNumber)) {
+            return;
+        }
         byte[] bytes = new byte[]{0x68, 0x01};
-        String hexStr = ProtocolUtil.byteArrToHexStr("17626525183".getBytes());
-        hexStr += "000000000000";
-        hexStr += "313131";
-        byte[] lenBytes = ProtocolUtil.intToByteArrayTwo(hexStr.length() + 2);
+        StringBuilder hexStr = new StringBuilder(ProtocolUtil.byteArrToHexStr(phoneNumber.getBytes()));
+        int diffSize = 15 - phoneNumber.length();
+        for (int i = 0; i < diffSize; i++) {
+            hexStr.append("00");
+        }
 
-        byte[] mergeLenBytes = DataConvertUtil.mergeBytes(bytes, lenBytes);
+        int length = 16 + nameBytes.length;
+        byte[] lenBytes = ProtocolUtil.intToByteArrayTwo(length);
 
-        byte[] contentBytes = ProtocolUtil.hexStrToBytes(hexStr);
-        byte[] mergeBytes = DataConvertUtil.mergeBytes(mergeLenBytes, contentBytes);
+        byte[] newLenBytes = new byte[]{lenBytes[1], 0x00};
 
-        // SdkUtil.writeCommand(ProtocolUtil.byteArrToHexStr(mergeBytes) + ProtocolUtil.byteToHexStr(ProtocolUtil.calcAddSum(mergeBytes)) + "16");
-        SdkUtil.writeCommand("6801160000313336353638393837343500000000E5BCA0E4B8893316");
+        String string = ProtocolUtil.byteArrToHexStr(DataConvertUtil.mergeBytes(bytes, newLenBytes));
+        string = string + "00" + hexStr + ProtocolUtil.byteArrToHexStr(nameBytes);
+        byte calcAddSum = ProtocolUtil.calcAddSum(ProtocolUtil.hexStrToBytes(string));
+        string += ProtocolUtil.byteToHexStr(calcAddSum);
+        string += "16";
+
+        SdkUtil.writeCommand(string);
+        // SdkUtil.writeCommand("6801160000313336353638393837343500000000E5BCA0E4B8893316");
     }
 
     private void stop() {
         SdkUtil.writeCommand("68010100016B16");
     }
+
+    @SuppressLint("Range")
+    public String getContactNameFromNumber(Context context, String number) {
+        String name = null;
+        ContentResolver resolver = context.getContentResolver();
+        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
+        String[] projection = {ContactsContract.PhoneLookup.DISPLAY_NAME};
+        Cursor cursor = resolver.query(uri, projection, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            name = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
+            cursor.close();
+        }
+        return name;
+    }
+
 
     public void loadConfig() {
         // 检查是否有权限

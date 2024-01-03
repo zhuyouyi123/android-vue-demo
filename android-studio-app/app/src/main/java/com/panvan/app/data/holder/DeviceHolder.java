@@ -101,6 +101,10 @@ public class DeviceHolder {
 
         private String firmwareVersion;
 
+        private String otaAddress;
+
+        private String otaFirmwareVersion;
+
         public int getBattery() {
             return battery;
         }
@@ -177,6 +181,22 @@ public class DeviceHolder {
 
         public void setFirmwareVersion(String firmwareVersion) {
             this.firmwareVersion = firmwareVersion;
+        }
+
+        public String getOtaAddress() {
+            return otaAddress;
+        }
+
+        public void setOtaAddress(String otaAddress) {
+            this.otaAddress = otaAddress;
+        }
+
+        public String getOtaFirmwareVersion() {
+            return otaFirmwareVersion;
+        }
+
+        public void setOtaFirmwareVersion(String otaFirmwareVersion) {
+            this.otaFirmwareVersion = otaFirmwareVersion;
         }
     }
 

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
+<!--    <application>-->
+<!--        <receiver android:name=".ble.BluetoothReceiver"-->
+<!--            android:enabled="true"-->
+<!--            android:exported="true">-->
+<!--            <intent-filter android:priority="1000">-->
+<!--                <action android:name="android.bluetooth.device.action.PAIRING_REQUEST"/>-->
+<!--                <action android:name="android.bluetooth.device.action.FOUND" />-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
+<!--    </application>-->
+</manifest>

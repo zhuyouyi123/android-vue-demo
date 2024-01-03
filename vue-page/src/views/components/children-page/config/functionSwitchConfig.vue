@@ -17,7 +17,7 @@
       <van-cell-group inset v-if="!editStatus">
         <van-cell
           title="手环未连接或者数据获取失败"
-          label="当前无法配置，请重新进入或连接手环"
+          label="开关获取存在延迟，请稍等或或连接手环"
         >
           <van-image
             slot="icon"
@@ -129,7 +129,10 @@ export default {
 
     save() {
       this.$androidApi.saveFunctionSwitch(this.form).then(() => {
-        this.$refs.customNavBar.clickLeft();
+        // this.$refs.customNavBar.clickLeft();
+        setTimeout(() => {
+          this.queryFunctionSwitch();
+        }, 500);
       });
     },
   },

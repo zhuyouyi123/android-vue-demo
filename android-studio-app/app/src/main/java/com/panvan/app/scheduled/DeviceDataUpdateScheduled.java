@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DeviceDataUpdateScheduled {
 
@@ -57,11 +58,10 @@ public class DeviceDataUpdateScheduled {
 
             CommunicationService.getInstance().loadingDeviceHolder();
 
-            SharePreferenceUtil.getInstance().shareSet(SharePreferenceConstants.DEVICE_HOLDER_KEY, GSON.toJson(DeviceHolder.getInstance().getInfo()));
+            BleHandler.of().postDelayed(() -> SharePreferenceUtil.getInstance().shareSet(SharePreferenceConstants.DEVICE_HOLDER_KEY, GSON.toJson(DeviceHolder.getInstance().getInfo())), 1000);
 
             BleHandler.of().postDelayed(DeviceDataUpdateScheduled::updateDevice, 2000);
-
-        }, 1000, 60000, TimeUnit.MILLISECONDS);
+        }, 5000, 30000, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -78,6 +78,10 @@ public class DeviceDataUpdateScheduled {
                     if (StringUtils.isNotBlank(info.getModel())) {
                         deviceDO.setModel(info.getModel());
                         deviceDO.setFirmwareVersion(info.getFirmwareVersion());
+                    }
+                    if (StringUtils.isNotBlank(info.getOtaAddress())) {
+                        deviceDO.setOtaAddress(info.getOtaAddress());
+                        deviceDO.setOtaFirmwareVersion(info.getOtaFirmwareVersion());
                     }
 
                     // UserDatabase.getInstance().getDeviceDAO().update(deviceDO);

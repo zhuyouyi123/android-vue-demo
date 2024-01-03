@@ -39,8 +39,9 @@ public class CommunicationDataCache {
     }
 
     public void init(List<CommunicationDataDO> list, DBCallback dbCallback) {
-        dataCacheMap.clear();
-        CACHE_MAP.clear();
+        // dataCacheMap.clear();
+        // CACHE_MAP.clear();
+        Log.i("CONSOLE", CACHE_MAP.size() + "");
         if (Objects.nonNull(list) && !list.isEmpty()) {
             Map<Integer, Map<String, CommunicationDataDO>> dataDOMap = new HashMap<>();
 

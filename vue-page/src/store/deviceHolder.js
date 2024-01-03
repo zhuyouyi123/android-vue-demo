@@ -37,7 +37,9 @@ export default {
             bloodViscosity: 0
         },
         model: "",
-        firmwareVersion: ""
+        firmwareVersion: "",
+        otaFirmwareVersion: "",
+        otaAddress: ""
     },
 
     // 步数信息
@@ -79,9 +81,9 @@ export default {
             // 血氧
             bloodOxygen: 0,
             // 收缩压
-            systolicPressure: '未知',
+            systolicPressure: 0,
             // 舒张压
-            diastolicPressure: '未知',
+            diastolicPressure: 0,
             // 血液粘稠度
             bloodViscosity: 0
 

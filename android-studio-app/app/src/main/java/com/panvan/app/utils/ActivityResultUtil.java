@@ -2,15 +2,19 @@ package com.panvan.app.utils;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.Settings;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
-import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;
+import com.ble.dfuupgrade.DfuUpgradeHandle;
 import com.db.database.daoobject.DeviceDO;
 import com.db.database.service.DeviceDataService;
 import com.google.gson.Gson;
@@ -18,16 +22,12 @@ import com.google.gson.JsonSyntaxException;
 import com.huawei.hms.hmsscankit.ScanUtil;
 import com.huawei.hms.ml.scan.HmsScan;
 import com.panvan.app.Config;
-import com.panvan.app.Receiver.call.CallViewModel;
 import com.panvan.app.callback.ConnectCallback;
 import com.panvan.app.connect.DeviceConnectHandle;
 import com.panvan.app.data.constants.ActiveForResultConstants;
-import com.panvan.app.data.constants.JsBridgeConstants;
 import com.panvan.app.data.constants.PermissionsRequestConstants;
-import com.panvan.app.data.constants.SharePreferenceConstants;
 import com.panvan.app.data.entity.bo.WatchQrCodeBO;
-import com.panvan.app.data.holder.DeviceHolder;
-import com.panvan.app.service.CommunicationService;
+import com.panvan.app.receiver.call.CallViewModel;
 import com.panvan.app.service.PermissionService;
 import com.panvan.app.service.SystemService;
 
@@ -82,7 +82,8 @@ public class ActivityResultUtil {
                 }
                 break;
             case ActiveForResultConstants.REQUEST_NOTIFY_CODE:
-                BleHandler.of().postDelayed(() -> CommunicationService.getInstance().startDufUpgrade(), 8000);
+                DfuUpgradeHandle.setIsUpgrading(true);
+                SdkUtil.retryWriteCommand("B1");
                 break;
         }
     }
@@ -119,11 +120,29 @@ public class ActivityResultUtil {
                 }
                 break;
             case PermissionsRequestConstants.APP_LIST_PERMISSION_REQUEST_CODE:
-                SystemService.getInstance().openPage();
+                if (existPermissions) {
+                    SystemService.getInstance().openPage();
+                } else {
+                    showPermissionGuide();
+                }
                 break;
             default:
                 break;
         }
 
+    }
+
+    private static void showPermissionGuide() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(Config.mainContext);
+        builder.setTitle("权限申请");
+        builder.setMessage("请打开应用程序列表权限以获取应用列表");
+        builder.setPositiveButton("去设置", (dialog, which) -> {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uri = Uri.fromParts("package", Config.mainContext.getPackageName(), null);
+            intent.setData(uri);
+            Config.mainContext.startActivity(intent);
+        });
+        builder.setNegativeButton("取消", null);
+        builder.show();
     }
 }

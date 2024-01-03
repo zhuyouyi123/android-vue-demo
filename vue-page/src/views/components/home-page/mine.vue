@@ -29,7 +29,7 @@
         <van-cell
           v-show="device"
           :title="`${name}手环`"
-          :value="`剩余电量${battery}%`"
+          :value="battery == 0 ? '正在获取电量...' : `剩余电量${battery}%`"
           size="large"
           center
         />
@@ -84,10 +84,8 @@
           title="固件更新"
           size="large"
           is-link
-          @click="checkNeedUpdate('DFU_FIRMWARE', false)"
-          :value="
-            updateState.DFU_FIRMWARE ? '有新版本可用' : updateState.dfuDurrVer
-          "
+          @click="downloadFile('FIRMWARE', updateInfo.data)"
+          :value="updateInfo && updateInfo.tips"
         >
           <van-image
             class="l-p-l"
@@ -129,10 +127,8 @@
           title="检查更新"
           size="large"
           is-link
-          @click="checkNeedUpdate('ANDROID_APP', false)"
-          :value="
-            updateState.ANDROID_APP ? '有新版本可用' : updateState.appCurrVer
-          "
+          @click="downloadFile('ANDROID_APP', updateInfo.data.appUpdateInfo)"
+          :value="updateInfo && updateInfo.data.appUpdateInfo.tips"
         >
           <van-image
             class="l-p-l"
@@ -170,6 +166,7 @@
 <script>
 import { Toast, Popup, Notify, Dialog } from "vant";
 import customNavBar from "../custom/customNavBar.vue";
+import fileUpgradeUtil from "@/utils/fileUpgradeUtil";
 
 export default {
   components: {
@@ -197,7 +194,12 @@ export default {
         dfuDurrVer: "",
         OTA_FIRMWARE: false,
       },
+      updateInfo: null,
       appVersion: "",
+      otaUpgradeReply: false,
+      currUpgradeType: "",
+      // 文件下载状态 1 下载中 2 下载成功
+      fileDownloadStatus: 0,
     };
   },
 
@@ -221,12 +223,124 @@ export default {
 
   methods: {
     checkAllUpdate() {
-      this.checkNeedUpdate("ANDROID_APP", true).then((res) => {
-        this.updateState.ANDROID_APP = res.result;
+      fileUpgradeUtil.checkUpgradeResult(this.battery).then((res) => {
+        console.log(JSON.stringify(res));
+        this.updateInfo = { ...res };
       });
+    },
 
-      this.checkNeedUpdate("DFU_FIRMWARE", true).then((res) => {
-        this.updateState.DFU_FIRMWARE = res.result;
+    downloadFile(type, data) {
+      if (!data) {
+        return;
+      }
+      if (type == "ANDROID_APP") {
+        if (data && data.updateData && data.updateData.needUpdate) {
+          this.dialogTips(data.version, data.updateData)
+            .then(() => {
+              setTimeout(() => {
+                this.fileUpdateHandle(type, data.updateData.fileName);
+              }, 500);
+            })
+            .catch(() => {
+              setTimeout(() => {
+                // 文件下载失败
+                this.fileDownloadStatus = -1;
+                this.overlayShow = false;
+              }, 1000);
+            });
+        }
+      } else {
+        let dfuUpdateInfo = data.dfuUpdateInfo;
+        let otaUpdateInfo = data.otaUpdateInfo;
+
+        if (!dfuUpdateInfo && !otaUpdateInfo) {
+          return;
+        }
+        if (otaUpdateInfo && otaUpdateInfo.needUpdate) {
+          let updateData = otaUpdateInfo.updateData;
+          let tips = "";
+          if (dfuUpdateInfo.needUpdate) {
+            tips =
+              "Tips:本次需要升级OTA+DFU固件，请耐心等待...\n预计升级时间为3分钟\n\n";
+            tips += `OTA升级内容:\n当前版本：${
+              otaUpdateInfo.version
+            }\n新版本：${updateData.fileName}\n文件大小：${
+              (updateData.fileSize / (1024 * 1024)).toFixed(2) + "MB"
+            }\n\n`;
+            tips += `DFU升级内容:\n当前版本：${
+              dfuUpdateInfo.version
+            }\n新版本：${dfuUpdateInfo.updateData.fileName}\n文件大小：${
+              (dfuUpdateInfo.updateData.fileSize / (1024 * 1024)).toFixed(2) +
+              "MB"
+            }\n`;
+          } else {
+            tips =
+              "Tips:本次需要升级OTA固件，请耐心等待...\n预计升级时间为1分钟\n\n";
+            tips += `OTA升级内容:\n当前版本：${
+              dfuUpdateInfo.version
+            }\n新版本：${updateData.fileName}\n文件大小：${
+              (updateData.fileSize / (1024 * 1024)).toFixed(2) + "MB"
+            }\n`;
+          }
+
+          this.dialogTips(otaUpdateInfo.version, updateData, tips)
+            .then(() => {
+              this.fileUpdateHandle("OTA_FIRMWARE", updateData.fileName);
+            })
+            .catch(() => {
+              setTimeout(() => {
+                this.overlayShow = false;
+              }, 1000);
+            });
+        } else if (dfuUpdateInfo && dfuUpdateInfo.needUpdate) {
+          let updateData = dfuUpdateInfo.updateData;
+          let tips =
+            "Tips:本次需要升级DFU固件，请耐心等待...\n预计升级时间为2分钟\n\n";
+          tips += `DFU升级内容:\n当前版本：${dfuUpdateInfo.version}\n新版本：${
+            updateData.fileName
+          }\n文件大小：${
+            (updateData.fileSize / (1024 * 1024)).toFixed(2) + "MB"
+          }\n`;
+          this.dialogTips(dfuUpdateInfo.version, updateData, tips)
+            .then(() => {
+              this.fileUpdateHandle("DFU_FIRMWARE", updateData.fileName);
+            })
+            .catch(() => {
+              setTimeout(() => {
+                this.overlayShow = false;
+                console.log("overlayShow", 3);
+              }, 1000);
+            });
+        }
+      }
+    },
+
+    dialogTips(version, updateData, tips = "") {
+      return new Promise((resolve, reject) => {
+        if (!tips) {
+          tips = `${tips}当前版本：${version}\n新版本：${
+            updateData.fileName
+          }\n文件大小：${
+            (updateData.fileSize / (1024 * 1024)).toFixed(2) + "MB"
+          }\n`;
+        }
+        Dialog.confirm({
+          title: "有新版本可用",
+          message: tips,
+          confirmButtonText: "立即更新",
+          showCancelButton: true,
+          cancelButtonText: "稍后再说",
+          messageAlign: "left",
+        })
+          .then(() => {
+            this.overlayShow = true;
+            this.downloadFileStatus = true;
+            this.loadingText = "文件下载中，请稍等...";
+            resolve();
+          })
+          .catch(() => {
+            reject();
+          });
       });
     },
 
@@ -253,6 +367,7 @@ export default {
               this.loadingText = "设备连接失败";
               setTimeout(() => {
                 this.overlayShow = false;
+                console.log("overlayShow", 4);
               }, 1000);
               break;
             case 3004:
@@ -265,21 +380,29 @@ export default {
               }, 2000);
 
               setTimeout(() => {
-                if (!this.device) {
-                  this.queryDevice();
-                }
+                this.queryDevice();
                 this.overlayShow = false;
+                this.checkAllUpdate();
+                console.log("overlayShow", 5);
               }, 8000);
               break;
           }
-
           break;
         case "DEVICE_REAL_TIME":
           this.readBattery();
           this.setName();
+          setTimeout(() => {
+            this.checkAllUpdate();
+          }, 100);
           break;
         case "FIRMWARE_UPGRADE_KEY":
           this.handleFirmwareUpgrade(data);
+          break;
+        case "OTA_FIRMWARE_UPGRADE":
+          // 接收到固件升级回复 准备固件升级
+          this.otaUpgradeReply = true;
+          this.loadingText = "开始进行OTA升级";
+          this.$androidApi.startOtaUpgrade();
           break;
       }
     },
@@ -339,6 +462,7 @@ export default {
         }
         this.setName();
         this.device = data;
+        this.checkAllUpdate();
       });
     },
 
@@ -383,165 +507,47 @@ export default {
       });
     },
 
-    lastVersionTips(noTips) {
-      if (!noTips) {
-        Toast({ message: "当前是最新版", position: "top" });
-      }
-      return {
-        result: false,
-      };
-    },
-
-    getDfuUpdate(noTips) {
-      let deviceInfo = this.$deviceHolder.deviceInfo;
-      if (!deviceInfo || !deviceInfo.firmwareVersion) {
-        return this.lastVersionTips(noTips);
-      }
-
-      let split = String(deviceInfo.firmwareVersion).split("_");
-      if (split.length != 2 || !split[1]) {
-        return this.lastVersionTips(noTips);
-      }
-
-      return {
-        result: true,
-        version: split[1],
-      };
-    },
-
-    /**
-     *
-     * @param {只需要结果，需要更新也不去 只返回结果 不弹窗} onlyResult
-     */
-    async checkNeedUpdate(type, onlyResult) {
-      if (!navigator.onLine) {
-        if (!onlyResult) {
-          Toast.fail("网络错误");
-        }
-        return { result: false };
-      }
-      // ANDROID_APP   DFU_FIRMWARE
-      let urlPath =
-        "http://172.16.55.55:40001/api-node/app/file-download/BCG_WRISTBAND/";
-      let url;
-      let currentVersion;
-      if (type == "DFU_FIRMWARE") {
-        let deviceInfoData = await this.$androidApi.getDeviceInfo();
-
-        if (!deviceInfoData) {
-          if (!onlyResult) {
-            Toast.fail({ message: "设备未连接", position: "top" });
-          }
-          return {
-            result: false,
-          };
-        }
-        if (this.battery <= 20) {
-          if (!onlyResult) {
-            Toast.fail({
-              message: "当电量低于20%，无法进行升级",
-              position: "top",
-            });
-          }
-          return { result: false };
-        }
-
-        if (!deviceInfoData.connectStatus) {
-          if (!onlyResult) {
-            Toast.fail({ message: "设备未连接", position: "top" });
-          }
-          return {
-            result: false,
-          };
-        }
-        let data = this.getDfuUpdate(onlyResult);
-        if (!data.result) {
-          return this.lastVersionTips(onlyResult);
-        }
-        currentVersion = data.version;
-        this.updateState.dfuDurrVer = "Version " + data.version;
-        url = `${urlPath}${type}/${data.version}`;
-      } else if (type == "ANDROID_APP") {
-        let version = await this.checkAppUpdate();
-        this.updateState.appCurrVer = "Version " + version;
-        currentVersion = version;
-        url = `${urlPath}${type}/${version}`;
-      }
-      console.log(url);
-
-      let res = await this.fetchData(url);
-      if (!res || !res.data) {
-        if (!onlyResult) {
-          Toast.fail({ message: "更新失败", position: "top" });
-        }
-        return { result: false };
-      }
-      let resData = res.data;
-      if (!resData.needUpdate) {
-        return this.lastVersionTips(onlyResult);
-      }
-
-      if (onlyResult) {
-        return {
-          result: true,
-        };
-      }
-
-      let fileSize = (resData.fileSize / (1024 * 1024)).toFixed(2) + "MB";
-
-      Dialog.confirm({
-        title: "有新版本可用",
-        message: `当前版本：${currentVersion}\n新版本：${resData.fileName}\n文件大小：${fileSize}\n`,
-        confirmButtonText: "立即更新",
-        showCancelButton: true,
-        cancelButtonText: "稍后再说",
-        messageAlign: "left",
-      })
-        .then(() => {
-          this.overlayShow = true;
-          this.loadingText = "文件下载中，请稍等...";
-          if (type == "DFU_FIRMWARE" || type == "ANDROID_APP") {
-            setTimeout(() => {
-              this.fileUpdateHandle(type, resData.fileName);
-            }, 500);
-          }
-        })
-        .catch(() => {});
-    },
-
-    getAppUpdate() {},
-    /**
-     * 查询App版本
-     */
-    async checkAppUpdate() {
-      let res = await this.$androidApi.queryAppVersion();
-      return res;
-    },
-
     /**
      * 文件更新处理
      */
 
     fileUpdateHandle(type, fileName) {
+      // 文件下载中
+      this.fileDownloadStatus = 1;
       let params = {
         fileType: type,
         fileName: fileName,
       };
 
+      setTimeout(() => {
+        // 如果一直是下载中 并且 弹窗还存在 关闭关窗
+        if (this.fileDownloadStatus == 1 && this.overlayShow) {
+          this.overlayShow = false;
+        }
+      }, 10000);
+
       this.$androidApi
         .downloadFile(params)
         .then(() => {
+          // 下载成功
+          this.fileDownloadStatus = 2;
+          this.currUpgradeType = "";
           this.loadingText = "文件下载成功...";
           if (type == "DFU_FIRMWARE") {
-            this.enterFirmwareUpgrade();
+            this.enterFirmwareUpgrade(type, "B1");
           } else if (type == "ANDROID_APP") {
             this.installApp();
+          } else if ((type = "OTA_FIRMWARE")) {
+            this.enterFirmwareUpgrade(type, "68000200B0021C16");
           }
         })
         .catch(() => {
+          // 下载失败
+          this.fileDownloadStatus = -1;
           this.loadingText = "升级失败";
           setTimeout(() => {
             this.overlayShow = false;
+            console.log("overlayShow", 6);
           }, 1000);
         });
     },
@@ -549,19 +555,33 @@ export default {
     /**
      * 进入固件升级
      */
-    enterFirmwareUpgrade() {
+    enterFirmwareUpgrade(type, hex) {
+      this.currUpgradeType = type;
       this.$androidApi
-        .writeCommand("B1")
+        .writeCommand(hex)
         .then(() => {
           setTimeout(() => {
-            this.$androidApi.startDfuUpgrade();
-            this.loadingText = "准备连接...";
+            if (type == "DFU_FIRMWARE") {
+              this.$androidApi.startDfuUpgrade();
+              this.loadingText = "准备连接...";
+            } else {
+              setTimeout(() => {
+                if (!this.otaUpgradeReply) {
+                  this.loadingText = "固件升级失败";
+                  setTimeout(() => {
+                    this.overlayShow = false;
+                    console.log("overlayShow", 7);
+                  }, 1000);
+                }
+              }, 3000);
+            }
           }, 1000);
         })
         .catch(() => {
           this.loadingText = "升级失败";
           setTimeout(() => {
             this.overlayShow = false;
+            console.log("overlayShow", 8);
           }, 1000);
         });
       setTimeout(() => {
@@ -594,8 +614,23 @@ export default {
           break;
         case "UPGRADE_SUCCESS":
           this.loadingText = "升级成功...";
-          this.checkAllUpdate();
-          needClose = true;
+          // 如果是ota升级 检查是否需要进行dfu升级
+          if (this.currUpgradeType == "OTA_FIRMWARE") {
+            if (
+              this.updateInfo.data.dfuUpdateInfo &&
+              this.updateInfo.data.dfuUpdateInfo.needUpdate
+            ) {
+              // 准备进行dfu升级
+              needClose = false;
+              this.loadingText = "开始进行DFU升级";
+              setTimeout(() => {
+                this.enterFirmwareUpgrade("DFU_FIRMWARE", "B1");
+              }, 1000);
+            }
+          } else {
+            this.checkAllUpdate();
+            needClose = true;
+          }
           break;
         case "UPGRADING":
           this.loadingText = `升级中 ${data.value}%...`;
@@ -610,11 +645,11 @@ export default {
           break;
       }
 
-      console.log("handleFirmwareUpgrade", needClose);
-
       if (needClose) {
         setTimeout(() => {
-          this.overlayShow = false;
+          if (this.overlayShow) {
+            this.overlayShow = false;
+          }
         }, 2000);
       }
     },
