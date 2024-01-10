@@ -123,11 +123,11 @@ public class SystemController {
     @SuppressLint("InlinedApi")
     @AppRequestMapper(path = "/manager-app", method = AppRequestMethod.POST)
     public void openPage() {
-        if (!PermissionsUtil.checkPermission(Manifest.permission.PACKAGE_USAGE_STATS)) {
-            PermissionsUtil.requestBasePermission(Manifest.permission.PACKAGE_USAGE_STATS, PermissionsRequestConstants.APP_LIST_PERMISSION_REQUEST_CODE);
-        } else {
+        // if (!PermissionsUtil.checkPermission(Manifest.permission.PACKAGE_USAGE_STATS)) {
+        //     PermissionsUtil.requestBasePermission(Manifest.permission.PACKAGE_USAGE_STATS, PermissionsRequestConstants.APP_LIST_PERMISSION_REQUEST_CODE);
+        // } else {
             SystemService.getInstance().openPage();
-        }
+        // }
 
     }
 

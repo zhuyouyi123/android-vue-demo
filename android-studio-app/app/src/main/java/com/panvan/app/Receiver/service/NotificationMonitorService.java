@@ -127,6 +127,11 @@ public class NotificationMonitorService extends NotificationListenerService {
                 }
             }
 
+            if (StringUtils.isNotBlank(title) && title.contains("正在运行")) {
+                return;
+            }
+
+
             if (Objects.isNull(typeEnum)) {
                 if (!APP_LIST_MAP.containsKey(sbn.getPackageName())) {
                     return;

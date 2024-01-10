@@ -72,6 +72,7 @@ export default {
         path: "/layout/index",
         query: { active: 2 },
       },
+      firstTips: true,
     };
   },
 
@@ -96,6 +97,11 @@ export default {
       }
     },
     stateChange() {
+      if (!this.notificationPermissions) {
+        this.notifyEnable = !this.notifyEnable;
+        this.requestContactsPermission();
+        return;
+      }
       let params = {
         type: this.configKey,
         value: this.notifyEnable ? 1 : 0,
@@ -110,8 +116,15 @@ export default {
     queryPermissionExist() {
       this.$androidApi.queryPermissionExist(this.pageGroup).then((data) => {
         this.notificationPermissions = data;
-        if (this.notificationPermissions && this.permissionInterval) {
-          clearInterval(this.permissionInterval);
+        if (this.notificationPermissions) {
+          if (this.permissionInterval) {
+            clearInterval(this.permissionInterval);
+          }
+        } else {
+          if (this.firstTips) {
+            this.firstTips = false;
+            this.requestContactsPermission();
+          }
         }
       });
     },
@@ -124,6 +137,9 @@ export default {
           data.forEach((e) => {
             if (e.type == this.configKey) {
               this.notifyEnable = e.value == 1;
+              if (this.notifyEnable && this.notificationPermissions) {
+                Toast({ message: "请点击-管理App 添加应用", position: "top" });
+              }
             }
           });
         });
@@ -138,7 +154,6 @@ export default {
         showCancelButton: true,
         message: "请开启通知读取权限",
       }).then(() => {
-        // on close
         this.$androidApi.requestPermission(this.pageGroup);
       });
     },

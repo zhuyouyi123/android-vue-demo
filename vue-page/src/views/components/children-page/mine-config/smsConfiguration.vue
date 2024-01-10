@@ -51,7 +51,7 @@
 <script>
 import customNavBar from "@/views/components/custom/customNavBar";
 import debounce from "@/utils/debounce";
-import { Dialog } from "vant";
+import { Dialog, Toast } from "vant";
 export default {
   name: "sms",
   components: { customNavBar, [Dialog.Component.name]: Dialog.Component },
@@ -66,6 +66,7 @@ export default {
         path: "/layout/index",
         query: { active: 2 },
       },
+      firstTips: true,
     };
   },
   mounted() {
@@ -86,8 +87,15 @@ export default {
     queryPermissionExist() {
       this.$androidApi.queryPermissionExist(this.pageGroup).then((data) => {
         this.notificationPermissions = data;
-        if (this.notificationPermissions && this.permissionInterval) {
-          clearInterval(this.permissionInterval);
+        if (this.notificationPermissions) {
+          if (this.permissionInterval) {
+            clearInterval(this.permissionInterval);
+          }
+        } else {
+          if (this.firstTips) {
+            this.firstTips = false;
+            this.requestContactsPermission();
+          }
         }
       });
     },
@@ -106,6 +114,11 @@ export default {
     },
 
     stateChange() {
+      if (!this.notificationPermissions) {
+        this.smsEnable = !this.smsEnable;
+        this.requestContactsPermission();
+        return;
+      }
       let params = {
         type: this.configKey,
         value: this.smsEnable ? 1 : 0,

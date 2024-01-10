@@ -17,7 +17,7 @@
       <van-cell-group inset v-if="!editStatus">
         <van-cell
           title="手环未连接或者数据获取失败"
-          label="开关获取存在延迟，请稍等或或连接手环"
+          label="开关获取存在延迟，请稍等或重新连接手环"
         >
           <van-image
             slot="icon"
@@ -128,6 +128,9 @@ export default {
     },
 
     save() {
+      if (!this.editStatus) {
+        return;
+      }
       this.$androidApi.saveFunctionSwitch(this.form).then(() => {
         // this.$refs.customNavBar.clickLeft();
         setTimeout(() => {

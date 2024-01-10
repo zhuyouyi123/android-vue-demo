@@ -78,8 +78,12 @@ public class CallViewModel {
                         if (inCallContactsEnable) {
                             String contactNameFromNumber = getContactNameFromNumber(Config.mainContext, phoneNumber);
                             LogUtil.error("写入指令 名称：" + contactNameFromNumber);
-                            // 使用正则表达式只保留字母、数字和汉字
-                            String cleanedText = contactNameFromNumber.replaceAll("[^a-zA-Z0-9\\u4E00-\\u9FA5]", "");
+                            String cleanedText = "未知号码";
+                            if (StringUtils.isNotBlank(contactNameFromNumber)) {
+                                // 使用正则表达式只保留字母、数字和汉字
+                                cleanedText = contactNameFromNumber.replaceAll("[^a-zA-Z0-9\\u4E00-\\u9FA5]", "");
+                            }
+
                             nameBytes = cleanedText.getBytes(StandardCharsets.UTF_8);
                         }
                         start(phoneNumber, nameBytes);

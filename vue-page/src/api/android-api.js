@@ -1,6 +1,7 @@
 import { Toast } from "vant";
 import androidVue from "../android-vue";
 
+var isAndroid = /android/.test(navigator.userAgent.toLowerCase());
 /**
  * tips
  * android 统一封装的返回结果 基本都是
@@ -17,7 +18,10 @@ export default {
    * @returns 无
    */
   openManagerAppPage(params) {
-    return request("post", "system/manager-app", params);
+    if (isAndroid) {
+      return request("post", "system/manager-app", params);
+    }
+    return iosRequest('openManagerAppPage', params);
   },
 
   /**
@@ -30,7 +34,10 @@ export default {
    * @returns 无
    */
   downloadFile(params) {
-    return request("post", "system/download", params);
+    if (isAndroid) {
+      return request("post", "system/download", params);
+    }
+    return iosRequest('openManagerAppPage', params);
   },
 
   /**
@@ -39,7 +46,10 @@ export default {
    * @returns app版本 Android版本返回的是 x.x.x
    */
   queryAppVersion() {
-    return request("get", "system/app-version")
+    if (isAndroid) {
+      return request("get", "system/app-version")
+    }
+    return iosRequest('queryAppVersion', params);
   },
 
   /**
@@ -48,7 +58,10 @@ export default {
    * @returns 
    */
   installApp() {
-    return request("post", "system/app-install")
+    if (isAndroid) {
+      return request("post", "system/app-install");
+    }
+    return iosRequest('installApp');
   },
 
 
@@ -58,7 +71,10 @@ export default {
    * @returns value
    */
   shareGet(params) {
-    return request('get', 'share/get', params)
+    if (isAndroid) {
+      return request('get', 'share/get', params);
+    }
+    return iosRequest('shareGet', params);
   },
 
   /**
@@ -66,7 +82,10 @@ export default {
    * @returns 扫码结果通过回调方法 Android直接调用vue返回 不通过结果返回
    */
   startScanQr() {
-    return request("get", 'permission/camera')
+    if (isAndroid) {
+      return request("get", 'permission/camera')
+    }
+    return iosRequest('startScanQr');
   },
 
   /**
@@ -75,7 +94,11 @@ export default {
    */
   // 获取权限
   requestCameraPermission() {
-    return request("post", 'permission/camera')
+    if (isAndroid) {
+      return request("post", 'permission/camera')
+    }
+    return iosRequest('requestCameraPermission');
+
   },
 
   /**
@@ -85,7 +108,10 @@ export default {
    * @returns 是否存在权限
    */
   queryPermissionExist(type) {
-    return request("get", 'permission/exist', type)
+    if (isAndroid) {
+      return request("get", 'permission/exist', type)
+    }
+    return iosRequest('queryPermissionExist', type);
   },
 
   /**
@@ -94,7 +120,10 @@ export default {
    * @returns 
    */
   requestPermission(type) {
-    return request("post", 'permission', type)
+    if (isAndroid) {
+      return request("post", 'permission', type)
+    }
+    return iosRequest('requestPermission', type);
   },
 
   /**
@@ -113,7 +142,10 @@ export default {
    */
   // 写入指令 
   writeCommand(params) {
-    return request("post", "communication/write-command", params);
+    if (isAndroid) {
+      return request("post", "communication/write-command", params);
+    }
+    return iosRequest('writeCommand', params);
   },
 
   /**
@@ -122,10 +154,16 @@ export default {
    * @returns 无
    */
   startDfuUpgrade(params) {
-    return request("post", "communication/dfu-upgrade", params);
+    if (isAndroid) {
+      return request("post", "communication/dfu-upgrade", params);
+    }
+    return iosRequest('startDfuUpgrade', params);
   },
   startOtaUpgrade(params) {
-    return request("post", "communication/ota-upgrade", params);
+    if (isAndroid) {
+      return request("post", "communication/ota-upgrade", params);
+    }
+    return iosRequest('startOtaUpgrade', params);
   },
 
 
@@ -139,7 +177,10 @@ export default {
    */
   // 首页初始化 
   init(params) {
-    return request("post", "communication/init", params);
+    if (isAndroid) {
+      return request("post", "communication/init", params);
+    }
+    return iosRequest('init', params);
   },
 
   /**
@@ -185,7 +226,10 @@ export default {
     },
    */
   getDeviceInfo(params) {
-    return request("get", "communication/loading-device-info", params);
+    if (isAndroid) {
+      return request("get", "communication/loading-device-info", params);
+    }
+    return iosRequest("getDeviceInfo")
   },
 
   /**
@@ -197,7 +241,10 @@ export default {
    * private Integer lastMonth;
    */
   queryWeekAndMonthStepData() {
-    return request("get", "communication/week-and-month")
+    if (isAndroid) {
+      return request("get", "communication/week-and-month")
+    }
+    return iosRequest('queryWeekAndMonthStepData')
   },
 
   /**
@@ -211,7 +258,10 @@ export default {
    * @returns 当天最新信息
    */
   queryCurrDayLastInfo() {
-    return request("get", "communication/curr-day-last-info")
+    if (isAndroid) {
+      return request("get", "communication/curr-day-last-info");
+    }
+    return iosRequest('queryCurrDayLastInfo');
   },
 
   /**
@@ -219,11 +269,17 @@ export default {
    * @returns 查询血氧血压全天监测开关
    */
   queryFunctionSwitch() {
-    return request('get', 'communication/function-switch')
+    if (isAndroid) {
+      return request('get', 'communication/function-switch');
+    }
+    return iosRequest('queryFunctionSwitch');
   },
 
   saveFunctionSwitch(params) {
-    return request('post', 'communication/function-switch', params)
+    if (isAndroid) {
+      return request('post', 'communication/function-switch', params);
+    }
+    return iosRequest('saveFunctionSwitch', params);
   },
 
 
@@ -245,7 +301,11 @@ export default {
     //   resolve({"average":"0-0","chartSize":4,"data":{"dataList":[],"date":20231216},"dataIndex":2,"isMultiple":true,"max":"0-0","min":"0-0","needSoar":false});
     //   return
     // })
-    return request("get", "communication/history/list", { type: type, dateType: dateType, currIndex: currIndex });
+    let params = { type: type, dateType: dateType, currIndex: currIndex };
+    if (isAndroid) {
+      return request("get", "communication/history/list", params);
+    }
+    return iosRequest("getHistoryData", params)
   },
 
   /**
@@ -263,7 +323,10 @@ export default {
    */
   // 查询达标次数
   queryComplianceDays() {
-    return request("get", "communication/compliance/days");
+    if (isAndroid) {
+      return request('get', 'communication/compliance/days');
+    }
+    return iosRequest('queryComplianceDays');
   },
 
   /**
@@ -271,7 +334,10 @@ export default {
    * @returns 
    */
   reset() {
-    return request("post", "communication/reset")
+    if (isAndroid) {
+      return request('post', 'communication/reset');
+    }
+    return iosRequest('reset');
   },
 
   /**
@@ -281,7 +347,10 @@ export default {
    */
   // 用户表
   queryUserInfo(params) {
-    return request("get", "user/user-info", params);
+    if (isAndroid) {
+      return request('get', 'user/user-info', params);
+    }
+    return iosRequest('queryUserInfo', params);
   },
 
   /**
@@ -290,7 +359,10 @@ export default {
    * @returns   
    */
   saveUserInfo(params) {
-    return request("post", "user/user-info", params);
+    if (isAndroid) {
+      return request('post', 'user/user-info', params);
+    }
+    return iosRequest('saveUserInfo', params);
   },
 
   /**
@@ -299,7 +371,10 @@ export default {
    */
   // 设备表
   queryDevice() {
-    return request('get', 'device')
+    if (isAndroid) {
+      return request('get', 'device');
+    }
+    return iosRequest('queryDevice');
   },
 
   /**
@@ -307,7 +382,10 @@ export default {
    * @returns
    */
   unbindDevice() {
-    return request('post', 'device/unbind')
+    if (isAndroid) {
+      return request('post', 'device/unbind');
+    }
+    return iosRequest('unbindDevice');
   },
 
   // 配置表￥￥￥￥￥￥￥￥
@@ -317,7 +395,10 @@ export default {
    * @returns 
    */
   initConfig() {
-    return request('get', 'configuration/init')
+    if (isAndroid) {
+      return request('get', 'configuration/init');
+    }
+    return iosRequest('initConfig');
   },
   /**
    * 查询配置根据组
@@ -326,7 +407,10 @@ export default {
    * @returns 
    */
   queryConfigurationByGroup(params) {
-    return request("get", "configuration/list", params)
+    if (isAndroid) {
+      return request('get', 'configuration/list', params);
+    }
+    return iosRequest('queryConfigurationByGroup', params);
   },
 
   /**
@@ -335,7 +419,10 @@ export default {
    * @returns 
    */
   updateConfigStatus(params) {
-    return request("get", "configuration/save", params)
+    if (isAndroid) {
+      return request("get", "configuration/save", params)
+    }
+    return iosRequest('updateConfigStatus', params)
   },
 
 }
@@ -368,4 +455,32 @@ function request(type, path, params) {
       reject(res.errorMsg[0])
     }
   })
+}
+
+// // 例如调用iOS原生方法：startScanQr，有参数
+// window.webkit.messageHandlers.startScanQr.postMessage({
+//   method: "methodName",
+//   data: {
+//       // 参数
+//   }
+// });
+// 无参数
+// window.webkit.messageHandlers.startScanQr.postMessage();
+
+function iosRequest(methodName, params = null) {
+  return new Promise((resolve, reject) => {
+    try {
+      var response = window.prompt(methodName, params ? JSON.stringify(params) : null);
+      Toast(response)
+      console.log(response);
+      let res = JSON.parse(response);
+      resolve(res.data)
+    } catch (e) {
+      Toast("返回异常")
+      reject();
+    }
+  })
+
+
+
 }

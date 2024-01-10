@@ -1,7 +1,5 @@
 package com.panvan.app.data.holder.chart;
 
-import java.util.List;
-
 public class MultipleChartInfoVO<T> {
 
     private Integer chartSize;

@@ -46,7 +46,7 @@ public class MyBleManager extends BleManager {
      */
     private static boolean alreadyHaveConnect = false;
 
-    @SuppressLint("StaticFieldLeak")
+    // @SuppressLint("StaticFieldLeak")
     // private static MyBleManager INSTANCE = null;
 
     // public static MyBleManager getInstance(Context context) {

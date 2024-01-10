@@ -41,7 +41,7 @@ public class Config {
      * @return
      */
     public static String getWebIndexUrl() {
-        return APK ? "file:///android_asset/ui/index.html" : "http://172.16.55.55:8888";
+        return APK ? "file:///android_asset/ui/index.html" : "http://172.16.53.86:8888";
     }
 
 

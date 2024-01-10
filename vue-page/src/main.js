@@ -32,6 +32,10 @@ router.afterEach((to, from, next) => {
   window.scrollTo(0, 0);
 });
 
+import VConsole from 'vconsole';
+const vconsole = new VConsole()
+Vue.use(vconsole)
+
 import androidVue from '@/android-vue.js';
 Vue.use(androidVue);
 

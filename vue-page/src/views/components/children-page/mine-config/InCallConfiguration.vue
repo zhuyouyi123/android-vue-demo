@@ -53,6 +53,7 @@
         >
           <template #right-icon>
             <van-switch
+              :disabled="!inCallChecked"
               v-model="showCallInfo"
               @change="stateChange(showCallInfoKey)"
               size="24"
@@ -86,6 +87,7 @@ export default {
         path: "/layout/index",
         query: { active: 2 },
       },
+      firstTips: true,
     };
   },
 
@@ -126,8 +128,15 @@ export default {
     queryPermissionExist() {
       this.$androidApi.queryPermissionExist("READ_PHONE_STATE").then((data) => {
         this.notificationPermissions = data;
-        if (this.notificationPermissions && this.permissionInterval) {
-          clearInterval(this.permissionInterval);
+        if (this.notificationPermissions) {
+          if (this.permissionInterval) {
+            clearInterval(this.permissionInterval);
+          }
+        } else {
+          if (this.firstTips) {
+            this.firstTips = false;
+            this.requestContactsPermission();
+          }
         }
       });
     },
@@ -163,6 +172,11 @@ export default {
     },
 
     stateChange(type) {
+      if (type == this.inCallCheckedKey && !this.notificationPermissions) {
+        this.requestContactsPermission();
+        this.inCallChecked = !this.inCallChecked;
+        return;
+      }
       this.debouncedConfig(type);
     },
 

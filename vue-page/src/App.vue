@@ -132,7 +132,7 @@ export default {
       }
     },
 
-     androidGoBackBySystemButton() {
+    androidGoBackBySystemButton() {
       if (
         !this.$deviceHolder.routerPath ||
         this.$deviceHolder.routerPath == "/"
@@ -180,10 +180,17 @@ export default {
     responseDataHandle(data) {
       switch (data.eventName) {
         case "DEVICE_BATTERY":
-          deviceHolder.deviceInfo.battery = data.data;
+          if (data.data && data.data > 0) {
+            deviceHolder.deviceInfo.battery = data.data;
+          }
           break;
         case "DEVICE_REAL_TIME":
+          let battery = 0;
+          if (deviceHolder.deviceInfo.battery > 0) {
+            battery = deviceHolder.deviceInfo.battery;
+          }
           deviceHolder.deviceInfo = JSON.parse(JSON.stringify(data.data));
+          deviceHolder.deviceInfo.battery = battery;
           break;
         case "STEP_HISTORY_DATA":
           deviceHolder.stepStatisticsInfo = JSON.parse(

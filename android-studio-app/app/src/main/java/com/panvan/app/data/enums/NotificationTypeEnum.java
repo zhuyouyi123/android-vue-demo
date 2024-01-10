@@ -59,14 +59,14 @@ public enum NotificationTypeEnum {
         StringBuilder stringBuilder = new StringBuilder("680B");
 
         int totalLength = 3;
-        if (content.length() > 80) {
-            content = content.substring(0, 80) + "...";
+        if (content.length() > 60) {
+            content = content.substring(0, 60) + "...";
         }
         byte[] contentBytes = content.getBytes();
         totalLength += contentBytes.length;
 
-        if (title.length() > 25) {
-            title = title.substring(0, 25) + "...";
+        if (title.length() > 20) {
+            title = title.substring(0, 20) + "...";
         }
         byte[] titleBytes = title.getBytes();
         totalLength += titleBytes.length;

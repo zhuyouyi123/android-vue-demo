@@ -1,9 +1,5 @@
 package com.panvan.app.utils;
 
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
-
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
 import com.ble.blescansdk.ble.utils.SharePreferenceUtil;

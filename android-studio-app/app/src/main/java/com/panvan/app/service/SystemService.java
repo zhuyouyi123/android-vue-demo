@@ -8,6 +8,7 @@ import android.provider.Settings;
 
 import androidx.core.content.FileProvider;
 
+import com.ble.blescansdk.ble.scan.handle.BleHandler;
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.db.database.UserDatabase;
 import com.db.database.daoobject.NotificationAppListDO;
@@ -83,13 +84,15 @@ public class SystemService {
             NotificationAppListDataService.getInstance().query(new NotificationAppListDataService.Callback() {
                 @Override
                 public void success(List<NotificationAppListDO> doList) {
-                    Intent intent = new Intent(Config.mainContext, AppListActivity.class);
-                    if (CollectionUtils.isNotEmpty(doList)) {
-                        for (NotificationAppListDO appListDO : doList) {
-                            intent.putExtra(appListDO.getPackageName(), appListDO.getAppName());
+                    BleHandler.of().postDelayed(() -> {
+                        Intent intent = new Intent(Config.mainContext, AppListActivity.class);
+                        if (CollectionUtils.isNotEmpty(doList)) {
+                            for (NotificationAppListDO appListDO : doList) {
+                                intent.putExtra(appListDO.getPackageName(), appListDO.getAppName());
+                            }
                         }
-                    }
-                    Config.mainContext.startActivity(intent);
+                        Config.mainContext.startActivity(intent);
+                    }, 100);
                 }
 
                 @Override

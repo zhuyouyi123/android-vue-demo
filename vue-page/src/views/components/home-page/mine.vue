@@ -491,6 +491,7 @@ export default {
               this.updateState.dfuDurrVer = "";
               this.$deviceHolder.deviceInfo = {};
               this.$deviceHolder.deviceInfo = this.$deviceHolder.initDeviceInfo;
+              this.checkAllUpdate();
               this.queryDevice();
             }
           });
