@@ -1,4 +1,4 @@
-package com.panvan.app.Receiver.service;
+package com.panvan.app.receiver.service;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -17,13 +17,11 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-
 import com.ble.blescansdk.ble.enums.BleConnectStatusEnum;
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.db.database.UserDatabase;
 import com.db.database.daoobject.ConfigurationDO;
 import com.db.database.daoobject.NotificationAppListDO;
-import com.db.database.enums.ConfigurationGroupEnum;
 import com.db.database.enums.ConfigurationTypeEnum;
 import com.panvan.app.Config;
 import com.panvan.app.data.enums.NotificationTypeEnum;
@@ -43,7 +41,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class NotificationMonitorService extends NotificationListenerService {
+public class AppNotificationMonitorService extends NotificationListenerService {
 
     private static final String TAG = "NotificationMonitor";
 
@@ -52,8 +50,12 @@ public class NotificationMonitorService extends NotificationListenerService {
 
     private static final Map<String, String> APP_LIST_MAP = new HashMap<>();
 
+    private final static Handler HANDLER = new Handler();
+
+    /**
+     * 消息
+     */
     private static final ConcurrentMap<String, String> MESSAGE_MAP = new ConcurrentHashMap<>();
-    private static final Handler HANDLER = new Handler();
 
 
     @Override
@@ -64,6 +66,7 @@ public class NotificationMonitorService extends NotificationListenerService {
             requestListenerHints(NotificationListenerService.HINT_HOST_DISABLE_CALL_EFFECTS);
         }
     }
+    //        startForeground(1,getNotification());
 
 
     @Override
@@ -148,7 +151,6 @@ public class NotificationMonitorService extends NotificationListenerService {
                 if (MESSAGE_MAP.containsKey(sha256Hash)) {
                     return;
                 }
-
                 MESSAGE_MAP.put(sha256Hash, sha256Hash);
                 HANDLER.postDelayed(() -> MESSAGE_MAP.remove(sha256Hash), 500);
 
@@ -213,7 +215,28 @@ public class NotificationMonitorService extends NotificationListenerService {
     @Override
     public void onListenerDisconnected() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            requestRebind(new ComponentName(this, NotificationMonitorService.class));
+            requestRebind(new ComponentName(this, AppNotificationMonitorService.class));
+        }
+    }
+
+    public static String getSHA256Hash(String str) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedHash = digest.digest(str.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+
+            for (byte b : encodedHash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return "";
         }
     }
 
@@ -270,9 +293,9 @@ public class NotificationMonitorService extends NotificationListenerService {
      */
     public static void toggleNotificationListenerService() {
         PackageManager pm = Config.mainContext.getPackageManager();
-        pm.setComponentEnabledSetting(new ComponentName(Config.mainContext, NotificationMonitorService.class),
+        pm.setComponentEnabledSetting(new ComponentName(Config.mainContext, AppNotificationMonitorService.class),
                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-        pm.setComponentEnabledSetting(new ComponentName(Config.mainContext, NotificationMonitorService.class),
+        pm.setComponentEnabledSetting(new ComponentName(Config.mainContext, AppNotificationMonitorService.class),
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
     }
 
@@ -304,25 +327,5 @@ public class NotificationMonitorService extends NotificationListenerService {
 
     }
 
-    private static String getSHA256Hash(String str) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] encodedHash = digest.digest(str.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hexString = new StringBuilder();
-
-            for (byte b : encodedHash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
-            }
-
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return "";
-        }
-    }
 
 }

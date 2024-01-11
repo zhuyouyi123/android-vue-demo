@@ -46,6 +46,6 @@ public class DeviceHistoryDataUpdateScheduled {
                 CommunicationService.getInstance().loadingTodayDeviceHistoryData();
             }
 
-        }, 10000, 120000 * 2, TimeUnit.MILLISECONDS);
+        }, 30000, 60000 * 5, TimeUnit.MILLISECONDS);
     }
 }

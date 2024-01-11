@@ -138,7 +138,7 @@ export default {
             if (e.type == this.configKey) {
               this.notifyEnable = e.value == 1;
               if (this.notifyEnable && this.notificationPermissions) {
-                Toast({ message: "请点击-管理App 添加应用", position: "top" });
+                Toast({ message: "可通过管理App添加应用", position: "bottom" });
               }
             }
           });

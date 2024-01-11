@@ -78,8 +78,6 @@ public class ConfigurationService {
                     CallViewModel.getInstance().loadConfig(type, dto.getValue() == 1);
                     break;
                 case NOTIFICATION_NOTIFY:
-                    NotificationMonitorService.reloadEnable(type, dto.getValue() == 1);
-                    break;
                 case NOTIFICATION_SMS:
                     NotificationMonitorService.reloadEnable(type, dto.getValue() == 1);
                     break;

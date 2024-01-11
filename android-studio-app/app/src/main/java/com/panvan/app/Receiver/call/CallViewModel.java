@@ -7,7 +7,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
-import android.widget.Toast;
 
 import com.ble.blescansdk.ble.utils.CollectionUtils;
 import com.ble.blescansdk.ble.utils.ProtocolUtil;
@@ -21,7 +20,6 @@ import com.panvan.app.service.PermissionService;
 import com.panvan.app.utils.DataConvertUtil;
 import com.panvan.app.utils.LogUtil;
 import com.panvan.app.utils.SdkUtil;
-import com.panvan.app.Receiver.call.CallModel;
 import com.panvan.app.utils.StringUtils;
 
 import java.nio.charset.StandardCharsets;

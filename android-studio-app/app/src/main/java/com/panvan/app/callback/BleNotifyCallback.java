@@ -15,6 +15,7 @@ import com.panvan.app.data.constants.JsBridgeConstants;
 import com.panvan.app.data.enums.AgreementEnum;
 import com.panvan.app.scheduled.CommandRetryScheduled;
 import com.panvan.app.scheduled.DeviceDataUpdateScheduled;
+import com.panvan.app.scheduled.DeviceHistoryDataUpdateScheduled;
 import com.panvan.app.service.CommunicationService;
 import com.panvan.app.utils.DataConvertUtil;
 import com.panvan.app.utils.JsBridgeUtil;
@@ -91,6 +92,7 @@ public class BleNotifyCallback implements IBleNotifyCallback {
             @Override
             public void success() {
                 CommunicationService.getInstance().reloadCommand();
+                DeviceHistoryDataUpdateScheduled.start();
             }
 
             @Override

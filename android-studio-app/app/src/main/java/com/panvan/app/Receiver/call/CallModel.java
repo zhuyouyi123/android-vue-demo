@@ -1,4 +1,4 @@
-package com.panvan.app.Receiver.call;
+package com.panvan.app.receiver.call;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
