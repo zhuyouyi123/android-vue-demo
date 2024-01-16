@@ -22,7 +22,7 @@ dependencyResolutionManagement {
 
     }
 }
-rootProject.name = "Android-vue"
+rootProject.name = "Android-Vue基座"
 include ':app'
 include ':scancode'
 include ':database'
