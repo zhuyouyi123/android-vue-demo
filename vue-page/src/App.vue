@@ -121,6 +121,7 @@ export default {
     },
 
     commonAndroidCallBack(returnJson) {
+      console.log("commonAndroidCallBack", returnJson);
       try {
         this.commonAndroidEvent.data = JSON.parse(returnJson);
 

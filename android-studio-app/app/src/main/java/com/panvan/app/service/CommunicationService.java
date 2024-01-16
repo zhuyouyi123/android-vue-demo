@@ -55,12 +55,15 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CommunicationService {
     private static CommunicationService INSTANCE = null;
     private static final String TAG = CommunicationService.class.getSimpleName();
 
     private static final Gson GSON = new Gson();
+
+    private static final AtomicInteger TIMING_INTERVAL = new AtomicInteger(0);
 
     private CommandConsumerQueue commandConsumerQueue;
 
@@ -191,8 +194,12 @@ public class CommunicationService {
     }
 
     private void timing() {
-        // SdkUtil.writeCommand(AgreementEnum.TIMING.getRequestCommand(null));
-        CommunicationService.getInstance().getCommandConsumerQueue().add(ProtocolUtil.byteArrToHexStr(AgreementEnum.TIMING.getRequestCommand(null)), false);
+        if (TIMING_INTERVAL.get() == 0 || TIMING_INTERVAL.get() == 480) {
+            CommunicationService.getInstance().getCommandConsumerQueue().add(ProtocolUtil.byteArrToHexStr(AgreementEnum.TIMING.getRequestCommand(null)), false);
+            TIMING_INTERVAL.set(1);
+        } else {
+            TIMING_INTERVAL.set(TIMING_INTERVAL.get() + 1);
+        }
     }
 
 

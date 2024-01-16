@@ -112,6 +112,8 @@ export default {
   },
   methods: {
     callJs(e) {
+      console.log("12123242323");
+      console.log("callJs", JSON.stringify(e));
       let eventName = e.data.eventName;
       let data = e.data.data;
       if (eventName == "FUNCTION_SWITCH_KEY") {

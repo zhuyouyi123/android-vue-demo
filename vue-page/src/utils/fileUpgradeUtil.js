@@ -75,13 +75,15 @@ export default {
     async checkUpgradeResult(battery) {
         // 初始化结果
         result = this.init();
+
         // 校验网络
         if (!navigator.onLine) {
             return this.setErrorMsg("网络错误");
         }
 
         let deviceInfoData = await androidApi.getDeviceInfo();
-        if (!deviceInfoData | !deviceInfoData.connectStatus) {
+
+        if (!deviceInfoData || !deviceInfoData.connectStatus) {
             result = this.unConnectError("设备未连接")
         } else {
             if (battery <= 20) {
@@ -93,7 +95,7 @@ export default {
         }
 
         await this.getAppVersion();
-
+       
         return result;
     },
 

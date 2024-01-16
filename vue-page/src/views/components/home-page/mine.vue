@@ -5,16 +5,12 @@
     <div class="page-content l-m-t">
       <div class="user-info-box">
         <div class="head-icon">
-          <van-image
-            :src="require('../../../assets/image/mine/head-icon.svg')"
-          ></van-image>
+          <van-image :src="require('../../../assets/image/mine/head-icon.svg')"></van-image>
         </div>
         <div class="user-info" @click="$router.push('/user/info')">
           <div class="username">{{ username }}</div>
           <div class="compliance-day">
-            <van-image
-              :src="require('../../../assets/image/mine/star-icon.svg')"
-            ></van-image>
+            <van-image :src="require('../../../assets/image/mine/star-icon.svg')"></van-image>
 
             <div class="day-num" v-if="complianceDays > 0">
               已达标{{ complianceDays }}天
@@ -26,17 +22,10 @@
 
       <div class="my-devices-box">
         <div class="null-box"></div>
-        <van-cell
-          v-show="device"
-          :title="`${name}手环`"
-          :value="battery == 0 ? '正在获取电量...' : `剩余电量${battery}%`"
-          size="large"
-          center
-        />
+        <van-cell v-show="device" :title="`${name}手环`" :value="battery == 0 ? '正在获取电量...' : `剩余电量${battery}%`"
+          size="large" center />
         <div class="add-device" @click="addDevice" v-show="!device">
-          <van-image
-            :src="require('../../../assets/image/mine/add-device-icon.svg')"
-          ></van-image>
+          <van-image :src="require('../../../assets/image/mine/add-device-icon.svg')"></van-image>
           <span>绑定设备</span>
         </div>
       </div>
@@ -44,110 +33,51 @@
       <!-- 配置 -->
       <van-cell-group inset>
         <van-cell title="来电提醒" size="large" to="/mine/incall" is-link>
-          <van-image
-            class="l-p-l"
-            slot="icon"
-            :src="
-              require('../../../assets/image/braceletconfig/incoming-call-icon.svg')
-            "
-          ></van-image>
+          <van-image class="l-p-l" slot="icon" :src="require('../../../assets/image/braceletconfig/incoming-call-icon.svg')
+            "></van-image>
         </van-cell>
         <!-- App通知 -->
-        <van-cell
-          title="APP通知提醒"
-          size="large"
-          to="/mine/appnotification"
-          is-link
-        >
-          <van-image
-            class="l-p-l"
-            slot="icon"
-            :src="
-              require('../../../assets/image/braceletconfig/app-notice-icon.svg')
-            "
-          ></van-image>
+        <van-cell title="APP通知提醒" size="large" to="/mine/appnotification" is-link>
+          <van-image class="l-p-l" slot="icon" :src="require('../../../assets/image/braceletconfig/app-notice-icon.svg')
+            "></van-image>
         </van-cell>
         <!-- 短信提醒 -->
         <van-cell title="短信提醒" size="large" to="/mine/sms" is-link>
-          <van-image
-            class="l-p-l"
-            slot="icon"
-            :src="
-              require('../../../assets/image/braceletconfig/text-message.icon.svg')
-            "
-          ></van-image>
+          <van-image class="l-p-l" slot="icon" :src="require('../../../assets/image/braceletconfig/text-message.icon.svg')
+            "></van-image>
         </van-cell>
       </van-cell-group>
 
       <van-cell-group inset class="l-m-t">
-        <van-cell
-          title="固件更新"
-          size="large"
-          is-link
-          @click="downloadFile('FIRMWARE', updateInfo.data)"
-          :value="updateInfo && updateInfo.tips"
-        >
-          <van-image
-            class="l-p-l"
-            slot="icon"
-            :src="
-              require('../../../assets/image/braceletconfig/firmware-icon.svg')
-            "
-          ></van-image>
+        <van-cell title="固件更新" size="large" is-link @click="downloadFile('FIRMWARE', updateInfo.data)"
+          :value="updateInfo && updateInfo.tips">
+          <van-image class="l-p-l" slot="icon" :src="require('../../../assets/image/braceletconfig/firmware-icon.svg')
+            "></van-image>
         </van-cell>
         <!-- App通知 -->
         <van-cell title="恢复出厂设置" size="large" is-link @click="reset">
-          <van-image
-            class="l-p-l"
-            slot="icon"
-            :src="
-              require('../../../assets/image/braceletconfig/reset-icon.svg')
-            "
-          ></van-image>
+          <van-image class="l-p-l" slot="icon" :src="require('../../../assets/image/braceletconfig/reset-icon.svg')
+            "></van-image>
         </van-cell>
         <!-- 开关配置 -->
-        <van-cell
-          title="功能开关配置"
-          size="large"
-          is-link
-          @click="$router.replace('/function/switch')"
-        >
-          <van-image
-            class="l-p-l"
-            slot="icon"
-            :src="
-              require('../../../assets/image/braceletconfig/function-switch-icon.svg')
-            "
-          ></van-image>
+        <van-cell title="功能开关配置" size="large" is-link @click="$router.replace('/function/switch')">
+          <van-image class="l-p-l" slot="icon" :src="require('../../../assets/image/braceletconfig/function-switch-icon.svg')
+            "></van-image>
         </van-cell>
       </van-cell-group>
 
       <van-cell-group inset class="l-m-t">
-        <van-cell
-          title="检查更新"
-          size="large"
-          is-link
-          @click="downloadFile('ANDROID_APP', updateInfo.data.appUpdateInfo)"
-          :value="updateInfo && updateInfo.data.appUpdateInfo.tips"
-        >
-          <van-image
-            class="l-p-l"
-            slot="icon"
-            :src="
-              require('../../../assets/image/braceletconfig/firmware-icon.svg')
-            "
-          ></van-image>
+        <van-cell title="检查更新" size="large" is-link @click="downloadFile('ANDROID_APP', updateInfo.data.appUpdateInfo)"
+          :value="updateInfo && updateInfo.data.appUpdateInfo.tips">
+          <van-image class="l-p-l" slot="icon" :src="require('../../../assets/image/braceletconfig/firmware-icon.svg')
+            "></van-image>
         </van-cell>
       </van-cell-group>
 
       <van-cell-group inset class="l-m-t" v-show="device">
         <van-cell title="解除绑定" size="large" is-link @click="unbind">
-          <van-image
-            width=".85rem"
-            height=".85rem"
-            slot="icon"
-            :src="require('../../../assets/image/mine/unbind-icon.svg')"
-          ></van-image>
+          <van-image width=".85rem" height=".85rem" slot="icon"
+            :src="require('../../../assets/image/mine/unbind-icon.svg')"></van-image>
         </van-cell>
       </van-cell-group>
     </div>
@@ -262,25 +192,19 @@ export default {
           if (dfuUpdateInfo.needUpdate) {
             tips =
               "Tips:本次需要升级OTA+DFU固件，请耐心等待...\n预计升级时间为3分钟\n\n";
-            tips += `OTA升级内容:\n当前版本：${
-              otaUpdateInfo.version
-            }\n新版本：${updateData.fileName}\n文件大小：${
-              (updateData.fileSize / (1024 * 1024)).toFixed(2) + "MB"
-            }\n\n`;
-            tips += `DFU升级内容:\n当前版本：${
-              dfuUpdateInfo.version
-            }\n新版本：${dfuUpdateInfo.updateData.fileName}\n文件大小：${
-              (dfuUpdateInfo.updateData.fileSize / (1024 * 1024)).toFixed(2) +
+            tips += `OTA升级内容:\n当前版本：${otaUpdateInfo.version
+              }\n新版本：${updateData.fileName}\n文件大小：${(updateData.fileSize / (1024 * 1024)).toFixed(2) + "MB"
+              }\n\n`;
+            tips += `DFU升级内容:\n当前版本：${dfuUpdateInfo.version
+              }\n新版本：${dfuUpdateInfo.updateData.fileName}\n文件大小：${(dfuUpdateInfo.updateData.fileSize / (1024 * 1024)).toFixed(2) +
               "MB"
-            }\n`;
+              }\n`;
           } else {
             tips =
               "Tips:本次需要升级OTA固件，请耐心等待...\n预计升级时间为1分钟\n\n";
-            tips += `OTA升级内容:\n当前版本：${
-              dfuUpdateInfo.version
-            }\n新版本：${updateData.fileName}\n文件大小：${
-              (updateData.fileSize / (1024 * 1024)).toFixed(2) + "MB"
-            }\n`;
+            tips += `OTA升级内容:\n当前版本：${dfuUpdateInfo.version
+              }\n新版本：${updateData.fileName}\n文件大小：${(updateData.fileSize / (1024 * 1024)).toFixed(2) + "MB"
+              }\n`;
           }
 
           this.dialogTips(otaUpdateInfo.version, updateData, tips)
@@ -296,11 +220,9 @@ export default {
           let updateData = dfuUpdateInfo.updateData;
           let tips =
             "Tips:本次需要升级DFU固件，请耐心等待...\n预计升级时间为2分钟\n\n";
-          tips += `DFU升级内容:\n当前版本：${dfuUpdateInfo.version}\n新版本：${
-            updateData.fileName
-          }\n文件大小：${
-            (updateData.fileSize / (1024 * 1024)).toFixed(2) + "MB"
-          }\n`;
+          tips += `DFU升级内容:\n当前版本：${dfuUpdateInfo.version}\n新版本：${updateData.fileName
+            }\n文件大小：${(updateData.fileSize / (1024 * 1024)).toFixed(2) + "MB"
+            }\n`;
           this.dialogTips(dfuUpdateInfo.version, updateData, tips)
             .then(() => {
               this.fileUpdateHandle("DFU_FIRMWARE", updateData.fileName);
@@ -318,11 +240,9 @@ export default {
     dialogTips(version, updateData, tips = "") {
       return new Promise((resolve, reject) => {
         if (!tips) {
-          tips = `${tips}当前版本：${version}\n新版本：${
-            updateData.fileName
-          }\n文件大小：${
-            (updateData.fileSize / (1024 * 1024)).toFixed(2) + "MB"
-          }\n`;
+          tips = `${tips}当前版本：${version}\n新版本：${updateData.fileName
+            }\n文件大小：${(updateData.fileSize / (1024 * 1024)).toFixed(2) + "MB"
+            }\n`;
         }
         Dialog.confirm({
           title: "有新版本可用",
@@ -437,9 +357,9 @@ export default {
             .then(() => {
               this.$androidApi.reset();
             })
-            .catch(() => {});
+            .catch(() => { });
         })
-        .catch(() => {});
+        .catch(() => { });
     },
 
     readBattery() {
@@ -496,7 +416,7 @@ export default {
             }
           });
         })
-        .catch(() => {});
+        .catch(() => { });
     },
 
     /**
@@ -540,6 +460,14 @@ export default {
             this.installApp();
           } else if ((type = "OTA_FIRMWARE")) {
             this.enterFirmwareUpgrade(type, "68000200B0021C16");
+            setTimeout(() => {
+              if (this.loadingText.indexOf("升级准备中") == 0) {
+                this.loadingText = "升级失败";
+                setTimeout(() => {
+                  this.overlayShow = false;
+                }, 1000);
+              }
+            }, 15000);
           }
         })
         .catch(() => {
@@ -615,6 +543,7 @@ export default {
           break;
         case "UPGRADE_SUCCESS":
           this.loadingText = "升级成功...";
+          needClose = true;
           // 如果是ota升级 检查是否需要进行dfu升级
           if (this.currUpgradeType == "OTA_FIRMWARE") {
             if (
@@ -625,12 +554,12 @@ export default {
               needClose = false;
               this.loadingText = "开始进行DFU升级";
               setTimeout(() => {
-                this.enterFirmwareUpgrade("DFU_FIRMWARE", "B1");
+                // this.enterFirmwareUpgrade("DFU_FIRMWARE", "B1");
+                this.fileUpdateHandle("DFU_FIRMWARE", this.updateInfo.data.dfuUpdateInfo.updateData.fileName);
               }, 1000);
             }
           } else {
             this.checkAllUpdate();
-            needClose = true;
           }
           break;
         case "UPGRADING":
@@ -744,6 +673,7 @@ export default {
       background: #ffffff;
       height: 0.1rem;
     }
+
     .add-device {
       height: 1.03rem;
       background: #ffffff;
@@ -775,17 +705,20 @@ export default {
     .van-cell {
       display: flex;
       align-items: center;
+
       .van-image {
         width: 0.63rem;
         height: 0.63rem;
         padding-right: 0.2rem;
       }
+
       .l-p-l {
         padding-right: 0.3rem;
         padding-left: 0.1rem;
       }
     }
   }
+
   .wrapper {
     height: 100%;
   }

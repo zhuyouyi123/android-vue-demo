@@ -20,6 +20,7 @@ import com.ble.dfuupgrade.MyBleManager;
 import com.db.database.AppDatabase;
 import com.db.database.service.AllDayDataService;
 import com.db.database.service.DeviceDataService;
+import com.google.gson.Gson;
 import com.panvan.app.Config;
 import com.panvan.app.annotation.AppController;
 import com.panvan.app.annotation.AppRequestMapper;
@@ -40,6 +41,7 @@ import com.panvan.app.response.RespVO;
 import com.panvan.app.service.CommunicationService;
 import com.panvan.app.service.PermissionService;
 import com.panvan.app.utils.DataConvertUtil;
+import com.panvan.app.utils.LogUtil;
 import com.panvan.app.utils.SdkUtil;
 import com.panvan.app.utils.StringUtils;
 import com.seekcy.otaupgrade.OtaHelper;
@@ -114,7 +116,9 @@ public class CommunicationController {
 
     @AppRequestMapper(path = "/history/list")
     public RespVO<Object> historyList(String type, Integer dateType, Integer index) {
-        return RespVO.success(CommunicationService.getInstance().queryHistoryData(type, dateType, index));
+        Object historyData = CommunicationService.getInstance().queryHistoryData(type, dateType, index);
+        LogUtil.info("查询历史数据：", new Gson().toJson(historyData));
+        return RespVO.success(historyData);
     }
 
     @AppRequestMapper(path = "/compliance/days")

@@ -33,13 +33,14 @@ public enum AgreementEnum {
     OTA_UPGRADE(0x00, 0x80, "OTA_UPGRADE") {
         @Override
         public void responseHandle(byte[] bytes, AgreementCallback callback) {
+            LogUtil.info("AgreementEnum", "OTA_UPGRADE:" + ProtocolUtil.byteArrToHexStr(bytes));
             if (Objects.isNull(bytes) || !DataConvertUtil.checkSum(bytes)) {
                 CommandRetryScheduled.getInstance().remove("00");
-                callback.success(OTA_UPGRADE);
+                callback.failed(OTA_UPGRADE, bytes);
                 return;
             } else if (bytes.length == 8) {
                 JsBridgeUtil.pushEvent(JsBridgeConstants.OTA_FIRMWARE_UPGRADE, true);
-            } else if (bytes.length == 20) {
+            } else if (bytes.length >= 20) {
                 int index = 7;
                 // ota模组版本
                 String otaFirmwareVersion = ProtocolUtil.byteToHexStr(bytes[index++]) + "." +
@@ -47,7 +48,7 @@ public enum AgreementEnum {
                         ProtocolUtil.byteToHexStr(bytes[index++]) + "." +
                         ProtocolUtil.byteToHexStr(bytes[index++]) + "." +
                         ProtocolUtil.byteToHexStr(bytes[index++]) + "." +
-                        ProtocolUtil.byteToHexStr(bytes[index++]) + ".";
+                        ProtocolUtil.byteToHexStr(bytes[index++]);
                 // ota 设备mac地址
                 StringBuilder stringBuilder = new StringBuilder("19:18:");
                 stringBuilder.append(ProtocolUtil.byteToHexStr(bytes[index++])).append(":");
@@ -123,7 +124,7 @@ public enum AgreementEnum {
         public void responseHandle(byte[] data, AgreementCallback callback) {
             // 68830100645016
             int battery;
-            if (Objects.nonNull(data) && data.length == 7 ) {
+            if (Objects.nonNull(data) && data.length == 7) {
                 battery = data[4] & 0xff;
                 DeviceHolder.getInstance().getInfo().setBattery(battery);
                 JsBridgeUtil.pushEvent(JsBridgeConstants.DEVICE_BATTERY, battery);
@@ -261,7 +262,7 @@ public enum AgreementEnum {
             byte[] subArray = DataConvertUtil.getSubArray(bytes, bytes.length - 30, 14);
             String version = new String(subArray, StandardCharsets.UTF_8);
 
-            if (RegexUtil.hasInvalidChars(modelStr)&&RegexUtil.hasInvalidChars(version)){
+            if (RegexUtil.hasInvalidChars(modelStr) && RegexUtil.hasInvalidChars(version)) {
                 DeviceHolder.getInstance().getInfo().setModel(modelStr);
                 DeviceHolder.getInstance().getInfo().setFirmwareVersion(version);
 
